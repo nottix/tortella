@@ -16,6 +16,9 @@ tortellaprotocol_testing: tortellaprotocol.o testing/tortellaprotocol_testing.c
 httpmanager_testing: httpmanager.o tortellaprotocol.o testing/httpmanager_testing.c
 	$(CC) -o testing/httpmanager_testing testing/httpmanager_testing.c tortellaprotocol.o httpmanager.o $(LDFLAGS) $(LIBS) $(INCFLAGS)
 
+socketmanager_testing: socketmanager.o
+	$(CC) -o testing/socketmanager_testing testing/socketmanager_testing.c socketmanager.o $(LDFLAGS) $(LIBS) $(INCFLAGS)
+
 .SUFFIXES:
 .SUFFIXES:	.c .cc .C .cpp .o
 
@@ -27,6 +30,9 @@ tortellaprotocol.o: tortellaprotocol.h tortellaprotocol.c
 
 httpmanager.o: httpmanager.h httpmanager.c tortellaprotocol.h
 	$(CC) $(CFLAGS) -o httpmanager.o -c httpmanager.c
+
+socketmanager.o: socketmanager.h socketmanager.c
+	$(CC) $(CFLAGS) -o socketmanager.o -c socketmanager.c
 
 count:
 	wc *.c *.cc *.C *.cpp *.h *.hpp

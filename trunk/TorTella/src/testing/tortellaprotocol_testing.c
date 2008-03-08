@@ -27,16 +27,15 @@ int main(int argc, char **argv) {
 	
 	header->id = 0;
 	header->desc_id = LISTHITS_ID;
-	header->ttl = 2;
-	header->hops = 3;
+	header->sender_id = 2;
+	header->recv_id = 3;
 	
 	listhits_desc *list1 = (listhits_desc*)malloc(sizeof(listhits_desc));
-	list1->port = 377;
+/*	list1->port = 377;
 	list1->ip = 21;
-	list1->servent_id = 2;
+	list1->servent_id = 2;*/
 	packet->desc = (char*)list1;
-	printf("port: %d, ip: %d", list1->port, list1->ip);
-	printf("Desc: %d\n", strlen((char*)list1));
+	
 	
 	header->data_len = 3;
 	header->desc_len = sizeof(list_desc);
