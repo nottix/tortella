@@ -55,7 +55,7 @@ http_packet *http_create_packet(tortella_packet *packet, u_int4 type, u_int4 sta
 
 		ret->type = type;
 		//int sock = createTcpSocket(ip, port);
-		//sendPacket(sock, http_bin_to_char(ret, type));;
+		//send_packet(sock, http_bin_to_char(ret, type));;
 
 	}
 	else if((type==HTTP_RES_POST || type==HTTP_RES_GET) && status>=HTTP_STATUS_OK) {
@@ -77,7 +77,7 @@ http_packet *http_create_packet(tortella_packet *packet, u_int4 type, u_int4 sta
 
 		ret->type = type;
 		//int sock = createTcpSocket(ip, port);
-		//sendPacket(sock, http_bin_to_char(ret, type));;
+		//send_packet(sock, http_bin_to_char(ret, type));;
 
 	}
 	return ret;
