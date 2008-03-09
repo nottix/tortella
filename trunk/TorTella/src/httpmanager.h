@@ -30,6 +30,7 @@ struct http_header_request {
 	char *user_agent;
 	u_int4 range_start;
 	u_int4 range_end;
+	u_int4 content_len;
 	char *connection;
 };
 typedef struct http_header_request http_header_request;
@@ -54,10 +55,16 @@ typedef struct http_packet http_packet;
 
 http_packet *http_create_packet(tortella_packet *packet, /*char *ip, int port,*/ u_int4 type, u_int4 status, char *filename, u_int4 range_start, u_int4 range_end, char *data, u_int4 data_len);
 
-http_header_request *http_create_header_request(http_header_request *header, u_int4 type, char *filename, u_int4 range_start, u_int4 range_end);
+http_header_request *http_create_header_request(http_header_request *header, u_int4 type, char *filename, u_int4 range_start, u_int4 range_end, u_int4 data_len);
 
 http_header_response *http_create_header_response(http_header_response *header, u_int4 type, u_int4 status, u_int4 content_len);
 
 char *http_bin_to_char(http_packet *packet);
+
+http_packet *http_char_to_bin(char *buffer);
+
+char *http_get_value(const char *buffer, const char *name);
+
+char *http_get_line(const char *buffer, u_int4 num);
 
 #endif //HTTP_MANAGER_H

@@ -107,12 +107,12 @@ int delete_socket(int sock_descriptor)
     return 0;
 }
 
-int listen_packet(int listenSocket, char *buffer, unsigned int mode)
+int listen_packet(int listen_socket, char *buffer, unsigned int mode)
 {
     int connFd = 0;
     // for(;;)
     // {
-    if ((connFd=accept(listenSocket, (struct sockaddr *) NULL, NULL)) < 0) {
+    if ((connFd=accept(listen_socket, (struct sockaddr *) NULL, NULL)) < 0) {
 		fprintf(stderr, "\nerrore nell'accept\n");
 		return (-1);
     }

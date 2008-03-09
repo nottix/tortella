@@ -13,8 +13,8 @@ tortella: $(OBJECTS)
 tortellaprotocol_testing: tortellaprotocol.o testing/tortellaprotocol_testing.c
 	$(CC) -o testing/tortellaprotocol_testing testing/tortellaprotocol_testing.c tortellaprotocol.o $(LDFLAGS) $(LIBS) $(INCFLAGS)
 
-httpmanager_testing: httpmanager.o tortellaprotocol.o testing/httpmanager_testing.c
-	$(CC) -o testing/httpmanager_testing testing/httpmanager_testing.c tortellaprotocol.o httpmanager.o $(LDFLAGS) $(LIBS) $(INCFLAGS)
+httpmanager_testing: httpmanager.o tortellaprotocol.o logger.o testing/httpmanager_testing.c
+	$(CC) -o testing/httpmanager_testing testing/httpmanager_testing.c tortellaprotocol.o httpmanager.o logger.o $(LDFLAGS) $(LIBS) $(INCFLAGS)
 
 socketmanager_testing: socketmanager.o
 	$(CC) -o testing/socketmanager_testing testing/socketmanager_testing.c socketmanager.o $(LDFLAGS) $(LIBS) $(INCFLAGS)
@@ -33,6 +33,9 @@ httpmanager.o: httpmanager.h httpmanager.c tortellaprotocol.h
 
 socketmanager.o: socketmanager.h socketmanager.c
 	$(CC) $(CFLAGS) -o socketmanager.o -c socketmanager.c
+
+logger.o: logger.h logger.c
+	$(CC) $(CFLAGS) -o logger.o -c logger.c
 
 count:
 	wc *.c *.cc *.C *.cpp *.h *.hpp

@@ -19,7 +19,17 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <string.h>
 
-char *tprintf(void);
+#define PATH "/tmp/"
+
+int logger_init(char *filename);
+
+int logger_add(char *filename, char *text);
 
 #endif //LOGGER_H

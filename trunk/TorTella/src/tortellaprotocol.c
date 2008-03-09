@@ -102,10 +102,12 @@ void print_packet(tortella_packet * packet) {
 
 char *dump_data(char *data, u_int4 len) {
 	if(data!=NULL) {
-		
 		char *buffer = (char*)malloc(len+1);
 		int i;
 		for(i=0; i<len; i++) {
+			//if(i%20==0)
+			//	printf("\n");
+			printf(" %c, x:%X -", data[i], data[i]);
 			buffer[i] = data[i];
 		}
 		buffer[i] = '\0';
@@ -113,4 +115,63 @@ char *dump_data(char *data, u_int4 len) {
 		return buffer;
 	}
 	return NULL;
+}
+
+tortella_packet *tortella_create_packet(tortella_header *header, char *desc, char *data) {
+	
+	tortella_packet *packet = (tortella_packet*)malloc(sizeof(tortella_packet));
+	packet->header = header;
+	packet->desc = desc;
+	packet->data = data;
+	
+	return packet;
+}
+
+tortella_header *tortella_create_header(u_int8 id, u_int4 desc_id, u_int8 sender_id, u_int8 recv_id, u_int4 desc_len, u_int4 data_len) {
+	
+	tortella_header *header = (tortella_header*)malloc(sizeof(tortella_header));
+	header->id = id;
+	header->desc_id = desc_id;
+	header->sender_id = sender_id;
+	header->recv_id = recv_id;
+	header->desc_len = desc_len;
+	header->data_len = data_len;
+	
+	return header;
+}
+
+tortella_packet *tortella_create_packet_header(u_int8 id, u_int4 desc_id, u_int8 sender_id, u_int8 recv_id, u_int4 desc_len, u_int4 data_len, char *desc, char *data) {
+	
+	tortella_header *header = tortella_create_header(id, desc_id, sender_id, recv_id, desc_len, data_len);
+	tortella_packet *packet = tortella_create_packet(header, desc, data);
+	
+	return packet;	
+}
+
+tortella_header* tortella_get_header(const char *buffer) {
+	if(buffer==NULL)
+		return NULL;
+	tortella_header *header = (tortella_header*)buffer;
+	
+	return header;
+}
+
+char *tortella_get_desc(const char *buffer) {
+	if(buffer==NULL)
+		return NULL;
+	tortella_header *header = tortella_get_header(buffer);
+	char *desc = (char*)malloc(header->desc_len);
+	memcpy(desc, buffer+sizeof(tortella_header), header->desc_len);
+	
+	return desc;	
+}
+
+char *tortella_get_data(const char *buffer) {
+	if(buffer==NULL)
+		return NULL;
+	tortella_header *header = tortella_get_header(buffer);
+	char *data = (char*)malloc(header->data_len);
+	memcpy(data, buffer+sizeof(tortella_header)+header->desc_len, header->data_len);
+
+	return data;
 }
