@@ -34,7 +34,7 @@ int delete_socket(int sock_descriptor);
         - LP_READ, aperta la connessione attende dati, inserendoli poi nel buffer
         - LP_NONE, crea solo la nuova connessione con il client.
 */
-int listen_packet(int listenSocket, char* buffer, unsigned int mode);
+int listen_packet(int listen_socket, char* buffer, unsigned int mode);
 
 /*Invia il contenuto di buffer*/
 int send_packet(int sock_descriptor, char* buffer/*, int len*/);

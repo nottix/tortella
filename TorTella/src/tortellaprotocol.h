@@ -101,4 +101,16 @@ void print_packet(tortella_packet *packet);
 
 char *dump_data(char *data, u_int4 len);
 
+tortella_packet *tortella_create_packet(tortella_header *header, char *desc, char *data);
+
+tortella_header *tortella_create_header(u_int8 id, u_int4 desc_id, u_int8 sender_id, u_int8 recv_id, u_int4 desc_len, u_int4 data_len);
+
+tortella_packet *tortella_create_packet_header(u_int8 id, u_int4 desc_id, u_int8 sender_id, u_int8 recv_id, u_int4 desc_len, u_int4 data_len, char *desc, char *data);
+
+tortella_header* tortella_get_header(const char *buffer);
+
+char *tortella_get_desc(const char *buffer);
+
+char *tortella_get_data(const char *buffer);
+
 #endif //TORTELLA_PROTOCOL_H
