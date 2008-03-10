@@ -1,43 +1,54 @@
 #include "tortellaprotocol.h"
 
 char *tortella_bin_to_char(tortella_packet * packet, u_int4 * len) {
-	printf("\nstart\n");
+#ifdef DEBUG_TORTELLA
+	printf("[tortella_bin_to_char]Start\n");
+#endif
 	
 	char *header = (char *) packet->header;
 	char *desc = (char *) packet->desc;
 	u_int4 header_len = sizeof(tortella_header);
 	u_int4 desc_len = packet->header->desc_len;
 	u_int4 data_len = packet->header->data_len;
-	printf("desc_len: %d header_len: %d data_len: %d\n", desc_len,
+#ifdef DEBUG_TORTELLA
+	printf("[tortella_bin_to_char]desc_len: %d header_len: %d data_len: %d\n", desc_len,
 		   header_len, data_len);
+#endif
 	
 	char *ret = malloc(header_len + desc_len + 1);	//Il +1 serve per il \0
 	memcpy(ret, header, header_len);
-	printf("ret: %s\n", ret);
 	char *iter = ret;
 	iter += header_len;
 	
 	memcpy(iter, desc, desc_len);
 	iter += desc_len;		//Si posiziona all'inizio del campo data
 	memcpy(iter, packet->data, data_len);
-	printf("data: %s\n", iter);
+#ifdef DEBUG_TORTELLA
+	printf("[tortella_bin_to_char]data: %s\n", iter);
+#endif
 	iter += data_len;
 	
 	*len = header_len + desc_len + data_len;
-	printf("len: %d\n", *len);
+#ifdef DEBUG_TORTELLA
+	printf("[tortella_bin_to_char]len: %d\n", *len);
+#endif
 	
 	/*int i;
 	for(i=0; i<(*len); i++) {
 	printf("elem[%d]: %c\n", i, ret[i]);
 	} */
-	
-	printf("end\n\n");
+
+#ifdef DEBUG_TORTELLA
+	printf("[tortella_bin_to_char]End\n\n");
+#endif
 	
 	return ret;
 }
 
 tortella_packet *tortella_char_to_bin(char *packet) {
-	printf("\nStarting char to bin...\n");
+#ifdef DEBUG_TORTELLA
+	printf("[tortella_char_to_bin]Start\n");
+#endif
 	
 	tortella_packet *ret =
 		(tortella_packet *) malloc(sizeof(tortella_packet));
@@ -61,7 +72,9 @@ tortella_packet *tortella_char_to_bin(char *packet) {
 	ret->desc = desc;
 	ret->data = data;
 	
-	printf("Ending char to bin...\n\n");
+#ifdef TORTELLA_DEBUG
+	printf("[tortella_char_to_bin]End\n");
+#endif
 	return ret;
 }
 
@@ -107,7 +120,9 @@ char *dump_data(char *data, u_int4 len) {
 		for(i=0; i<len; i++) {
 			//if(i%20==0)
 			//	printf("\n");
+#ifdef TORTELLA_DEBUG
 			printf(" %c, x:%X -", data[i], data[i]);
+#endif
 			buffer[i] = data[i];
 		}
 		buffer[i] = '\0';
