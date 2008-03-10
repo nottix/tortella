@@ -7,6 +7,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include "httpmanager.h"
 
 /*Coda di servizio per ricezione SYNC*/
 #define QLEN 5
@@ -36,13 +37,17 @@ int delete_socket(int sock_descriptor);
 */
 int listen_packet(int listen_socket, char* buffer, unsigned int mode);
 
+int listen_http_packet(int listen_socket, char* buffer, unsigned int mode);
+
 /*Invia il contenuto di buffer*/
-int send_packet(int sock_descriptor, char* buffer/*, int len*/);
+int send_packet(int sock_descriptor, char* buffer, int len);
 
 /*Attende la ricezione di un pacchetto (massima dimensione ricezione pari a BUFFER_LEN*/
 int recv_packet(int sock_descriptor,char* buffer);
 
 /*Attende la ricezione di un pacchetto con max_len byte*/
 int recv_sized_packet(int sock_descriptor,char* buffer, int max_len);
+
+char *recv_http_packet(int sock_descriptor,char* buffer, int *len);
 
 #endif //SOCKETMANAGER_H

@@ -135,7 +135,7 @@ http_header_response *http_create_header_response(http_header_response *header, 
 	return header;
 }
 
-char *http_bin_to_char(http_packet *packet) {
+char *http_bin_to_char(http_packet *packet, int *len) {
 	char *buffer = NULL;	
 	u_int4 type = packet->type;
 	if(packet->header_request!=NULL) {
@@ -154,6 +154,7 @@ char *http_bin_to_char(http_packet *packet) {
 			for(j=0, i=strlen(buffer); i<(strlen(buffer)+header_request->content_len); i++, j++) {
 				buffer[i] = packet->data_string[j];
 			}
+			*len = (strlen(buffer)+header_request->content_len);
 			dump_data(buffer, i);
 			
 			//printf("data:\n%s", dump_data(buffer, strlen(buffer)+39));
@@ -166,6 +167,8 @@ char *http_bin_to_char(http_packet *packet) {
 
 			sprintf(buffer, "%s\r\nUser-Agent: %s\r\nRange: bytes=%d-%d\r\nConnection: %s\r\n\r\n", header_request->request, header_request->user_agent, \
 				header_request->range_start, header_request->range_end, header_request->connection);
+			
+			*len = strlen(buffer);
 		}
 	}
 	else if(packet->header_response!=NULL) {
@@ -178,6 +181,8 @@ char *http_bin_to_char(http_packet *packet) {
 
 			//sprintf(buffer, "%s\r\nServer: %s\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s", header_response->response, header_response->server, header_response->content_type,
 			sprintf(buffer, "%s\r\nServer: %s\r\n\r\n", header_response->response, header_response->server);
+			
+			*len = strlen(buffer);
 		}
 		else if(type==HTTP_RES_GET) {
 			buffer = malloc(strlen(header_response->response)+strlen(HTTP_SERVER)+strlen(header_response->server)+2\
@@ -190,6 +195,8 @@ char *http_bin_to_char(http_packet *packet) {
 			//header_response->content_len, packet->data_string);
 			sprintf(buffer, "%s\r\nServer: %s\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s", header_response->response, header_response->server, header_response->content_type, \
 			header_response->content_len, packet->data_string);
+			
+			*len = strlen(buffer)+header_response->content_len;
 		}
 
 	}

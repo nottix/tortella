@@ -148,8 +148,50 @@ int listen_packet(int listen_socket, char *buffer, unsigned int mode)
     return connFd;
 }
 
+int listen_http_packet(int listen_socket, char *buffer, unsigned int mode)
+{
+    int connFd = 0;
+    // for(;;)
+    // {
+    if ((connFd=accept(listen_socket, (struct sockaddr *) NULL, NULL)) < 0) {
+		fprintf(stderr, "\nerrore nell'accept\n");
+		return (-1);
+    }
+    // }
+#ifdef DEBUG
+    fprintf(stdout, "\n[listen_packet]Nuova connessione ricevuta, modalita' %d!\n", mode);
+#endif
+	int len;
+    switch (mode) {
+    	case LP_WRITE:
+#ifdef DEBUG
+			fprintf(stdout, "\n[listen_packet]Invio dati...\n");
+#endif
+			if (write(connFd, buffer, strlen(buffer)) != strlen(buffer)) {
+	    		fprintf(stderr, "\nErrore in scrittura!");
+			}
+#ifdef DEBUG
+			fprintf(stdout, "\n[listen_packet]Dati inviati\n");
+#endif
+			break;
+    	case LP_READ:
+			if (recv_http_packet(connFd, buffer, &len) < 0) {
+	    		fprintf(stderr, "\nErrore in lettura!");
+			}
+#ifdef DEBUG
+			fprintf(stdout, "\n[listen_packet]Dati ricevuti\n");
+#endif
+			break;
+    	case LP_NONE:
+			break;
+    	default:
+			fprintf(stderr, "\nno selection\n");
+    }
+    return connFd;
+}
+
 // Usando la libreria string.h, si potrebbe omettere il parametro len
-int send_packet(int sock_descriptor, char *buffer /* , int len */ )
+int send_packet(int sock_descriptor, char *buffer, int len)
 {
     int char_write = 0;
     if (sock_descriptor < 0) {
@@ -158,12 +200,12 @@ int send_packet(int sock_descriptor, char *buffer /* , int len */ )
     }
     // Questa blocco si potrebbe ritentare per n volte, dove n e' un
     // parametro di configurazione.
-    if ((char_write=write(sock_descriptor, buffer, strlen(buffer))) != strlen(buffer)) {
+    if ((char_write=write(sock_descriptor, buffer, len)) != len) {
 		fprintf(stderr, "\n[send_packet]Perdita dati in trasmissione");
 		return -2;
     }
 #ifdef DEBUG
-    fprintf(stdout, "\n[createRemoteTcpSocket]char_write = %d\n", char_write);
+    fprintf(stdout, "\n[send_packet]char_write = %d\n", char_write);
 #endif
     return char_write;
 }
@@ -218,4 +260,76 @@ int recv_sized_packet(int sock_descriptor, char *buffer, int max_len)
     fprintf(stdout, "\n[recv_packet]buffer read = %s\n", buffer);
 #endif
     return char_read;
+}
+
+/*
+ * buffer deve essere allocato ad una grandezza abbastanza sufficiente
+ */
+char *recv_http_packet(int sock_descriptor,char *buffer, int *len) {
+	u_int4 char_read = 0;
+    u_int4 counter = 0;
+
+#ifdef DEBUG
+    fprintf(stdout, "\n[recv_http_packet]buffer_ptr %x\n", buffer);
+#endif
+    if (sock_descriptor < 0) {
+		fprintf(stderr, "[recv_http_packet]Socket descriptor not valid, sock_descriptor = %d", sock_descriptor);
+		return NULL;
+    }
+	
+	char ch, old_ch = -1;
+	char line[100];
+	char *iter = buffer;
+	char *content_len;
+	u_int4 length = 0, data_len, start_data=0, data_counter=0;
+    while (((char_read = read(sock_descriptor, &ch, 1)) > 0) && (data_counter<data_len)) {
+#ifdef DEBUG
+		fprintf(stdout, "\n[recv_packet]char_read = %c\t", ch);
+#endif
+		if(start_data) {
+			printf("data\n");
+			*iter = ch;
+			iter++;
+			length++;
+			data_counter++;
+		}
+			
+		if(ch=='\n') {
+			line[counter++] = '\n';
+			line[counter] = '\0';
+			memcpy(iter, line, counter);
+			iter+=counter;
+			length+=counter;
+			printf("line: %s\n", line);
+			if(strstr(line, HTTP_CONTENT_LEN)!=NULL) {
+				
+				char *token = strtok(line, "\r\n");
+				content_len = strstr(token, HTTP_CONTENT_LEN);
+				data_len = atoi(content_len+strlen(HTTP_CONTENT_LEN));
+				printf("data_len: %d\n", data_len);
+				
+			}
+			else if(line[0]=='\r') {
+				printf("end2\n");
+				start_data = 1;
+			}
+			memset(line, 0, counter);
+			counter = 0;
+		}
+		else {
+			line[counter] = ch;
+			counter++;
+		}
+
+    }
+	buffer[length]='\0';
+	
+    if (char_read < 0) {
+		fprintf(stderr, "\n[recv_packet]read error");
+		return NULL;
+    }
+#ifdef DEBUG
+    fprintf(stdout, "\n[recv_packet]buffer read = %s\n", buffer);
+#endif
+    return buffer;
 }

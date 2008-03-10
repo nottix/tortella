@@ -59,7 +59,7 @@ http_header_request *http_create_header_request(http_header_request *header, u_i
 
 http_header_response *http_create_header_response(http_header_response *header, u_int4 type, u_int4 status, u_int4 content_len);
 
-char *http_bin_to_char(http_packet *packet);
+char *http_bin_to_char(http_packet *packet, int *len);
 
 http_packet *http_char_to_bin(char *buffer);
 
