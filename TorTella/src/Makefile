@@ -3,7 +3,7 @@ CFLAGS = -g -Wall
 OBJECTS = tortella.o
 INCFLAGS = -I./
 LDFLAGS = -Wl,-rpath,/usr/local/lib
-LIBS = 
+LIBS = -lpthread
 
 all: tortella
 
@@ -16,8 +16,8 @@ tortellaprotocol_testing: tortellaprotocol.o testing/tortellaprotocol_testing.c
 httpmanager_testing: httpmanager.o tortellaprotocol.o logger.o testing/httpmanager_testing.c
 	$(CC) -o testing/httpmanager_testing testing/httpmanager_testing.c tortellaprotocol.o httpmanager.o logger.o $(LDFLAGS) $(LIBS) $(INCFLAGS)
 
-socketmanager_testing: socketmanager.o
-	$(CC) -o testing/socketmanager_testing testing/socketmanager_testing.c socketmanager.o $(LDFLAGS) $(LIBS) $(INCFLAGS)
+socketmanager_testing: socketmanager.o tortellaprotocol.o httpmanager.o
+	$(CC) -o testing/socketmanager_testing testing/socketmanager_testing.c socketmanager.o tortellaprotocol.o httpmanager.o $(LDFLAGS) $(LIBS) $(INCFLAGS)
 
 .SUFFIXES:
 .SUFFIXES:	.c .cc .C .cpp .o
