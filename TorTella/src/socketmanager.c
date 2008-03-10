@@ -13,7 +13,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define DEBUG
+//#define SOCKET_DEBUG
 
 /*
  * Crea un socket di connessione remota ovvero
@@ -29,7 +29,7 @@ int create_tcp_socket(const char *dst_ip, int dst_port)
 		fprintf(stderr, "\nErrore nella creazione del socket tcp");
 	return (1);
     }
-#ifdef DEBUG
+#ifdef SOCKET_DEBUG
     fprintf(stdout, "\n[create_tcp_socket]socket creato\n");
 #endif
     memset((char *) &sAddr, 0, sizeof(sAddr));
@@ -63,7 +63,7 @@ int create_listen_tcp_socket(const char *src_ip, int src_port)
 		fprintf(stderr, "\nErrore nella creazione del socket tcp");
 	return (1);
     }
-#ifdef DEBUG
+#ifdef SOCKET_DEBUG
     fprintf(stdout, "\n[create_listen_tcp_socket]socket creato\n");
 #endif
     memset((char *) &sAddr, 0, sizeof(sAddr));
@@ -117,18 +117,18 @@ int listen_packet(int listen_socket, char *buffer, unsigned int mode)
 		return (-1);
     }
     // }
-#ifdef DEBUG
+#ifdef SOCKET_DEBUG
     fprintf(stdout, "\n[listen_packet]Nuova connessione ricevuta, modalita' %d!\n", mode);
 #endif
     switch (mode) {
     	case LP_WRITE:
-#ifdef DEBUG
+#ifdef SOCKET_DEBUG
 			fprintf(stdout, "\n[listen_packet]Invio dati...\n");
 #endif
 			if (write(connFd, buffer, strlen(buffer)) != strlen(buffer)) {
 	    		fprintf(stderr, "\nErrore in scrittura!");
 			}
-#ifdef DEBUG
+#ifdef SOCKET_DEBUG
 			fprintf(stdout, "\n[listen_packet]Dati inviati\n");
 #endif
 			break;
@@ -136,7 +136,7 @@ int listen_packet(int listen_socket, char *buffer, unsigned int mode)
 			if (recv_packet(connFd, buffer) < 0) {
 	    		fprintf(stderr, "\nErrore in lettura!");
 			}
-#ifdef DEBUG
+#ifdef SOCKET_DEBUG
 			fprintf(stdout, "\n[listen_packet]Dati ricevuti\n");
 #endif
 			break;
@@ -158,19 +158,19 @@ int listen_http_packet(int listen_socket, char *buffer, unsigned int mode)
 		return (-1);
     }
     // }
-#ifdef DEBUG
+#ifdef SOCKET_DEBUG
     fprintf(stdout, "\n[listen_packet]Nuova connessione ricevuta, modalita' %d!\n", mode);
 #endif
 	int len;
     switch (mode) {
     	case LP_WRITE:
-#ifdef DEBUG
+#ifdef SOCKET_DEBUG
 			fprintf(stdout, "\n[listen_packet]Invio dati...\n");
 #endif
 			if (write(connFd, buffer, strlen(buffer)) != strlen(buffer)) {
 	    		fprintf(stderr, "\nErrore in scrittura!");
 			}
-#ifdef DEBUG
+#ifdef SOCKET_DEBUG
 			fprintf(stdout, "\n[listen_packet]Dati inviati\n");
 #endif
 			break;
@@ -178,7 +178,7 @@ int listen_http_packet(int listen_socket, char *buffer, unsigned int mode)
 			if (recv_http_packet(connFd, buffer, &len) < 0) {
 	    		fprintf(stderr, "\nErrore in lettura!");
 			}
-#ifdef DEBUG
+#ifdef SOCKET_DEBUG
 			fprintf(stdout, "\n[listen_packet]Dati ricevuti\n");
 #endif
 			break;
@@ -204,7 +204,7 @@ int send_packet(int sock_descriptor, char *buffer, int len)
 		fprintf(stderr, "\n[send_packet]Perdita dati in trasmissione");
 		return -2;
     }
-#ifdef DEBUG
+#ifdef SOCKET_DEBUG
     fprintf(stdout, "\n[send_packet]char_write = %d\n", char_write);
 #endif
     return char_write;
@@ -226,7 +226,7 @@ int recv_sized_packet(int sock_descriptor, char *buffer, int max_len)
 		return -1;
 
     memset(buffer, 0, max_len);
-#ifdef DEBUG
+#ifdef SOCKET_DEBUG
     fprintf(stdout, "\n[recv_packet]buffer_ptr %x\n", buffer);
 #endif
     if (sock_descriptor < 0) {
@@ -235,7 +235,7 @@ int recv_sized_packet(int sock_descriptor, char *buffer, int max_len)
     }
 	
     while ((char_read = read(sock_descriptor, buffer, max_len)) > 0) {
-#ifdef DEBUG
+#ifdef SOCKET_DEBUG
 		fprintf(stdout, "\n[recv_packet]char_read = %d\n", char_read);
 #endif
 		counter += char_read;
@@ -245,7 +245,7 @@ int recv_sized_packet(int sock_descriptor, char *buffer, int max_len)
 		    // ma il buffer allocato non ha piu' spazio a disposizione
 		    // si potrebbe creare una struttura buffer dinamica.
 		    // Un buffer a due dimensioni [n][BUFFER_LEN].
-#ifdef DEBUG
+#ifdef SOCKET_DEBUG
 	    	fprintf(stderr, "\n[recv_packet]Buffer overflow!, perdita dati\n");
 #endif
 		}
@@ -256,7 +256,7 @@ int recv_sized_packet(int sock_descriptor, char *buffer, int max_len)
 		fprintf(stderr, "\n[recv_packet]read error");
 		return -1;
     }
-#ifdef DEBUG
+#ifdef SOCKET_DEBUG
     fprintf(stdout, "\n[recv_packet]buffer read = %s\n", buffer);
 #endif
     return char_read;
@@ -269,7 +269,7 @@ char *recv_http_packet(int sock_descriptor,char *buffer, int *len) {
 	u_int4 char_read = 0;
     u_int4 counter = 0;
 
-#ifdef DEBUG
+#ifdef SOCKET_DEBUG
     fprintf(stdout, "\n[recv_http_packet]buffer_ptr %x\n", buffer);
 #endif
     if (sock_descriptor < 0) {
@@ -277,17 +277,18 @@ char *recv_http_packet(int sock_descriptor,char *buffer, int *len) {
 		return NULL;
     }
 	
-	char ch, old_ch = -1;
+	char ch;
 	char line[100];
 	char *iter = buffer;
 	char *content_len;
-	u_int4 length = 0, data_len, start_data=0, data_counter=0;
-    while (((char_read = read(sock_descriptor, &ch, 1)) > 0) && (data_counter<data_len)) {
-#ifdef DEBUG
-		fprintf(stdout, "\n[recv_packet]char_read = %c\t", ch);
+	u_int4 length = 0, data_len=0, start_data=0, data_counter=0, out=0;
+    while((!out) && ((char_read = read(sock_descriptor, &ch, 1)) > 0)) {
+#ifdef SOCKET_DEBUG
+		fprintf(stdout, "\n[recv_http_packet]char_read = %c\t", ch);
 #endif
 		if(start_data) {
-			printf("data\n");
+			if(data_counter>=data_len) 
+				out=1;
 			*iter = ch;
 			iter++;
 			length++;
@@ -300,18 +301,21 @@ char *recv_http_packet(int sock_descriptor,char *buffer, int *len) {
 			memcpy(iter, line, counter);
 			iter+=counter;
 			length+=counter;
-			printf("line: %s\n", line);
+#ifdef SOCKET_DEBUG
+			printf("[recv_http_packet]line: %s\n", line);
+#endif
 			if(strstr(line, HTTP_CONTENT_LEN)!=NULL) {
 				
 				char *token = strtok(line, "\r\n");
 				content_len = strstr(token, HTTP_CONTENT_LEN);
 				data_len = atoi(content_len+strlen(HTTP_CONTENT_LEN));
-				printf("data_len: %d\n", data_len);
 				
 			}
 			else if(line[0]=='\r') {
-				printf("end2\n");
-				start_data = 1;
+				if(data_len>0)
+					start_data = 1;
+				else
+					out=1;
 			}
 			memset(line, 0, counter);
 			counter = 0;
@@ -325,11 +329,11 @@ char *recv_http_packet(int sock_descriptor,char *buffer, int *len) {
 	buffer[length]='\0';
 	
     if (char_read < 0) {
-		fprintf(stderr, "\n[recv_packet]read error");
+		fprintf(stderr, "\n[recv_http_packet]read error");
 		return NULL;
     }
-#ifdef DEBUG
-    fprintf(stdout, "\n[recv_packet]buffer read = %s\n", buffer);
+#ifdef SOCKET_DEBUG
+    fprintf(stdout, "\n[recv_http_packet]buffer read = %s\n", buffer);
 #endif
     return buffer;
 }

@@ -1,6 +1,8 @@
 #ifndef TORTELLA_PROTOCOL_H
 #define TORTELLA_PROTOCOL_H
 
+//#define TORTELLA_DEBUG
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -72,6 +74,13 @@ struct leave_desc {
 };
 typedef struct leave_desc leave_desc;
 
+/*
+        Data
+ +---------+-----+
+ | ID_dest | msg |
+ +---------+-----+
+
+ */
 struct message_desc {
 	u_int4 id_dest_len; //Lunghezza campo dati contenente gli ID (da 8 byte) dei destinatari
 	u_int4 msg_len;     //Lunghezza campo dati contenete il messaggio
