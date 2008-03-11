@@ -98,8 +98,19 @@ void servent_close_all(void) {
 void kill_all_thread(int sig) {
 	printf("[killall_thread]Killing thread\n");
 	servent_close_all();
-	pthread_kill(server_thread[0], SIGKILL);
-	pthread_kill(server_connection_thread[0], SIGKILL);
+	
+	int server_len = list_size(server_thread);
+	int server_connection_len = list_size(server_connection_thread);
+	int client_len = list_size(client_thread);
+	int i;
+	for(i=0; i<server_len; i++)
+		pthread_kill(LIST_GET_THREAD(server_thread, i), SIGKILL));
+	
+	for(i=0; i<server_connection_len; i++)
+		pthread_kill(LIST_GET_THREAD(server_connection_(thread, i), SIGKILL));
+					 
+	for(i=0; i<client_len; i++)
+		pthread_kill(LIST_GET_THREAD(client_thread, i), SIGKILL));
 }
 
 /*u_int4 servent__to(u_int8 id_dest) {
