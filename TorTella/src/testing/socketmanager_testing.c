@@ -32,13 +32,14 @@ void *test(void *unused) {
 void *server(void *fd) {
 	char *buffer = (char*)malloc(1500);
 	//while(1) {
-	listen_http_packet((int)fd, buffer, LP_READ);
+	int connFd = listen_http_packet((int)fd);
+	switch_http_packet(connFd, buffer, LP_READ);
 
 	//printf("buf: %s\n", buffer);
 	http_packet *packet = http_char_to_bin(buffer);
 	//printf("HTTP PACKET: \n%s", packet->header_request->request);
-	//print_packet(tortella_char_to_bin(packet->data_string));
-	printf("HTTP PACKET: \n%s", packet->header_response->response);
+	print_packet(tortella_char_to_bin(packet->data_string));
+	//printf("HTTP PACKET: \n%s", packet->header_response->response);
 	//};
 	pthread_exit(NULL);
 }
@@ -70,10 +71,10 @@ void *client(void *fd) {
 		sleep(1);
 	//};*/
 	
-	//send_join_packet((int)fd, 1, 3, 4, 5, 6);
+	send_join_packet((int)fd, 3, 4, 5, 6);
 	//send_get_request_packet((int)fd, "test/test", 0, 10);
 	//send_get_response_packet((int)fd, HTTP_STATUS_OK, 4, "dddd");
-	send_post_response_packet((int)fd, HTTP_STATUS_OK);
+	//send_post_response_packet((int)fd, HTTP_STATUS_OK);
 	pthread_exit(NULL);
 }
 

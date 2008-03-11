@@ -19,10 +19,33 @@
 
 #include "packetmanager.h"
 #include "utils.h"
+#include "list.h"
+#include <pthread.h>
+#include <signal.h>
+#include <unistd.h>
 
 #define RECV_MAX_LEN 4000;
+#define THREAD_MAX 20
+#define FD_MAX 100
 
-u_int1 last_request_type = 0;
+static u_int1 last_request_type = 0;
+static u_int4 server_connection_num = 0;
+
+static list *client_fd;
+static list *server_fd;
+static list *server_connection_fd;
+
+//static int client_fd[FD_MAX];
+//static int server_fd[FD_MAX];
+//static int server_connection_fd[FD_MAX];
+
+static list *client_thread;
+static list *server_thread;
+static list *server_connection_thread;
+
+//static pthread_t client_thread[THREAD_MAX];
+//static pthread_t server_thread[THREAD_MAX];
+//static pthread_t server_connection_thread[THREAD_MAX];
 
 //Crea un server socket
 u_int4 servent_create_server(char *src_ip, u_int4 src_port);
@@ -30,9 +53,17 @@ u_int4 servent_create_server(char *src_ip, u_int4 src_port);
 //Crea un client socket
 u_int4 servent_create_client(char *dst_ip, u_int4 dst_port);
 
-//Thread che riceve i pacchetti e risponde adeguatamente
-u_int4 servent_listen_and_responde(void *parm);
+u_int4 servent_start(char *ip, u_int4 port);
 
-u_int4 servent_start();
+void servent_close_all(void);
+
+void kill_all_thread(int sig);
+
+//-----Thread--------------
+
+//Thread che riceve i pacchetti e risponde adeguatamente
+void *servent_listen(void *parm);
+
+void *servent_responde(void *parm);
 
 #endif //SERVENT_H
