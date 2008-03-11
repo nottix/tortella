@@ -16,11 +16,14 @@ tortellaprotocol_testing: tortellaprotocol.o testing/tortellaprotocol_testing.c
 httpmanager_testing: httpmanager.o tortellaprotocol.o logger.o testing/httpmanager_testing.c
 	$(CC) -o testing/httpmanager_testing testing/httpmanager_testing.c tortellaprotocol.o httpmanager.o logger.o $(LDFLAGS) $(LIBS) $(INCFLAGS)
 
-socketmanager_testing: socketmanager.o tortellaprotocol.o httpmanager.o packetmanager.o testing/socketmanager_testing.c
-	$(CC) -o testing/socketmanager_testing testing/socketmanager_testing.c socketmanager.o tortellaprotocol.o httpmanager.o packetmanager.o $(LDFLAGS) $(LIBS) $(INCFLAGS)
+socketmanager_testing: socketmanager.o tortellaprotocol.o httpmanager.o packetmanager.o utils.o testing/socketmanager_testing.c
+	$(CC) -o testing/socketmanager_testing testing/socketmanager_testing.c socketmanager.o tortellaprotocol.o httpmanager.o packetmanager.o utils.o $(LDFLAGS) $(LIBS) $(INCFLAGS)
 
-servent_testing: testing/servent_testing.c socketmanager.o tortellaprotocol.o httpmanager.o packetmanager.o utils.o
-	$(CC) -o testing/servent_testing testing/servent_testing.c socketmanager.o tortellaprotocol.o httpmanager.o packetmanager.o utils.o $(LDFLAGS) $(LIBS) $(INCFLAGS)
+servent_testing: testing/servent_testing.c socketmanager.o tortellaprotocol.o httpmanager.o packetmanager.o utils.o servent.o
+	$(CC) -o testing/servent_testing testing/servent_testing.c socketmanager.o tortellaprotocol.o httpmanager.o packetmanager.o utils.o servent.o $(LDFLAGS) $(LIBS) $(INCFLAGS)
+
+list_testing: testing/list_testing.c list.o
+	$(CC) -o testing/list_testing testing/list_testing.c list.o $(LDFLAGS) $(LIBS) $(INCFLAGS)
 
 .SUFFIXES:
 .SUFFIXES:	.c .cc .C .cpp .o
@@ -45,6 +48,9 @@ servent.o: servent.h servent.c packetmanager.o
 
 logger.o: logger.h logger.c
 	$(CC) $(CFLAGS) -o logger.o -c logger.c
+
+list.o: list.h list.c
+	$(CC) $(CFLAGS) -o list.o -c list.c
 
 utils.o: utils.h utils.c
 	$(CC) $(CFLAGS) -o utils.o -c utils.c

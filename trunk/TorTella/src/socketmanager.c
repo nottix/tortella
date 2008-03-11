@@ -148,7 +148,7 @@ int listen_packet(int listen_socket, char *buffer, unsigned int mode)
     return connFd;
 }
 
-int listen_http_packet(int listen_socket, char *buffer, unsigned int mode)
+int listen_http_packet(int listen_socket)
 {
     int connFd = 0;
     // for(;;)
@@ -159,8 +159,38 @@ int listen_http_packet(int listen_socket, char *buffer, unsigned int mode)
     }
     // }
 #ifdef SOCKET_DEBUG
-    fprintf(stdout, "\n[listen_packet]Nuova connessione ricevuta, modalita' %d!\n", mode);
+    fprintf(stdout, "\n[listen_packet]Nuova connessione ricevuta\n");
 #endif
+	/*int len;
+    switch (mode) {
+    	case LP_WRITE:
+#ifdef SOCKET_DEBUG
+			fprintf(stdout, "\n[listen_packet]Invio dati...\n");
+#endif
+			if (write(connFd, buffer, strlen(buffer)) != strlen(buffer)) {
+	    		fprintf(stderr, "\nErrore in scrittura!");
+			}
+#ifdef SOCKET_DEBUG
+			fprintf(stdout, "\n[listen_packet]Dati inviati\n");
+#endif
+			break;
+    	case LP_READ:
+			if (recv_http_packet(connFd, buffer, &len) < 0) {
+	    		fprintf(stderr, "\nErrore in lettura!");
+			}
+#ifdef SOCKET_DEBUG
+			fprintf(stdout, "\n[listen_packet]Dati ricevuti\n");
+#endif
+			break;
+    	case LP_NONE:
+			break;
+    	default:
+			fprintf(stderr, "\nno selection\n");
+    }*/
+    return connFd;
+}
+
+int switch_http_packet(int connFd, char *buffer, unsigned int mode) {
 	int len;
     switch (mode) {
     	case LP_WRITE:
@@ -187,7 +217,7 @@ int listen_http_packet(int listen_socket, char *buffer, unsigned int mode)
     	default:
 			fprintf(stderr, "\nno selection\n");
     }
-    return connFd;
+    return len;
 }
 
 // Usando la libreria string.h, si potrebbe omettere il parametro len
@@ -327,6 +357,7 @@ char *recv_http_packet(int sock_descriptor,char *buffer, int *len) {
 
     }
 	buffer[length]='\0';
+	*len = length;
 	
     if (char_read < 0) {
 		fprintf(stderr, "\n[recv_http_packet]read error");

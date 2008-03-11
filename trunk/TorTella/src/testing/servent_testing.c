@@ -25,7 +25,7 @@
 #include <time.h>
 #include <signal.h>
 
-void *test(void *unused) {
+/*void *test(void *unused) {
 	printf("Hello World %d\n", (int)unused);
 	pthread_exit(NULL);
 }
@@ -69,7 +69,7 @@ void *client(void *fd) {
 	//while(1) {
 		send_packet((int)fd, buffer, len);
 		sleep(1);
-	//};*/
+	//};
 	
 	//send_join_packet((int)fd, 1, 3, 4, 5, 6);
 	//send_get_request_packet((int)fd, "test/test", 0, 10);
@@ -77,9 +77,9 @@ void *client(void *fd) {
 	send_post_response_packet((int)fd, HTTP_STATUS_OK);
 	pthread_exit(NULL);
 }
-
+*/
 int main(int argc, char **argv) {
-	pthread_t *thread1;
+/*	pthread_t *thread1;
 	pthread_t *thread2;
 
 	printf("Running\n");
@@ -101,7 +101,11 @@ int main(int argc, char **argv) {
 	sleep(4);
 	pthread_kill(*thread2, SIGKILL);
 	pthread_kill(*thread1, SIGKILL);
+	*/
 	
+	servent_start("127.0.0.1", atoi(argv[1]));
+	sleep(6);
+
 	printf("Exiting\n");
 	
 	pthread_exit(NULL);
