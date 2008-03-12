@@ -25,11 +25,12 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <string.h>
+#include <stdarg.h>
 
 #define PATH "/tmp/"
 
-int logger_init(char *filename);
+int logger_init(const char *filename);
 
-int logger_add(char *filename, char *text);
+int logger_add(const char *filename, const char *text, ...);
 
 #endif //LOGGER_H

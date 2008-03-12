@@ -16,12 +16,12 @@
  
 #include "logger.h"
 
-int logger_init(char *filename) {
+int logger_init(const char *filename) {
 	int fd;
 	char *pathname = (char*)malloc(strlen(PATH)+strlen(filename));
 	strcpy(pathname, PATH);
 	strcat(pathname, filename);
-	
+	printf("[logger_init]init\n");
 	fd = open(pathname, O_CREAT|O_APPEND|O_WRONLY, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
 	close(fd);
 	return fd;
@@ -37,7 +37,7 @@ char *get_timestamp() {
 	return ret;
 }
 
-int logger_add(char* filename, char *text) {
+int logger_add(const char* filename, const char *text, ...) {
 	int fd;
 	char *pathname = (char*)malloc(strlen(PATH)+strlen(filename));
 	strcpy(pathname, PATH);
@@ -54,12 +54,22 @@ int logger_add(char* filename, char *text) {
 	}
 	
 	char *timestamp = get_timestamp();
-	char *buffer = (char*)malloc(strlen(text)+strlen(timestamp)+1);
-	strcpy(buffer, timestamp);
-	strcat(buffer, text);
+	char *buffer = (char*)malloc(2000); //FIXIT
+	char *temp = (char*)malloc(1000);
+	//strcpy(buffer, timestamp);
+	//strcat(buffer, text);
+	sprintf(buffer, "%s",timestamp);
+	//printf("[logger_add]text: %s\n", text);
+	//printf("[logger_add]%s\n", buffer);
+	//buffer[len] = '\n';
+	//buffer[len+1] = '\0';
+	va_list ap;
+	va_start(ap, text);
+	vsprintf(temp, text, ap);
+	va_end(ap);
+	
+	strcat(buffer, temp);
 	int len = strlen(buffer);
-	buffer[len] = '\n';
-	buffer[len+1] = '\0';
 	if(write(fd, buffer, strlen(buffer))<0) {
 		fprintf(stderr, "Errore nella scrittura nel file\n");
 		return -1;
