@@ -17,37 +17,45 @@
 #ifndef SERVENT_H
 #define SERVENT_H
 
+#include "common.h"
 #include "packetmanager.h"
 #include "utils.h"
 #include "list.h"
 #include <pthread.h>
 #include <signal.h>
 #include <unistd.h>
+#include <glib.h>
 
 #define RECV_MAX_LEN 4000;
 #define THREAD_MAX 20
 #define FD_MAX 100
 
+struct servent_data {
+	u_int8 id;
+	char *ip;
+	u_int4 port;
+	u_int1 status;
+	char *msg; 			//Usata per servente destinazione
+	u_int4 post_type;	//Usata per servente destinazione
+};
+typedef struct servent_data servent_data;
+
+GHashTable *servent_hashtable;
+
+static servent_data *local_servent;
+
 static u_int1 last_request_type = 0;
 static u_int4 server_connection_num = 0;
 
-static list *connection_list;
+//static list *connection_list;
 
 static list *client_fd;
 static list *server_fd;
 static list *server_connection_fd;
 
-//static int client_fd[FD_MAX];
-//static int server_fd[FD_MAX];
-//static int server_connection_fd[FD_MAX];
-
 static list *client_thread;
 static list *server_thread;
 static list *server_connection_thread;
-
-//static pthread_t client_thread[THREAD_MAX];
-//static pthread_t server_thread[THREAD_MAX];
-//static pthread_t server_connection_thread[THREAD_MAX];
 
 //Crea un server socket
 u_int4 servent_create_server(char *src_ip, u_int4 src_port);
@@ -61,7 +69,7 @@ void servent_close_all(void);
 
 void kill_all_thread(int sig);
 
-void servent_init(void);
+void servent_init(char *ip, u_int4 port, u_int1 status);
 
 //-----Thread--------------
 

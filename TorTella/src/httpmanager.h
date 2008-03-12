@@ -1,6 +1,7 @@
 #ifndef HTTP_MANAGER_H
 #define HTTP_MANAGER_H
 
+#include "common.h"
 #include "tortellaprotocol.h"
 //#include "socketmanager.h"
 
