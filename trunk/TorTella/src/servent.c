@@ -154,6 +154,9 @@ void servent_init(void) {
 //---------THREAD---------------
 
 //Thread che riceve le richieste di connessione e avvia nuovi thread
+/* Ogni nuovo peer (client) che richiede di connettersi al server locale viene
+ * assegnato ad un nuovo Thread che si occupera' di rispondere alle richieste del client.
+ */
 void *servent_listen(void *parm) {
 	int connFd;
 	pthread_t *thread;
@@ -206,7 +209,7 @@ void *servent_responde(void *parm) {
 				if(h_packet->type==HTTP_REQ_POST) {
 					printf("[servent_responde]POST ricevuto\n");
 					
-					conn_data *conn;
+				/*	conn_data *conn;
 					conn = (conn_data*)malloc(sizeof(conn_data));
 					conn->fd = (int)parm;
 					conn->thread = NULL;
@@ -215,7 +218,9 @@ void *servent_responde(void *parm) {
 					list *lst = list_malloc(NULL, (void*)conn);
 					list *node = list_get(connection_list, lst, DATA_CONN);
 					conn_data *conn2 = (conn_data*)(node->data);
-					pthread_cond_signal( conn2->cond );
+					pthread_cond_signal( conn2->cond );*/
+					
+					send_post_response_packet((int)parm, ONLINE_ID);
 				}
 				else if(h_packet->type==HTTP_RES_POST && last_request_type==HTTP_REQ_POST) {
 					printf("POST OK\n");
