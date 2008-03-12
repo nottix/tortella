@@ -6,11 +6,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-typedef unsigned char u_int1;
-typedef unsigned short u_int2;
-typedef unsigned int u_int4;
-typedef unsigned long long u_int8;
+#include "common.h"
 
 //Descriptor ID
 #define PING_ID		0x00

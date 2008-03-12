@@ -14,15 +14,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
  
-#include "utils.h"
+#ifndef COMMON_H
+#define COMMON_H
 
-u_int8 generate_id(void) {
-	srandom(time(0));
-	return random()^time(NULL);
-}
+typedef unsigned char u_int1;
+typedef unsigned short u_int2;
+typedef unsigned int u_int4;
+typedef unsigned long long u_int8;
+//typedef int u_int8;
 
-char *to_string(u_int8 num) {
-	char *ret = (char*)malloc(8);
-	sprintf(ret, "%lld", num);
-	return ret;
-}
+#endif

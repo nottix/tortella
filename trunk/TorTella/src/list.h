@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include "common.h"
 
 #define DATA_THREAD	0x110
 #define DATA_INT	DATA_THREAD+1

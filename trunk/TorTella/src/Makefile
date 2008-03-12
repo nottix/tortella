@@ -1,9 +1,9 @@
 CC = gcc
-CFLAGS = -g -Wall
+CFLAGS = -g -Wall -O2
 OBJECTS = tortella.o
-INCFLAGS = -I./
+INCFLAGS = -I./ `pkg-config --cflags glib-2.0`
 LDFLAGS = -Wl,-rpath,/usr/local/lib
-LIBS = -lpthread
+LIBS = -lpthread `pkg-config --libs glib-2.0`
 
 all: tortella
 
@@ -44,7 +44,7 @@ packetmanager.o: packetmanager.h packetmanager.c
 	$(CC) $(CFLAGS) -o packetmanager.o -c packetmanager.c
 
 servent.o: servent.h servent.c packetmanager.o
-	$(CC) $(CFLAGS) -o servent.o -c servent.c
+	$(CC) $(CFLAGS) $(INCFLAGS) -o servent.o -c servent.c
 
 logger.o: logger.h logger.c
 	$(CC) $(CFLAGS) -o logger.o -c logger.c

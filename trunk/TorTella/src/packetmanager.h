@@ -17,6 +17,7 @@
 #ifndef PACKETMANAGER_H
 #define PACKETMANAGER_H
 
+#include "common.h"
 #include "tortellaprotocol.h"
 #include "httpmanager.h"
 #include "socketmanager.h"
