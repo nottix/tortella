@@ -31,6 +31,8 @@
 static u_int1 last_request_type = 0;
 static u_int4 server_connection_num = 0;
 
+static list *connection_list;
+
 static list *client_fd;
 static list *server_fd;
 static list *server_connection_fd;
@@ -58,6 +60,8 @@ u_int4 servent_start(char *ip, u_int4 port);
 void servent_close_all(void);
 
 void kill_all_thread(int sig);
+
+void servent_init(void);
 
 //-----Thread--------------
 

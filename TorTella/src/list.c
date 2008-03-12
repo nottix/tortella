@@ -45,6 +45,12 @@ list *list_add_thread(list *root, pthread_t *thread) {
 	return root;
 }
 
+list *list_add_conn(list *root, conn_data *data) {
+	list *lst = list_malloc(NULL, (void*)data);
+	root = list_add(root, lst);
+	return root;
+}
+
 list *list_del(list *root, list *child, int type) {
 	if(root==NULL || child==NULL) {
 		return NULL;
@@ -77,6 +83,21 @@ list *list_del(list *root, list *child, int type) {
 			pthread_t *thread = (pthread_t*)iter->data;
 			printf("[list_del]equal: %d\n", pthread_equal(*thread_del, *thread));
 			if(pthread_equal(*thread_del, *thread)!=0) {
+				if(old_iter==NULL) {
+					printf("[list_del]old_iter null\n");
+					root = iter->next;
+					free(iter);
+					return root;
+				}
+				old_iter->next = iter->next;
+				//printf("[list_del]iter: %d\n", (int)iter->data);
+				free(iter);
+				return root;
+			}
+		}
+		if(type==DATA_CONN) {
+			printf("[list_del]type DATA_CONN\n");
+			if( ((conn_data*)(child->data))->fd == ((conn_data*)(iter->data))->fd ) {
 				if(old_iter==NULL) {
 					printf("[list_del]old_iter null\n");
 					root = iter->next;
@@ -152,6 +173,12 @@ list *list_get(list *root, list* child, int type) {
 			pthread_t *thread_del = (pthread_t*)child->data;
 			pthread_t *thread = (pthread_t*)iter->data;
 			if(pthread_equal(*thread_del, *thread)!=0) {
+				return iter;
+			}
+		}
+		if(type==DATA_CONN) {
+			printf("[list_get]type DATA_CONN\n");
+			if( ((conn_data*)(child->data))->fd == ((conn_data*)(iter->data))->fd ) {
 				return iter;
 			}
 		}
