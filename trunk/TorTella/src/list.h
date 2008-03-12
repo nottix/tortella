@@ -23,9 +23,16 @@
 
 #define DATA_THREAD	0x110
 #define DATA_INT	DATA_THREAD+1
+#define DATA_CONN	DATA_THREAD+2
 
 #define LIST_GET_INT(root, index)	(int)(list_get_index(root, index)->data)
 #define LIST_GET_THREAD(root, index)	(pthread_t*)(list_get_index(root, index)->data)
+#define LIST_GET_CONN(root, index)	(conn_data*)(list_get_index(root, index)->data)
+#define LIST_MALLOC_CONN(_conn, _fd, _thread, _mutex, _cond)		_conn=(conn_data*)malloc(sizeof(conn_data));\
+																	_conn->fd = _fd;\
+																	_conn->thread = _thread;\
+																	_conn->mutex = _mutex;\
+																	_conn->cond = _cond
 
 struct list {
 	struct list *next;
@@ -33,11 +40,21 @@ struct list {
 };
 typedef struct list list;
 
+struct conn_data {
+	int fd;
+	pthread_t *thread;
+	pthread_mutex_t *mutex;
+	pthread_cond_t *cond;
+};
+typedef struct conn_data conn_data;
+
 list *list_add(list *root, list *child);
 
 list *list_add_int(list *root, int data);
 
 list *list_add_thread(list *root, pthread_t *thread);
+
+list *list_add_conn(list *root, conn_data *data);
 
 list *list_del(list *root, list *child, int type);
 
