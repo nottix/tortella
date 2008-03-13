@@ -64,7 +64,7 @@ http_header_response *http_create_header_response(http_header_response *header, 
 
 char *http_bin_to_char(http_packet *packet, int *len);
 
-http_packet *http_char_to_bin(char *buffer);
+http_packet *http_char_to_bin(const char *buffer);
 
 char *http_get_value(const char *buffer, const char *name);
 

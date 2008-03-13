@@ -205,11 +205,11 @@ int switch_http_packet(int connFd, char *buffer, unsigned int mode) {
 #endif
 			break;
     	case LP_READ:
-			if (recv_http_packet(connFd, buffer, &len) < 0) {
+			if ((buffer=recv_http_packet(connFd, buffer, &len)) == NULL) {
 	    		fprintf(stderr, "\nErrore in lettura!");
 			}
 #ifdef SOCKET_DEBUG
-			fprintf(stdout, "\n[listen_packet]Dati ricevuti\n");
+			fprintf(stdout, "\n[listen_packet]Dati ricevuti buffer: %s\n", dump_data(buffer, 40));
 #endif
 			break;
     	case LP_NONE:
@@ -295,7 +295,7 @@ int recv_sized_packet(int sock_descriptor, char *buffer, int max_len)
 /*
  * buffer deve essere allocato ad una grandezza abbastanza sufficiente
  */
-char *recv_http_packet(int sock_descriptor,char *buffer, int *len) {
+char *recv_http_packet(int sock_descriptor, char *buffer, int *len) {
 	u_int4 char_read = 0;
     u_int4 counter = 0;
 
@@ -308,14 +308,18 @@ char *recv_http_packet(int sock_descriptor,char *buffer, int *len) {
     }
 	
 	char ch;
+	buffer = (char*)malloc(2000);
 	char line[100];
-	char *iter = buffer;
+	char buf[2000];
+	char *iter;
+	iter = buf;
 	char *content_len;
 	u_int4 length = 0, data_len=0, start_data=0, data_counter=0, out=0;
     while((!out) && ((char_read = read(sock_descriptor, &ch, 1)) > 0)) {
 #ifdef SOCKET_DEBUG
 		fprintf(stdout, "\n[recv_http_packet]char_read = %c\t out=%d, data_counter:%d, data_len=%d", ch, out, data_counter, data_len);
 #endif
+		//printf("[recv_http_packet]buf: %s\n", dump_data(buffer, 100));
 		if(start_data) {
 			if(data_counter>=data_len) 
 				out=1;
@@ -357,6 +361,7 @@ char *recv_http_packet(int sock_descriptor,char *buffer, int *len) {
 
     }
 	printf("[recv_http_packet]Out of while\n");
+	memcpy(buffer, buf, 2000);
 	buffer[length]='\0';
 	*len = length;
 	

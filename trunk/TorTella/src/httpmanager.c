@@ -217,9 +217,12 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 	return buffer;
 }
 
-http_packet *http_char_to_bin(char *buffer) {
+http_packet *http_char_to_bin(const char *buffer) {
 	
 	http_packet *packet = NULL;
+	
+	if(buffer==NULL)
+		printf("[http_char_to_bin]buffer NULL\n");
 	
 	if(buffer!=NULL) {
 		packet = (http_packet*)malloc(sizeof(http_packet));

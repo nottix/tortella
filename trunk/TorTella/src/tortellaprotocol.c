@@ -113,7 +113,7 @@ void print_packet(tortella_packet * packet) {
 	}
 }
 
-char *dump_data(char *data, u_int4 len) {
+char *dump_data(const char *data, u_int4 len) {
 	if(data!=NULL) {
 		char *buffer = (char*)malloc(len+1);
 		int i;
