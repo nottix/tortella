@@ -38,6 +38,8 @@ struct servent_data {
 	char *msg; 			//Usata per servente destinazione
 	u_int4 post_type;	//Usata per servente destinazione
 	
+	GSList *chat_list;	//Lista delle chat a cui è connesso il servente
+	
 	pthread_cond_t cond;
 	pthread_mutex_t mutex;
 	
@@ -85,6 +87,8 @@ void servent_close_all(void);
 void kill_all_thread(int sig);
 
 void servent_init(char *ip, u_int4 port, u_int1 status);
+
+//u_int4 servent_add_chat(servent_data *s_data, u_int8 id, u_int8 chat_id);
 
 //-----Thread--------------
 

@@ -48,6 +48,16 @@ int create_tcp_socket(const char *dst_ip, int dst_port)
 		return (1);
     }
 	
+	int reuse = 1;
+	if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int)) < 0) {
+		printf("[create_tcp_socket]Error in setsockopt SO_REUSEADDR\n");
+		return 1;
+	}
+	if(setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, &reuse, sizeof(int)) < 0) {
+		printf("[create_tcp_socket]Error in setsockopt SO_KEEPALIVE\n");
+		return 1;
+	}
+	
     return sockfd;
 }
 
@@ -87,6 +97,16 @@ int create_listen_tcp_socket(const char *src_ip, int src_port)
 		fprintf(stderr, "\nListen error\n");
 		return (-1);
     }
+	
+		int reuse = 1;
+	if(setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int)) < 0) {
+		printf("[create_listen_tcp_socket]Error in setsockopt SO_REUSEADDR\n");
+		return 1;
+	}
+	if(setsockopt(listenfd, SOL_SOCKET, SO_KEEPALIVE, &reuse, sizeof(int)) < 0) {
+		printf("[create_listen_tcp_socket]Error in setsockopt SO_KEEPALIVE\n");
+		return 1;
+	}
 
     return listenfd;
 }
@@ -191,7 +211,7 @@ int listen_http_packet(int listen_socket)
 }
 
 int switch_http_packet(int connFd, char *buffer, unsigned int mode) {
-	int len;
+	int len = 0;
     switch (mode) {
     	case LP_WRITE:
 #ifdef SOCKET_DEBUG
@@ -205,7 +225,8 @@ int switch_http_packet(int connFd, char *buffer, unsigned int mode) {
 #endif
 			break;
     	case LP_READ:
-			if ((buffer=recv_http_packet(connFd, buffer, &len)) == NULL) {
+			//if ((buffer=recv_http_packet(connFd, buffer, &len)) == NULL) {
+			if ((len=recv_packet(connFd, buffer)) < 0) {
 	    		fprintf(stderr, "\nErrore in lettura!");
 			}
 #ifdef SOCKET_DEBUG
@@ -264,7 +285,8 @@ int recv_sized_packet(int sock_descriptor, char *buffer, int max_len)
 		return -1;
     }
 	
-    while ((char_read = read(sock_descriptor, buffer, max_len)) > 0) {
+    //while ((char_read = read(sock_descriptor, buffer, max_len)) > 0) {
+	if((char_read = read(sock_descriptor, buffer, max_len)) < 0) {
 #ifdef SOCKET_DEBUG
 		fprintf(stdout, "\n[recv_packet]char_read = %d\n", char_read);
 #endif
@@ -282,13 +304,12 @@ int recv_sized_packet(int sock_descriptor, char *buffer, int max_len)
 		// fine carattere
 		buffer[char_read] = 0;
     }
+	fprintf(stdout, "\n[recv_packet]char_read = %d\n", char_read);
+	printf("[recv_packet]buffer: %s\n", dump_data(buffer, char_read));
     if (char_read < 0) {
 		fprintf(stderr, "\n[recv_packet]read error");
 		return -1;
     }
-#ifdef SOCKET_DEBUG
-    fprintf(stdout, "\n[recv_packet]buffer read = %s\n", buffer);
-#endif
     return char_read;
 }
 
@@ -307,8 +328,10 @@ char *recv_http_packet(int sock_descriptor, char *buffer, int *len) {
 		return NULL;
     }
 	
+	int n=0;
 	char ch;
 	buffer = (char*)malloc(2000);
+	char *ret = (char*)malloc(2000);
 	char line[100];
 	char buf[2000];
 	char *iter;
@@ -319,6 +342,7 @@ char *recv_http_packet(int sock_descriptor, char *buffer, int *len) {
 #ifdef SOCKET_DEBUG
 		fprintf(stdout, "\n[recv_http_packet]char_read = %c\t out=%d, data_counter:%d, data_len=%d", ch, out, data_counter, data_len);
 #endif
+		ret[n++] = ch;	
 		//printf("[recv_http_packet]buf: %s\n", dump_data(buffer, 100));
 		if(start_data) {
 			if(data_counter>=data_len) 
@@ -372,7 +396,8 @@ char *recv_http_packet(int sock_descriptor, char *buffer, int *len) {
 #ifdef SOCKET_DEBUG
     fprintf(stdout, "\n[recv_http_packet]buffer read = %s\n", buffer);
 #endif
-    return buffer;
+//    return buffer;
+		return ret;
 }
 
 char *get_dest_ip(int socket) {
