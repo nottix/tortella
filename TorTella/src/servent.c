@@ -251,12 +251,12 @@ void *servent_responde(void *parm) {
 	
 	while(1) {
 		sleep(1);
-		//memset(buffer, 0, 2000);
+		memset(buffer, 0, 2000);
+		//buffer = (char*)malloc(2000); //TODO: temp
 		len = switch_http_packet(fd, buffer, LP_READ); //TODO: Ciclio infinito!!!
 		printf("[servent_responde]Data received, len: %d\n", len);
 		
 		if(len>0) {
-			buffer = (char*)malloc(2000); //TODO: temp
 			h_packet = http_char_to_bin(buffer);
 			if(h_packet!=NULL) {
 				printf("[servent_responde]h_packet not NULL, type=%d\n", h_packet->type);
@@ -356,11 +356,11 @@ void *servent_connect(void *parm) {
 			send_join_packet(fd, local_servent->id, id_dest, local_servent->status, local_servent->chat_id_req);
 			
 			//memset(buffer, 0, 2000);
+			buffer = (char*)malloc(2000); //TODO: temp
 			printf("[servent_connect]listening\n");
 			len = switch_http_packet(fd, buffer, LP_READ);
 			printf("[sevente_connect]received\n");
 			if(len>0) {
-				buffer = (char*)malloc(2000); //TODO: temp
 				h_packet = http_char_to_bin(buffer);
 				if(h_packet!=NULL && h_packet->type==HTTP_RES_POST) {
 					if(strcmp(h_packet->header_response->response, HTTP_OK)==0) {

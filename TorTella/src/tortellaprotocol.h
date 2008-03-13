@@ -110,7 +110,7 @@ tortella_packet *tortella_char_to_bin(char *packet);
 
 void print_packet(tortella_packet *packet);
 
-char *dump_data(char *data, u_int4 len);
+char *dump_data(const char *data, u_int4 len);
 
 tortella_packet *tortella_create_packet(tortella_header *header, char *desc, char *data);
 
