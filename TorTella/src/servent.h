@@ -37,6 +37,13 @@ struct servent_data {
 	u_int1 status;
 	char *msg; 			//Usata per servente destinazione
 	u_int4 post_type;	//Usata per servente destinazione
+	
+	pthread_cond_t cond;
+	pthread_mutex_t mutex;
+	
+	//USATE SOLO IN LOCALE
+	u_int8 chat_id_req;
+	
 };
 typedef struct servent_data servent_data;
 
@@ -49,13 +56,21 @@ static u_int4 server_connection_num = 0;
 
 //static list *connection_list;
 
-static list *client_fd;
+/*static list *client_fd;
 static list *server_fd;
 static list *server_connection_fd;
 
 static list *client_thread;
 static list *server_thread;
-static list *server_connection_thread;
+static list *server_connection_thread;*/
+
+GSList *client_fd;
+GSList *server_fd;
+GSList *server_connection_fd;
+
+GSList *client_thread;
+GSList *server_thread;
+GSList *server_connection_thread;
 
 //Crea un server socket
 u_int4 servent_create_server(char *src_ip, u_int4 src_port);
@@ -77,5 +92,7 @@ void servent_init(char *ip, u_int4 port, u_int1 status);
 void *servent_listen(void *parm);
 
 void *servent_responde(void *parm);
+
+void *servent_connect(void *parm);
 
 #endif //SERVENT_H

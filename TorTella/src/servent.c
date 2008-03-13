@@ -43,60 +43,63 @@ u_int4 servent_start(char *ip, u_int4 port) {
 	char *ip_dest = "127.0.0.1";
 	u_int4 port_dest = 2110;
 	
-	//Avvia il server
-	int serfd = servent_create_server(ip, port); //Locale
-	if(serfd<0) {
-		printf("[servent_start]Errore nella creazione del server\n");
-		return -1;
+	printf("Avviare il server? ");
+	if(getchar()=='s') {
+		//Avvia il server
+		int serfd = servent_create_server(ip, port); //Locale
+		if(serfd<0) {
+			printf("[servent_start]Errore nella creazione del server\n");
+			return -1;
+		}
+	
+		pthread_t *serthread = (pthread_t*)malloc(sizeof(pthread_t));
+		pthread_create(serthread, NULL, servent_listen, (void*)serfd);
+		
+		server_fd = g_slist_prepend(server_fd, (gpointer)serfd);
+		server_thread = g_slist_prepend(server_thread, (gpointer)serthread);
 	}
 	
-	pthread_t *serthread = (pthread_t*)malloc(sizeof(pthread_t));
-	//pthread_mutex_t *sermutex = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));
-	//pthread_cond_t *sercond = (pthread_cond_t*)malloc(sizeof(pthread_cond_t));
-	//pthread_mutex_init(sermutex, NULL);
-	//pthread_cond_init(sercond, NULL);
-	pthread_create(serthread, NULL, servent_listen, (void*)serfd);
-	//list_add_thread(server_thread, serthread);
-	//conn_data *conn;
-	//conn = (conn_data*)malloc(sizeof(conn_data));
-	//conn->fd = serfd;
-	//conn->thread = serthread;
-	//conn->mutex = sermutex;
-	//conn->cond = sercond;
-	//connection_list = list_add_conn(connection_list, conn);
-	
-	//Avvia il client
-	/*pthread_mutex_t *climutex = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));
-	pthread_mutex_init(climutex, NULL);
-	pthread_cond_t *clicond = (pthread_cond_t*)malloc(sizeof(pthread_cond_t));;
-	pthread_cond_init(clicond, NULL);*/
-	int clifd = servent_create_client(ip_dest, port_dest);
-	if(clifd<0) {
-		printf("[servent_start]Errore nella creazione del client\n");
-		return -1;
+	printf("Avviare il client? ");
+	if(getchar()=='s') {
+		/*//Avvia il client
+		int clifd = servent_create_client(ip, port);
+		if(clifd<0) {
+			printf("[servent_start]Errore nella creazione del client\n");
+			return -1;
+		}
+		//client_fd = list_add_int(client_fd, clifd);
+		client_fd = g_slist_prepend(client_fd, (gpointer)clifd);*/
+		
+		
+		pthread_t *clithread = (pthread_t*)malloc(sizeof(pthread_t));
+		u_int8 cliid;
+		printf("Inserisci l'ID del peer: ");
+		scanf("%lld", &cliid);
+		servent_data *servent = (servent_data*)malloc(sizeof(servent_data));
+		servent->id = cliid;
+		servent->ip = ip;
+		servent->port = port;
+		servent->chat_id_req = 111;
+		servent->post_type=JOIN_ID;
+		g_hash_table_insert(servent_hashtable, (gpointer)to_string(cliid), (gpointer)servent);
+		pthread_create(clithread, NULL, servent_connect, (void*)cliid);
+		client_thread = g_slist_prepend(client_thread, (gpointer)clithread);
+		sleep(1);
+		do {
+			pthread_cond_signal(&servent->cond);
+			printf("[servent_start]Premere f per bloccare l'invio\n");
+			
+		}while(getchar()!='f');
 	}
-	list_add_int(client_fd, clifd);
-	//LIST_MALLOC_CONN(conn, clifd, NULL, climutex, clicond);
-/*	conn = (conn_data*)malloc(sizeof(conn_data));
-	conn->fd = clifd;
-	conn->thread = NULL;
-	conn->mutex = climutex;
-	conn->cond = clicond;
-	connection_list = list_add_conn(connection_list, conn);*/
 
-	//Invio pacchetto di JOIN
-	send_join_packet(clifd, id, id_dest, ONLINE_ID, chat_id);
-	last_request_type = HTTP_REQ_POST;
-	
-	//signal(SIGKILL, kill_all_thread);
-
-	sleep(6);
+	printf("\nPremere q per uscire\n");
+	while(getchar()!='q');
 	kill_all_thread(1);
 	return 0;
 }
 
 void servent_close_all(void) {
-	int server_len = list_size(server_fd);
+	/*int server_len = list_size(server_fd);
 	int server_connection_len = list_size(server_connection_fd);
 	int client_len = list_size(client_fd);
 	
@@ -108,14 +111,29 @@ void servent_close_all(void) {
 		close(LIST_GET_INT(server_connection_fd, i));
 	
 	for(i=0; i<client_len; i++)
-		close(LIST_GET_INT(client_fd, i));
+		close(LIST_GET_INT(client_fd, i));*/
+	
+	int i;
+	for(i=0; i<g_slist_length(server_fd); i++) {
+		printf("[servent_close_all]Closing server %d\n", (int)g_slist_nth_data(server_fd, i));
+		close((int)g_slist_nth_data(server_fd, i));
+	}
+	for(i=0; i<g_slist_length(client_fd); i++) {
+		printf("[servent_close_all]Closing client %d\n", (int)g_slist_nth_data(client_fd, i));
+		close((int)g_slist_nth_data(client_fd, i));
+	}
+	for(i=0; i<g_slist_length(server_connection_fd); i++) {
+		printf("[servent_close_all]Closing server_connection %d\n", (int)g_slist_nth_data(server_connection_fd, i));
+		close((int)g_slist_nth_data(server_connection_fd, i));
+	}
+	
 }
 
 void kill_all_thread(int sig) {
 	printf("[killall_thread]Killing thread\n");
 	servent_close_all();
 	
-	int server_len = list_size(server_thread);
+	/*int server_len = list_size(server_thread);
 	int server_connection_len = list_size(server_connection_thread);
 	int client_len = list_size(client_thread);
 	int i;
@@ -126,7 +144,19 @@ void kill_all_thread(int sig) {
 		pthread_kill(*LIST_GET_THREAD(server_connection_thread, i), SIGKILL);
 
 	for(i=0; i<client_len; i++)
-		pthread_kill(*LIST_GET_THREAD(client_thread, i), SIGKILL);
+		pthread_kill(*LIST_GET_THREAD(client_thread, i), SIGKILL);*/
+	
+	int i;
+	for(i=0; i<g_slist_length(server_thread); i++) {
+		pthread_kill(*(pthread_t*)g_slist_nth_data(server_thread, i), SIGKILL);
+	}
+	for(i=0; i<g_slist_length(client_thread); i++) {
+		pthread_kill(*(pthread_t*)g_slist_nth_data(client_thread, i), SIGKILL);
+	}
+	for(i=0; i<g_slist_length(server_connection_thread); i++) {
+		pthread_kill(*(pthread_t*)g_slist_nth_data(server_connection_thread, i), SIGKILL);
+	}
+	
 	/*int len = list_size(connection_list);
 	int i;
 	for(i=0; i<len; i++) {
@@ -150,19 +180,23 @@ void servent_init(char *ip, u_int4 port, u_int1 status) {
 	local_servent->ip = ip;
 	local_servent->port = port;
 	local_servent->status = status;
-	g_hash_table_insert(servent_hashtable, (gpointer)to_string(id), (gpointer)local_servent);
-	printf("[servent_init]Retrieving\n");
-	servent_data *ret = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(local_servent->id));
-	printf("[servent_init]Init with ID: %lld\n", ret->id);
-}
-
-/*u_int4 servent__to(u_int8 id_dest) {
-	//Si prendono l'ip e la porta dalla lista degli id
-	char *ip_dest = "127.0.0.1";
-	u_int4 port_dest = 2110;
 	
-	int fd = servent_create_client(ip_dest, port_dest);
-}*/
+	pthread_mutex_init(&local_servent->mutex, NULL);
+	pthread_cond_init(&local_servent->cond, NULL);
+	
+	g_hash_table_insert(servent_hashtable, (gpointer)to_string(id), (gpointer)local_servent);
+	//printf("[servent_init]Retrieving\n");
+	//servent_data *ret = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(local_servent->id));
+	//printf("[servent_init]Init with ID: %lld\n", ret->id);
+	
+	server_fd = NULL;
+	client_fd = NULL;
+	server_connection_fd = NULL;
+	
+	server_thread = NULL;
+	client_thread = NULL;
+	server_connection_thread = NULL;
+}
 
 //---------THREAD---------------
 
@@ -181,9 +215,12 @@ void *servent_listen(void *parm) {
 		printf("[servent_listen]Connessione ricevuta, socket: %d\n", connFd);
 		if(connFd!=0) {
 			thread = (pthread_t*)malloc(sizeof(pthread_t));
-			list_add_int(server_connection_fd, connFd);
+			//list_add_int(server_connection_fd, connFd);
+			server_connection_fd = g_slist_prepend(server_connection_fd, (gpointer)connFd);
 			pthread_create(thread, NULL, servent_responde, (void*)connFd);
-			list_add_thread(server_connection_thread, thread);
+			//list_add_thread(server_connection_thread, thread);
+			server_connection_thread = g_slist_prepend(server_connection_thread, (gpointer)thread);
+			
 		/*	thread = (pthread_t*)malloc(sizeof(pthread_t));
 			pthread_create(thread, NULL, servent_responde, (void*)connFd);
 			mutex = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));
@@ -210,24 +247,59 @@ void *servent_responde(void *parm) {
 	//char *h_packet_char;
 	http_packet *h_packet;
 	int len;
+	int fd = (int)parm;
 	
 	while(1) {
-		len = switch_http_packet((int)parm, buffer, LP_READ);
+		sleep(1);
+		//memset(buffer, 0, 2000);
+		len = switch_http_packet(fd, buffer, LP_READ); //TODO: Ciclio infinito!!!
 		printf("[servent_responde]Data received, len: %d\n", len);
 		
 		if(len>0) {
+			buffer = (char*)malloc(2000); //TODO: temp
 			h_packet = http_char_to_bin(buffer);
 			if(h_packet!=NULL) {
+				printf("[servent_responde]h_packet not NULL, type=%d\n", h_packet->type);
 				if(h_packet->type==HTTP_REQ_POST) {
 					printf("[servent_responde]POST ricevuto\n");
 					
 					u_int8 id = h_packet->data->header->sender_id;
 					servent_data *conn_servent = (servent_data*)malloc(sizeof(servent_data));
-					conn_servent->ip = ip;
-					conn_servent->port = port;
-					conn_servent->status = status;
-					
-					g_hash_table_insert(servent_hashtable, (gpointer)to_string(id), (gpointer)
+					conn_servent->ip = get_dest_ip(fd);
+					conn_servent->port = get_dest_port(fd);
+					printf("[servent_responde]Get_port\n");
+					//Aggiungere l'ID alla lista degli utenti della chat
+					u_int8 chat_id = GET_JOIN(h_packet->data)->chat_id;
+					printf("[servent_responde]Chat_ID\n");
+					//Aggiunge le info in base al tipo di pacchetto
+					if(h_packet->data==NULL || h_packet->data->header==NULL) {
+						printf("[servent_responde]NULL\n");
+					}
+					if(h_packet->data->header->desc_id==JOIN_ID) {
+						printf("[servent_responde]JOIN_ID\n");
+						conn_servent->status = GET_JOIN(h_packet->data)->status;
+						printf("[servent_responde]GET_JOIN\n");
+						//Si inizializzano il mutex e il cond
+						pthread_mutex_init(&conn_servent->mutex, NULL);
+						printf("[servent_responde]MUTEX\n");
+						pthread_cond_init(&conn_servent->cond, NULL);
+						printf("[servent_responde]COND\n");
+					}
+					else if(h_packet->data->header->desc_id==PING_ID) {
+						conn_servent->status = GET_PING(h_packet->data)->status;
+					}
+					else if(h_packet->data->header->desc_id==PONG_ID) {
+						conn_servent->status = GET_PONG(h_packet->data)->status;
+					}
+					else if(h_packet->data->header->desc_id==LEAVE_ID) {
+						//Sconnetti dalla chat
+						//conn_servent->status = GET_LEAVE(h_packet->data);
+					}
+					else if(h_packet->data->header->desc_id==MESSAGE_ID) {
+						//Prende il messaggio
+						//conn_servent->status = GET_MESSAGE(h_packet->data);
+					}
+					g_hash_table_insert(servent_hashtable, (gpointer)to_string(id), (gpointer)conn_servent);
 				/*	conn_data *conn;
 					conn = (conn_data*)malloc(sizeof(conn_data));
 					conn->fd = (int)parm;
@@ -240,7 +312,8 @@ void *servent_responde(void *parm) {
 					pthread_cond_signal( conn2->cond );*/
 					
 					//Invio la conferma di ricezione
-					send_post_response_packet((int)parm, ONLINE_ID);
+					printf("[servent_responde]sending\n");
+					send_post_response_packet(fd, HTTP_STATUS_OK);
 				}
 				//else if(h_packet->type==HTTP_RES_POST && last_request_type==HTTP_REQ_POST) {
 				//	printf("POST OK\n");
@@ -250,4 +323,55 @@ void *servent_responde(void *parm) {
 		
 	}
 	pthread_exit(NULL);
+}
+
+void *servent_connect(void *parm) {
+	int len;
+	char *buffer = (char*)malloc(2000);
+	http_packet *h_packet;
+	
+	u_int8 id_dest = (int)parm;
+	//Si prendono l'ip e la porta dalla lista degli id
+	servent_data *servent_peer = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id_dest));
+	char *ip_dest = servent_peer->ip;
+	u_int4 port_dest = servent_peer->port;
+	
+	int fd = servent_create_client(ip_dest, port_dest);
+	
+	pthread_mutex_t *mutex = &servent_peer->mutex;
+	pthread_cond_t *cond = &servent_peer->cond;	
+	
+	client_fd = g_slist_prepend(client_fd, (gpointer)fd);
+	
+	printf("[servent_connect]Init\n");
+	
+	//Ora si entra nel ciclio infinito che serve per inviare tutte le richieste
+	while(1) {
+		pthread_cond_wait(cond, mutex); //In attesa di un segnale che indichi la necessita di comunicare con il peer
+		printf("[servent_connect]socket %d, Signal received\n", fd);
+		//TODO: ogni volta che si accede a local_servent bisogna prendere un lock
+		printf("[servent_connect]id_dest: %lld, post_type=%d\n", servent_peer->id, servent_peer->post_type);
+		
+		if(servent_peer->post_type==JOIN_ID) {
+			send_join_packet(fd, local_servent->id, id_dest, local_servent->status, local_servent->chat_id_req);
+			
+			//memset(buffer, 0, 2000);
+			printf("[servent_connect]listening\n");
+			len = switch_http_packet(fd, buffer, LP_READ);
+			printf("[sevente_connect]received\n");
+			if(len>0) {
+				buffer = (char*)malloc(2000); //TODO: temp
+				h_packet = http_char_to_bin(buffer);
+				if(h_packet!=NULL && h_packet->type==HTTP_RES_POST) {
+					if(strcmp(h_packet->header_response->response, HTTP_OK)==0) {
+						printf("[servent_connect/%d]OK POST received\n", fd);
+					}
+					else {
+						printf("[servent_connect/%d]Error\n", fd);
+					}
+				}
+			}
+		}
+	}
+	
 }

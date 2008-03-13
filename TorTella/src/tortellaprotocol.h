@@ -8,6 +8,12 @@
 #include <stdlib.h>
 #include "common.h"
 
+#define GET_PING(packet)		((ping_desc*)packet->desc)
+#define GET_PONG(packet)		((pong_desc*)packet->desc)
+#define GET_JOIN(packet)		((join_desc*)packet->desc)
+#define GET_LEAVE(packet)		((leave_desc*)packet->desc)
+#define GET_MESSAGE(packet)		((message_desc*)packet->desc)
+
 //Descriptor ID
 #define PING_ID		0x00
 #define PONG_ID		0x01

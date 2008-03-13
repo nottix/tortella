@@ -23,6 +23,12 @@
 #include <sched.h>
 #include <time.h>
 #include <signal.h>
+#include <sys/ioctl.h>
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 void *test(void *unused) {
 	printf("Hello World %d\n", (int)unused);
@@ -33,6 +39,8 @@ void *server(void *fd) {
 	char *buffer = (char*)malloc(1500);
 	//while(1) {
 	int connFd = listen_http_packet((int)fd);
+	
+	
 	switch_http_packet(connFd, buffer, LP_READ);
 
 	//printf("buf: %s\n", buffer);
