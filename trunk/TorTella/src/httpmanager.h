@@ -3,9 +3,9 @@
 
 #include "common.h"
 #include "tortellaprotocol.h"
-//#include "socketmanager.h"
+#include "socketmanager.h"
 
-#define HTTP_DEBUG
+//#define HTTP_DEBUG
 
 #define HTTP_REQ_GET		1
 #define	HTTP_RES_GET		2

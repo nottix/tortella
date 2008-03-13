@@ -314,7 +314,7 @@ char *recv_http_packet(int sock_descriptor,char *buffer, int *len) {
 	u_int4 length = 0, data_len=0, start_data=0, data_counter=0, out=0;
     while((!out) && ((char_read = read(sock_descriptor, &ch, 1)) > 0)) {
 #ifdef SOCKET_DEBUG
-		fprintf(stdout, "\n[recv_http_packet]char_read = %c\t", ch);
+		fprintf(stdout, "\n[recv_http_packet]char_read = %c\t out=%d, data_counter:%d, data_len=%d", ch, out, data_counter, data_len);
 #endif
 		if(start_data) {
 			if(data_counter>=data_len) 
@@ -356,6 +356,7 @@ char *recv_http_packet(int sock_descriptor,char *buffer, int *len) {
 		}
 
     }
+	printf("[recv_http_packet]Out of while\n");
 	buffer[length]='\0';
 	*len = length;
 	
@@ -367,4 +368,44 @@ char *recv_http_packet(int sock_descriptor,char *buffer, int *len) {
     fprintf(stdout, "\n[recv_http_packet]buffer read = %s\n", buffer);
 #endif
     return buffer;
+}
+
+char *get_dest_ip(int socket) {
+	 struct sockaddr_in peer;
+	memset((char *) &peer, 0, sizeof(peer));
+	//peer.sin_family = AF_INET;
+   u_int4 peer_len;
+      /* We must put the length in a variable.              */
+   peer_len = sizeof(peer);
+      /* Ask getpeername to fill in peer's socket address.  */
+   if (getpeername(socket, (struct sockaddr *)&peer, &peer_len) == -1) {
+      perror("getpeername() failed");
+      return NULL;
+   }
+
+      /* Print it. The IP address is often zero because     */
+      /* sockets are seldom bound to a specific local       */
+      /* interface.                                         */
+   printf("[get_dest_ip]Peer's IP address is: %s\n", inet_ntoa(peer.sin_addr));
+	return  inet_ntoa(peer.sin_addr);
+}
+
+u_int4 get_dest_port(int socket) {
+	 struct sockaddr_in peer;
+	memset((char *) &peer, 0, sizeof(peer));
+	//peer.sin_family = AF_INET;
+   u_int4 peer_len;
+      /* We must put the length in a variable.              */
+   peer_len = sizeof(peer);
+      /* Ask getpeername to fill in peer's socket address.  */
+   if (getpeername(socket, (struct sockaddr *)&peer, &peer_len) == -1) {
+      perror("getpeername() failed");
+      return -1;
+   }
+
+      /* Print it. The IP address is often zero because     */
+      /* sockets are seldom bound to a specific local       */
+      /* interface.                                         */
+   printf("[get_dest_ip]Peer's port is: %d\n", (int) ntohs(peer.sin_port));
+	return (u_int4) ntohs(peer.sin_port);
 }

@@ -235,10 +235,18 @@ u_int4 send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 d
 u_int4 send_post_response_packet(u_int4 fd, u_int4 status) {
 	char *buffer;
 	int len;
+	printf("[send_post_response_packet]Send on socket %d\n", fd);
 	http_packet *h_packet = http_create_packet(NULL, HTTP_RES_POST, status, NULL, 0, 0, NULL, 0);
+	if(h_packet!=NULL)
+		printf("[send_post_response_packet]Http created\n");
+	else {
+		printf("[send_post_response_packet]Not created\n");
+		return 0;
+	}
 	buffer = http_bin_to_char(h_packet, &len);
 	if(buffer==NULL)
 		printf("Errore\n");
+	printf("[send_post_response_packet]Buffered\n");
 	
 	return send_packet(fd, buffer, len);
 }

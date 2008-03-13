@@ -56,4 +56,8 @@ int recv_sized_packet(int sock_descriptor,char* buffer, int max_len);
 
 char *recv_http_packet(int sock_descriptor,char* buffer, int *len);
 
+char *get_dest_ip(int socket);
+
+u_int4 get_dest_port(int socket);
+
 #endif //SOCKETMANAGER_H

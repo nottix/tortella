@@ -104,9 +104,10 @@ int main(int argc, char **argv) {
 	*/
 	
 	servent_start("127.0.0.1", atoi(argv[1]));
-	sleep(6);
+	//sleep(6);
 
 	printf("Exiting\n");
 	
-	pthread_exit(NULL);
+	//pthread_exit(NULL);
+	return 0;
 }
