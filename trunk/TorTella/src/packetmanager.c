@@ -197,8 +197,9 @@ u_int4 send_listhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 
 	return send_packet(fd, buffer, len);
 }
 
-u_int4 send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 data_len, u_int4 id_dest_len, u_int4 msg_len, char *id_dest, char *msg) {
+u_int4 send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int4 id_dest_len, u_int4 msg_len, char *id_dest, char *msg) {
 
+	printf("[send_message_packet]Sending msg: %s, msg_len: %d\n", msg, msg_len);
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
 	
@@ -206,7 +207,7 @@ u_int4 send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 d
 	header->desc_id = MESSAGE_ID;
 	header->sender_id = sender_id;
 	header->recv_id = recv_id;
-	header->data_len = data_len;
+	header->data_len = id_dest_len+msg_len;
 	
 	message_desc *message = (message_desc*)malloc(sizeof(message_desc));
 	message->id_dest_len = id_dest_len;
@@ -218,18 +219,24 @@ u_int4 send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 d
 		
 	packet->header = header;
 	
-	char *temp = (char*)malloc(data_len);
+	printf("[send_message_packet]id_dest %s\n", id_dest);
+	char *temp = (char*)malloc(header->data_len);
 	memcpy(temp, id_dest, id_dest_len);
-	char *iter = temp+id_dest_len;
+	printf("[send_message_packet] temp: %s\n", temp);
+	char *iter = temp;
+	iter += id_dest_len;
 	memcpy(iter, msg, msg_len);
+	printf("[send_message_packet] temp: %s, msg: %s\n", temp, msg);
 	packet->data = temp;
 	
 	char *buffer;
 	int len;
 	http_packet *h_packet = http_create_packet(packet, HTTP_REQ_POST, 0, NULL, 0, 0, NULL, 0);
+	printf("[send_message_packet]data: %s\n", dump_data(h_packet->data->data, h_packet->data->header->data_len));
 	buffer = http_bin_to_char(h_packet, &len);
 	if(buffer==NULL)
 		printf("Errore\n");
+	printf("[send_message_packet]Sent %s, id_dest_len: %d\n", dump_data(buffer, len), message->id_dest_len);
 	
 	return send_packet(fd, buffer, len);
 }

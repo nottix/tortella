@@ -35,16 +35,21 @@ struct servent_data {
 	char *ip;
 	u_int4 port;
 	u_int1 status;
-	char *msg; 			//Usata per servente destinazione
-	u_int4 post_type;	//Usata per servente destinazione
 	
 	GSList *chat_list;	//Lista delle chat a cui è connesso il servente
 	
 	pthread_cond_t cond;
 	pthread_mutex_t mutex;
 	
+	char *msg; 			//Messaggio da inviare o ricevuto
+	u_int4 msg_len;		//Lunghezza messaggio
+	char *id_dest;		//ID a cui inviare il pacchetto
+	u_int4 id_dest_len;	//Lunghezza stringa degli ID
+	
 	//USATE SOLO IN LOCALE
-	u_int8 chat_id_req;
+	u_int4 post_type;	//Tipo di pacchetto da inviare
+	
+	u_int8 chat_id_req; //Chat a cui connettersi
 	
 };
 typedef struct servent_data servent_data;
