@@ -40,8 +40,9 @@ http_packet *http_create_packet(tortella_packet *packet, u_int4 type, u_int4 sta
 		if(temp==NULL)
 			return NULL;
 	}
-	printf("[http_create_packet]Entered\n");
+	printf("[http_create_packet]Entered %d\n", type);
 	if(type==HTTP_REQ_POST || type==HTTP_REQ_GET) {
+		printf("[http_create_packet]REQ POST or REQ_GET\n");
 		http_header_request *request = (http_header_request*)malloc(sizeof(http_header_request));
 		request = http_create_header_request(request, type, filename, range_start, range_end, tortella_len);
 		ret = (http_packet*)malloc(sizeof(http_packet));

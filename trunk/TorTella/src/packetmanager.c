@@ -41,6 +41,7 @@ u_int4 send_join_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 stat
 	int len;
 	http_packet *h_packet = http_create_packet(packet, HTTP_REQ_POST, 0, NULL, 0, 0, NULL, 0);
 	buffer = http_bin_to_char(h_packet, &len);
+	//printf("[send_join_packet]type: %d\n", HTTP_REQ_POST);
 	if(buffer==NULL)
 		printf("Errore\n");
 	
@@ -133,6 +134,7 @@ u_int4 send_pong_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 stat
 	buffer = http_bin_to_char(h_packet, &len);
 	if(buffer==NULL)
 		printf("Errore\n");
+	printf("[send_pong_packet]Sending\n");
 	
 	return send_packet(fd, buffer, len);
 }
