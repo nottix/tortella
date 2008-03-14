@@ -7,10 +7,10 @@
 
 //#define HTTP_DEBUG
 
-#define HTTP_REQ_GET		1
-#define	HTTP_RES_GET		2
-#define HTTP_REQ_POST		3
-#define HTTP_RES_POST		4
+#define HTTP_REQ_GET		0x40
+#define	HTTP_RES_GET		0x41
+#define HTTP_REQ_POST		0x42
+#define HTTP_RES_POST		0x43
 #define HTTP_STATUS_OK		200
 #define	HTTP_STATUS_CERROR	400
 #define HTTP_STATUS_SERROR	500
