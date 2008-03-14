@@ -81,6 +81,12 @@ u_int4 servent_start(char *ip, u_int4 port) {
 		servent->port = port;
 		servent->chat_id_req = 111;
 		servent->status = ONLINE_ID;
+		
+		servent->id_dest = to_string(cliid);
+		servent->id_dest_len = strlen(servent->id_dest);
+		servent->msg_len = 5;
+		servent->msg = "Hello";
+		
 		servent->post_type=JOIN_ID;
 		g_hash_table_insert(servent_hashtable, (gpointer)to_string(cliid), (gpointer)servent);
 		pthread_create(clithread, NULL, servent_connect, (void*)cliid);
@@ -94,6 +100,8 @@ u_int4 servent_start(char *ip, u_int4 port) {
 				servent->post_type=PING_ID;
 			else if(ch=='o')
 				servent->post_type=PONG_ID;
+			else if(ch=='m')
+				servent->post_type=MESSAGE_ID;
 			pthread_cond_signal(&servent->cond);
 			printf("[servent_start]Premere f per bloccare l'invio\n");
 			
@@ -262,6 +270,7 @@ void *servent_responde(void *parm) {
 	http_packet *h_packet;
 	int len;
 	int fd = (int)parm;
+	u_int4 status = 0;
 	
 	while(1) {
 		sleep(1);
@@ -282,6 +291,8 @@ void *servent_responde(void *parm) {
 					//Aggiunge le info in base al tipo di pacchetto
 					if(h_packet->data==NULL || h_packet->data->header==NULL) {
 						printf("[servent_responde]NULL\n");
+						
+						status = HTTP_STATUS_CERROR;
 					}
 					if(h_packet->data->header->desc_id==JOIN_ID) {
 						printf("[servent_responde]JOIN ricevuto\n");
@@ -303,16 +314,22 @@ void *servent_responde(void *parm) {
 							printf("[servent_responde]connection added to hashtable\n");
 							g_hash_table_insert(servent_hashtable, (gpointer)to_string(id), (gpointer)conn_servent);
 						}
+						
+						status = HTTP_STATUS_OK;
 					}
 					else if(h_packet->data->header->desc_id==PING_ID) {
 						printf("[servent_responde]PING ricevuto\n");
 						servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
 						conn_servent->status = GET_PING(h_packet->data)->status;
+						
+						status = HTTP_STATUS_OK;
 					}
 					else if(h_packet->data->header->desc_id==PONG_ID) {
 						printf("[servent_responde]PONG ricevuto\n");
 						servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
 						conn_servent->status = GET_PONG(h_packet->data)->status;
+						
+						status = HTTP_STATUS_OK;
 					}
 					else if(h_packet->data->header->desc_id==LEAVE_ID) {
 						printf("[servent_responde]LEAVE ricevuto\n");
@@ -320,16 +337,36 @@ void *servent_responde(void *parm) {
 						
 						servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
 						conn_servent->chat_list = g_slist_remove(conn_servent->chat_list, (gconstpointer)chat_id);
+						
+						status = HTTP_STATUS_OK;
 						//Sconnetti dalla chat
 					}
 					else if(h_packet->data->header->desc_id==MESSAGE_ID) {
-						//Prende il messaggio
-						//conn_servent->status = GET_MESSAGE(h_packet->data);
+						printf("[servent_responde]MESSAGE ricevuto\n");
+						u_int4 id_dest_len = GET_MESSAGE(h_packet->data)->id_dest_len;
+						
+						servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
+						conn_servent->id_dest = h_packet->data->data;
+						if(strstr(conn_servent->id_dest, to_string(h_packet->data->header->sender_id))==NULL) {
+							status = HTTP_STATUS_CERROR;
+						}
+						else {
+							conn_servent->id_dest_len = id_dest_len;
+							//Prende il messaggio
+							char *temp = h_packet->data->data;
+							printf("[servent_responde]temp: %s\n", dump_data(temp, GET_MESSAGE(h_packet->data)->msg_len+GET_MESSAGE(h_packet->data)->id_dest_len));
+							temp += id_dest_len;
+							conn_servent->msg = temp;
+							conn_servent->msg_len = GET_MESSAGE(h_packet->data)->msg_len;
+						
+							printf("servet_responde]msg: %s, msg_len: %d, id_dest_len: %d\n", dump_data(conn_servent->msg, conn_servent->msg_len), conn_servent->msg_len, id_dest_len);
+							status = HTTP_STATUS_OK;
+						}
 					}
 					
 					//Invio la conferma di ricezione
 					printf("[servent_responde]sending\n");
-					send_post_response_packet(fd, HTTP_STATUS_OK);
+					send_post_response_packet(fd, status);
 				}
 				else if(h_packet->type==HTTP_REQ_GET) {
 					printf("[servent_responde]GET ricevuto\n");
@@ -391,6 +428,9 @@ void *servent_connect(void *parm) {
 			}
 			else if(servent_peer->post_type==LEAVE_ID) {
 				send_ping_packet(fd, local_servent->id, id_dest, local_servent->chat_id_req);
+			}
+			else if(servent_peer->post_type==MESSAGE_ID) {
+				send_message_packet(fd, local_servent->id, id_dest, servent_peer->id_dest_len, servent_peer->msg_len, servent_peer->id_dest, servent_peer->msg);
 			}
 		
 			memset(buffer, 0, 2000);

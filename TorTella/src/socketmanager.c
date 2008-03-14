@@ -82,11 +82,22 @@ int create_listen_tcp_socket(const char *src_ip, int src_port)
 		sAddr.sin_port = htons(src_port);
     else
 		fprintf(stderr, "\nerrore nella porta: [%d]\n", src_port);
-
+	
     if (inet_pton(AF_INET, src_ip, &sAddr.sin_addr) <= 0) {
 		fprintf(stderr, "\nErrore nella conversione dell'indirizzo IP: [%s]\n", src_ip);
 		return (-1);
     }
+	
+			int reuse = 1;
+	if(setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int)) < 0) {
+		printf("[create_listen_tcp_socket]Error in setsockopt SO_REUSEADDR\n");
+		return 1;
+	}
+	if(setsockopt(listenfd, SOL_SOCKET, SO_KEEPALIVE, &reuse, sizeof(int)) < 0) {
+		printf("[create_listen_tcp_socket]Error in setsockopt SO_KEEPALIVE\n");
+		return 1;
+	}
+	
     // Binding
     if ((bind(listenfd, (struct sockaddr *) &sAddr, sizeof(sAddr))) < 0) {
 		fprintf(stderr, "\nBind error\n");
@@ -97,16 +108,6 @@ int create_listen_tcp_socket(const char *src_ip, int src_port)
 		fprintf(stderr, "\nListen error\n");
 		return (-1);
     }
-	
-		int reuse = 1;
-	if(setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int)) < 0) {
-		printf("[create_listen_tcp_socket]Error in setsockopt SO_REUSEADDR\n");
-		return 1;
-	}
-	if(setsockopt(listenfd, SOL_SOCKET, SO_KEEPALIVE, &reuse, sizeof(int)) < 0) {
-		printf("[create_listen_tcp_socket]Error in setsockopt SO_KEEPALIVE\n");
-		return 1;
-	}
 
     return listenfd;
 }
@@ -256,7 +257,7 @@ int send_packet(int sock_descriptor, char *buffer, int len)
 		return -2;
     }
 #ifdef SOCKET_DEBUG
-    fprintf(stdout, "\n[send_packet]char_write = %d\n", char_write);
+    fprintf(stdout, "\n[send_packet]buffer %s, char_write = %d\n", dump_data(buffer, char_write), char_write);
 #endif
     return char_write;
 }

@@ -10,12 +10,12 @@ char *tortella_bin_to_char(tortella_packet * packet, u_int4 * len) {
 	u_int4 header_len = sizeof(tortella_header);
 	u_int4 desc_len = packet->header->desc_len;
 	u_int4 data_len = packet->header->data_len;
-#ifdef DEBUG_TORTELLA
-	printf("[tortella_bin_to_char]desc_len: %d header_len: %d data_len: %d\n", desc_len,
+//#ifdef DEBUG_TORTELLA
+	printf("[tortella_bin_to_char]data: %s, desc_len: %d header_len: %d data_len: %d\n", dump_data(packet->data, data_len), desc_len,
 		   header_len, data_len);
-#endif
+//#endif
 	
-	char *ret = malloc(header_len + desc_len + 1);	//Il +1 serve per il \0
+	char *ret = malloc(header_len + desc_len + data_len + 1);	//Il +1 serve per il \0
 	memcpy(ret, header, header_len);
 	char *iter = ret;
 	iter += header_len;
@@ -23,9 +23,9 @@ char *tortella_bin_to_char(tortella_packet * packet, u_int4 * len) {
 	memcpy(iter, desc, desc_len);
 	iter += desc_len;		//Si posiziona all'inizio del campo data
 	memcpy(iter, packet->data, data_len);
-#ifdef DEBUG_TORTELLA
-	printf("[tortella_bin_to_char]data: %s\n", iter);
-#endif
+//#ifdef DEBUG_TORTELLA
+	printf("[tortella_bin_to_char]data: %s\n", dump_data(iter, data_len));
+//#endif
 	iter += data_len;
 	
 	*len = header_len + desc_len + data_len;

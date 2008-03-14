@@ -1,14 +1,20 @@
 CC = gcc
 CFLAGS = -g -Wall -O2
 OBJECTS = tortella.o
-INCFLAGS = -I./ `pkg-config --cflags glib-2.0`
+INCFLAGS = -I./ `pkg-config --cflags glib-2.0` -I./gui
 LDFLAGS = -Wl,-rpath,/usr/local/lib
 LIBS = -lpthread `pkg-config --libs glib-2.0`
+
+TORTELLA_GUI_CFLAGS = -I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include -I/usr/include/atk-1.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/freetype2 -I/usr/include/libpng12 -I/usr/include/libglade-2.0 -I/usr/include/libxml2  
+TORTELLA_GUI_LIBS = -lglade-2.0 -lgtk-x11-2.0 -lxml2 -lgdk-x11-2.0 -latk-1.0 -lgdk_pixbuf-2.0 -lm -lpangocairo-1.0 -lpango-1.0 -lcairo -lgobject-2.0 -lgmodule-2.0 -ldl -lglib-2.0  
 
 all: tortella
 
 tortella: $(OBJECTS)
 	$(CC) -o tortella $(OBJECTS) $(LDFLAGS) $(LIBS)
+
+tortella_gui: gui/callbacks.o
+	$(CC) -o gui/tortella_gui gui/main.c gui/callbacks.o $(LDFLAGS) $(LIBS) $(INCFLAGS) `pkg-config --cflags --libs gtk+-2.0 libglade-2.0` -export-dynamic
 
 tortellaprotocol_testing: tortellaprotocol.o testing/tortellaprotocol_testing.c
 	$(CC) -o testing/tortellaprotocol_testing testing/tortellaprotocol_testing.c tortellaprotocol.o $(LDFLAGS) $(LIBS) $(INCFLAGS)
@@ -54,6 +60,9 @@ list.o: list.h list.c
 
 utils.o: utils.h utils.c
 	$(CC) $(CFLAGS) -o utils.o -c utils.c
+
+gui/callbacks.o: gui/callbacks.h gui/callbacks.c
+	$(CC) $(CFLAGS) `pkg-config --cflags --libs gtk+-2.0 libglade-2.0` -o gui/callbacks.o -c gui/callbacks.c
 
 count:
 	wc *.c *.cc *.C *.cpp *.h *.hpp

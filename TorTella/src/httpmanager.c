@@ -162,12 +162,24 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 			sprintf(buffer, "%s\r\nUser-Agent: %s\r\nContent-Length: %d\r\nConnection: %s\r\n\r\n", header_request->request,\
 				header_request->user_agent, header_request->content_len, header_request->connection);
 			
+			int buflen = strlen(buffer);
+			char *iter = buffer;
+			iter += buflen;
+			memcpy(iter, packet->data_string, header_request->content_len);
+			printf("[http_bin_to_char]data_string: %s\n", packet->data_string);
+			
+			*len = buflen+header_request->content_len;
+			printf("[http_bin_to_char]content_len: %d, data_len: %d, sizeof: %d, buffer: %s\n", header_request->content_len, packet->data->header->data_len, sizeof(tortella_header), dump_data(buffer, *len));
+			/*
 			int i, j;
-			for(j=0, i=strlen(buffer); i<(strlen(buffer)+header_request->content_len); i++, j++) {
+			int strpos = strstr(buffer, "\r\n\r\n")-buffer;
+			strpos += 4;
+			for(j=0, i=strpos; i<(strpos+header_request->content_len); i++, j++) {
+				printf("[http_bin_to_char]buf[i]: %c\n", buffer[i]);
 				buffer[i] = packet->data_string[j];
-			}
-			*len = (strlen(buffer)+header_request->content_len);
-			printf("[http_bin_to_char]dump: %s\n", dump_data(buffer, i));
+			}*/
+			//*len = (strlen(buffer)+header_request->content_len);
+			//printf("[http_bin_to_char]dump: %s\n", dump_data(buffer, i));
 			
 			//printf("data:\n%s", dump_data(buffer, strlen(buffer)+39));
 		}
