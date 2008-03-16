@@ -59,10 +59,12 @@ struct pong_desc {
 typedef struct pong_desc pong_desc;
 
 struct list_desc {
+	u_int8 chat_id;	//ID della chat di cui si vuole la lista degli utenti
 };
 typedef struct list_desc list_desc;
 
 struct listhits_desc {
+	u_int4 user_num;	//Numero di utenti nel campo data
 	//Riempire campo data
 };
 typedef struct listhits_desc listhits_desc;
