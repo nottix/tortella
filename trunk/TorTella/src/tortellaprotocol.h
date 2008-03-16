@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "common.h"
 
 #define GET_PING(packet)		((ping_desc*)packet->desc)
@@ -29,9 +30,9 @@
 
 /*
                           TorTella Header
- +----+---------+-----------+---------+----------+----------+
- | ID | desc_ID | sender_ID | recv_ID | desc_len | data_len |
- +----+---------+-----------+---------+----------+----------+
+ +----+---------+-----------+---------+-----------+----------+----------+
+ | ID | desc_ID | sender_ID | recv_ID | timestamp | desc_len | data_len |
+ +----+---------+-----------+---------+-----------+----------+----------+
 
  */
 struct tortella_header {
@@ -41,6 +42,7 @@ struct tortella_header {
 	u_int8 recv_id; //ID del servente che riceve
 	//u_int1 ttl;
 	//u_int1 hops;
+	time_t timestamp;
 	u_int4 desc_len; //lunghezza del descrittore
 	u_int4 data_len; //lunghezza del campo dati
 };
@@ -68,6 +70,7 @@ typedef struct listhits_desc listhits_desc;
 struct join_desc {
 	u_int1 status;
 	u_int8 chat_id; //ID della chat room (hash del nome della chat)
+	//Campo dati: nickname
 };
 typedef struct join_desc join_desc;
 
@@ -77,16 +80,15 @@ struct leave_desc {
 typedef struct leave_desc leave_desc;
 
 /*
-        Data
- +---------+-----+
- | ID_dest | msg |
- +---------+-----+
+   Data
+ +-----+
+ | msg |
+ +-----+
 
  */
 struct message_desc {
-	u_int4 id_dest_len; //Lunghezza campo dati contenente gli ID (da 8 byte) dei destinatari
-	u_int4 msg_len;     //Lunghezza campo dati contenete il messaggio
-	//Campo dati: id destinatari del msg e poi il msg
+	u_int8 chat_id;		//ID della chat a cui va il messaggio
+	//Campo dati: il msg
 };
 typedef struct message_desc message_desc;
 

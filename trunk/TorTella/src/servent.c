@@ -61,15 +61,7 @@ u_int4 servent_start(char *ip, u_int4 port) {
 	
 	printf("Avviare il client? ");
 	if(getchar()=='s') {
-		/*//Avvia il client
-		int clifd = servent_create_client(ip, port);
-		if(clifd<0) {
-			printf("[servent_start]Errore nella creazione del client\n");
-			return -1;
-		}
-		//client_fd = list_add_int(client_fd, clifd);
-		client_fd = g_slist_prepend(client_fd, (gpointer)clifd);*/
-		
+		//Avvia il client
 		
 		pthread_t *clithread = (pthread_t*)malloc(sizeof(pthread_t));
 		u_int8 cliid;
@@ -82,8 +74,8 @@ u_int4 servent_start(char *ip, u_int4 port) {
 		servent->chat_id_req = 111;
 		servent->status = ONLINE_ID;
 		
-		servent->id_dest = to_string(cliid);
-		servent->id_dest_len = strlen(servent->id_dest);
+		//local_servent->id_dest = to_string(servent->id);
+		//local_servent->id_dest_len = strlen(servent->id);
 		servent->msg_len = 5;
 		servent->msg = "Hello";
 		
@@ -102,6 +94,10 @@ u_int4 servent_start(char *ip, u_int4 port) {
 				servent->post_type=PONG_ID;
 			else if(ch=='m')
 				servent->post_type=MESSAGE_ID;
+			else if(ch=='s') {
+				timer_thread = (pthread_t*)malloc(sizeof(pthread_t));
+				pthread_create(timer_thread, NULL, servent_timer, NULL);
+			}
 			pthread_cond_signal(&servent->cond);
 			printf("[servent_start]Premere f per bloccare l'invio\n");
 			
@@ -173,6 +169,8 @@ void kill_all_thread(int sig) {
 		pthread_kill((pthread_t)g_slist_nth_data(server_connection_thread, i), SIGKILL);
 	}
 	
+	if(timer_thread!=NULL)
+		pthread_kill(*timer_thread, SIGKILL);
 	/*int len = list_size(connection_list);
 	int i;
 	for(i=0; i<len; i++) {
@@ -196,6 +194,7 @@ void servent_init(char *ip, u_int4 port, u_int1 status) {
 	local_servent->ip = ip;
 	local_servent->port = port;
 	local_servent->status = status;
+	local_servent->nick = "simone";
 	
 	pthread_mutex_init(&local_servent->mutex, NULL);
 	pthread_cond_init(&local_servent->cond, NULL);
@@ -212,6 +211,8 @@ void servent_init(char *ip, u_int4 port, u_int1 status) {
 	server_thread = NULL;
 	client_thread = NULL;
 	server_connection_thread = NULL;
+	
+	timer_thread = NULL;
 }
 /*
 u_int4 servent_add_chat(servent_data *s_data, u_int8 id, u_int8 chat_id) {
@@ -230,6 +231,7 @@ void *servent_listen(void *parm) {
 	int connFd;
 	pthread_t *thread;
 	pthread_mutex_t *mutex;
+	pthread_mutex_t *mutex_data;
 	pthread_cond_t *cond;
 	
 	while(1) {
@@ -243,20 +245,6 @@ void *servent_listen(void *parm) {
 			//list_add_thread(server_connection_thread, thread);
 			server_connection_thread = g_slist_prepend(server_connection_thread, (gpointer)(*thread));
 			
-		/*	thread = (pthread_t*)malloc(sizeof(pthread_t));
-			pthread_create(thread, NULL, servent_responde, (void*)connFd);
-			mutex = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));
-			cond = (pthread_cond_t*)malloc(sizeof(pthread_cond_t));
-			pthread_mutex_init(mutex, NULL);
-			pthread_cond_init(cond, NULL);
-			printf("[servent_listen]here\n");
-			conn_data *conn;
-			conn = (conn_data*)malloc(sizeof(conn_data));
-			conn->fd = connFd;
-			conn->thread = thread;
-			conn->mutex = mutex;
-			conn->cond = cond;
-			connection_list = list_add_conn(connection_list, conn);*/
 		}
 	}
 	
@@ -264,6 +252,7 @@ void *servent_listen(void *parm) {
 }
 
 //Riceve i pacchetti da un peer e li gestisce
+//parm: socket
 void *servent_responde(void *parm) {
 	char *buffer = (char*)malloc(2000);
 	//char *h_packet_char;
@@ -284,30 +273,35 @@ void *servent_responde(void *parm) {
 			if(h_packet!=NULL) {
 				printf("[servent_responde]h_packet not NULL, type=%d\n", h_packet->type);
 				if(h_packet->type==HTTP_REQ_POST) {
+					
 					printf("[servent_responde]POST ricevuto\n");
-					
-					
-					
+									
 					//Aggiunge le info in base al tipo di pacchetto
 					if(h_packet->data==NULL || h_packet->data->header==NULL) {
 						printf("[servent_responde]NULL\n");
 						
 						status = HTTP_STATUS_CERROR;
 					}
-					if(h_packet->data->header->desc_id==JOIN_ID) {
+					else if(h_packet->data->header->recv_id!=local_servent->id) {
+						status = HTTP_STATUS_CERROR;
+					}
+					else if(h_packet->data->header->desc_id==JOIN_ID) {
 						printf("[servent_responde]JOIN ricevuto\n");
 						u_int8 id = h_packet->data->header->sender_id;
 						servent_data *conn_servent = (servent_data*)malloc(sizeof(servent_data));
 						conn_servent->ip = get_dest_ip(fd);
 						conn_servent->port = get_dest_port(fd);
+						conn_servent->timestamp = h_packet->data->header->timestamp;
 						
 						//TODO: Aggiungere l'ID alla lista degli utenti della chat
 						u_int8 chat_id = GET_JOIN(h_packet->data)->chat_id;
 						conn_servent->chat_list = g_slist_prepend(conn_servent->chat_list, (gpointer)chat_id);
 						conn_servent->status = GET_JOIN(h_packet->data)->status;
+						conn_servent->nick = h_packet->data->data;
 						
 						//Si inizializzano il mutex e il cond
 						pthread_mutex_init(&conn_servent->mutex, NULL);
+						pthread_mutex_init(&conn_servent->mutex_data, NULL);
 						pthread_cond_init(&conn_servent->cond, NULL);
 						
 						if(g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id))==NULL) {
@@ -320,14 +314,20 @@ void *servent_responde(void *parm) {
 					else if(h_packet->data->header->desc_id==PING_ID) {
 						printf("[servent_responde]PING ricevuto\n");
 						servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
+						LOCK(h_packet->data->header->sender_id);
 						conn_servent->status = GET_PING(h_packet->data)->status;
+						conn_servent->timestamp = h_packet->data->header->timestamp;
+						UNLOCK(h_packet->data->header->sender_id);
 						
 						status = HTTP_STATUS_OK;
 					}
 					else if(h_packet->data->header->desc_id==PONG_ID) {
 						printf("[servent_responde]PONG ricevuto\n");
 						servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
+						LOCK(h_packet->data->header->sender_id);
 						conn_servent->status = GET_PONG(h_packet->data)->status;
+						conn_servent->timestamp = h_packet->data->header->timestamp;
+						UNLOCK(h_packet->data->header->sender_id);
 						
 						status = HTTP_STATUS_OK;
 					}
@@ -336,32 +336,39 @@ void *servent_responde(void *parm) {
 						u_int8 chat_id = GET_LEAVE(h_packet->data)->chat_id;
 						
 						servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
+						LOCK(h_packet->data->header->sender_id);
 						conn_servent->chat_list = g_slist_remove(conn_servent->chat_list, (gconstpointer)chat_id);
+						conn_servent->timestamp = h_packet->data->header->timestamp;
+						UNLOCK(h_packet->data->header->sender_id);
 						
 						status = HTTP_STATUS_OK;
 						//Sconnetti dalla chat
 					}
 					else if(h_packet->data->header->desc_id==MESSAGE_ID) {
 						printf("[servent_responde]MESSAGE ricevuto\n");
-						u_int4 id_dest_len = GET_MESSAGE(h_packet->data)->id_dest_len;
+						//u_int4 id_dest_len = GET_MESSAGE(h_packet->data)->id_dest_len;
 						
 						servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
-						conn_servent->id_dest = h_packet->data->data;
-						if(strstr(conn_servent->id_dest, to_string(h_packet->data->header->sender_id))==NULL) {
-							status = HTTP_STATUS_CERROR;
-						}
-						else {
-							conn_servent->id_dest_len = id_dest_len;
+
+						//printf("[servent_responde]dest: %s, recv_from: %s\n", conn_servent->id_dest, to_string(h_packet->data->header->sender_id));
+						//if(strstr(conn_servent->id_dest, to_string(h_packet->data->header->sender_id))==NULL) {
+						//	status = HTTP_STATUS_CERROR;
+						//}
+						//else {
+							//conn_servent->id_dest_len = id_dest_len;
 							//Prende il messaggio
-							char *temp = h_packet->data->data;
-							printf("[servent_responde]temp: %s\n", dump_data(temp, GET_MESSAGE(h_packet->data)->msg_len+GET_MESSAGE(h_packet->data)->id_dest_len));
-							temp += id_dest_len;
-							conn_servent->msg = temp;
-							conn_servent->msg_len = GET_MESSAGE(h_packet->data)->msg_len;
-						
-							printf("servet_responde]msg: %s, msg_len: %d, id_dest_len: %d\n", dump_data(conn_servent->msg, conn_servent->msg_len), conn_servent->msg_len, id_dest_len);
-							status = HTTP_STATUS_OK;
-						}
+							//char *temp = h_packet->data->data;
+							//printf("[servent_responde]temp: %s\n", dump_data(temp, GET_MESSAGE(h_packet->data)->msg_len+GET_MESSAGE(h_packet->data)->id_dest_len));
+							//temp += id_dest_len;
+						LOCK(h_packet->data->header->sender_id);
+						conn_servent->msg = h_packet->data->data;
+						conn_servent->msg_len = h_packet->data->header->data_len;
+						conn_servent->timestamp = h_packet->data->header->timestamp;
+						printf("servet_responde]msg: %s, msg_len: %d\n", dump_data(conn_servent->msg, conn_servent->msg_len), conn_servent->msg_len);
+						UNLOCK(h_packet->data->header->sender_id);
+
+						status = HTTP_STATUS_OK;
+						//}
 					}
 					
 					//Invio la conferma di ricezione
@@ -384,6 +391,7 @@ void *servent_responde(void *parm) {
 	pthread_exit(NULL);
 }
 
+//parm: id del peer
 void *servent_connect(void *parm) {
 	int len;
 	char *buffer = (char*)malloc(2000);
@@ -404,33 +412,52 @@ void *servent_connect(void *parm) {
 	
 	printf("[servent_connect]Init\n");
 	
+	u_int4 post_type;
+	u_int8 chat_id_req;
+	u_int4 msg_len;
+	char *msg;
+	
+	u_int1 status;
+	char *nick;
+	
 	//Ora si entra nel ciclio infinito che serve per inviare tutte le richieste
 	while(1) {
 		pthread_cond_wait(cond, mutex); //In attesa di un segnale che indichi la necessita di comunicare con il peer
 		printf("[servent_connect]socket %d, Signal received\n", fd);
 		//TODO: ogni volta che si accede a local_servent bisogna prendere un lock
+		
+		LOCK(id_dest);
+		post_type = servent_peer->post_type;
+		chat_id_req = servent_peer->chat_id_req;
+		msg_len = servent_peer->msg_len;
+		msg = servent_peer->msg;
 		printf("[servent_connect]id_dest: %lld, post_type=%d\n", servent_peer->id, servent_peer->post_type);
+		UNLOCK(id_dest);
 		
+		LOCK(local_servent->id);
+		status = local_servent->status;
+		nick = local_servent->nick;
+		UNLOCK(local_servent->id);
 		
-		if(servent_peer->post_type==HTTP_REQ_GET) {
+		if(post_type==HTTP_REQ_GET) {
 			//send_get_request_packet(fd, char *filename, u_int4 range_start, u_int4 range_end);
 		}
 		else {
 			
-			if(servent_peer->post_type==JOIN_ID) {
-				send_join_packet(fd, local_servent->id, id_dest, local_servent->status, local_servent->chat_id_req);
+			if(post_type==JOIN_ID) {
+				send_join_packet(fd, local_servent->id, id_dest, status, chat_id_req, nick); //TODO: Dubbio su chat_id_req Local o peer???
 			}
-			else if(servent_peer->post_type==PING_ID) {
-				send_ping_packet(fd, local_servent->id, id_dest, local_servent->status);
+			else if(post_type==PING_ID) {
+				send_ping_packet(fd, local_servent->id, id_dest, status);
 			}
-			else if(servent_peer->post_type==PONG_ID) {
-				send_pong_packet(fd, local_servent->id, id_dest, local_servent->status);
+			else if(post_type==PONG_ID) {
+				send_pong_packet(fd, local_servent->id, id_dest, status);
 			}
-			else if(servent_peer->post_type==LEAVE_ID) {
-				send_ping_packet(fd, local_servent->id, id_dest, local_servent->chat_id_req);
+			else if(post_type==LEAVE_ID) {
+				send_ping_packet(fd, local_servent->id, id_dest, chat_id_req);
 			}
-			else if(servent_peer->post_type==MESSAGE_ID) {
-				send_message_packet(fd, local_servent->id, id_dest, servent_peer->id_dest_len, servent_peer->msg_len, servent_peer->id_dest, servent_peer->msg);
+			else if(post_type==MESSAGE_ID) {
+				send_message_packet(fd, local_servent->id, id_dest, chat_id_req, msg_len, msg);
 			}
 		
 			memset(buffer, 0, 2000);
@@ -452,4 +479,33 @@ void *servent_connect(void *parm) {
 		}
 	}
 	pthread_exit(NULL);
+}
+
+void *servent_timer(void *parm) {
+	GList *list;
+	servent_data *data;
+	int i;
+	
+	while(1) {
+		
+		list=g_hash_table_get_values(servent_hashtable);
+		
+		for(i=0; i<g_list_length(list); i++) {
+			data = (servent_data*)g_list_nth_data(list, i);
+			if(data->id!=local_servent->id) {
+				LOCK(data->id);
+				printf("[servent_timer]Locked\n");
+			
+				data->post_type = PING_ID;
+				
+				printf("[servent_timer]Signaling %lld\n", data->id);
+				pthread_cond_signal(&data->cond);
+				UNLOCK(data->id);
+				printf("[servent_timer]Unlocked\n");
+			}
+		}
+		
+		printf("[servent_timer]Sleeping\n");
+		sleep(timer_interval);
+	}
 }

@@ -150,9 +150,10 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 	char *buffer = NULL;	
 	u_int4 type = packet->type;
 	if(packet->header_request!=NULL) {
-		printf("http_bin_to_char]not NULL\n");
+		printf("[http_bin_to_char]not NULL\n");
 		http_header_request *header_request = packet->header_request;
-		if(type==HTTP_REQ_POST) {		
+		if(type==HTTP_REQ_POST) {
+			printf("[http_bin_to_char]HTTP_REQ_POST\n");
 			buffer = malloc(strlen(header_request->request)+2\
 				+strlen(header_request->user_agent)+strlen(HTTP_AGENT)+2\
 				+strlen(HTTP_CONTENT_LEN)+10+2\

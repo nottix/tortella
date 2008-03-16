@@ -85,6 +85,7 @@ void print_packet(tortella_packet * packet) {
 		printf("desc_id:   %d\n", packet->header->desc_id);
 		printf("sender_id: %lld\n", packet->header->sender_id);
 		printf("recv_id:   %lld\n", packet->header->recv_id);
+		printf("timestamp:   %lld\n", packet->header->timestamp);
 		//printf("ttl: %d\n", packet->header->ttl);
 		//printf("hops: %d\n", packet->header->hops);
 		printf("desc_len:  %d\n", packet->header->desc_len);
