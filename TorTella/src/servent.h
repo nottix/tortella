@@ -30,21 +30,26 @@
 #define THREAD_MAX 20
 #define FD_MAX 100
 
+static u_int4 timer_interval = 5;
+
 struct servent_data {
 	u_int8 id;
 	char *ip;
 	u_int4 port;
 	u_int1 status;
+	char *nick;
+	time_t timestamp;	//Timestamp ricezione pacchetto
 	
 	GSList *chat_list;	//Lista delle chat a cui è connesso il servente
 	
 	pthread_cond_t cond;
 	pthread_mutex_t mutex;
+	pthread_mutex_t mutex_data;
 	
 	char *msg; 			//Messaggio da inviare o ricevuto
 	u_int4 msg_len;		//Lunghezza messaggio
-	char *id_dest;		//ID a cui inviare il pacchetto
-	u_int4 id_dest_len;	//Lunghezza stringa degli ID
+	//char *id_dest;		//ID a cui inviare il pacchetto
+	//u_int4 id_dest_len;	//Lunghezza stringa degli ID
 	
 	//USATE SOLO IN LOCALE
 	u_int4 post_type;	//Tipo di pacchetto da inviare
@@ -71,6 +76,8 @@ static list *client_thread;
 static list *server_thread;
 static list *server_connection_thread;*/
 
+pthread_t *timer_thread;
+
 GSList *client_fd;
 GSList *server_fd;
 GSList *server_connection_fd;
@@ -78,6 +85,9 @@ GSList *server_connection_fd;
 GSList *client_thread;
 GSList *server_thread;
 GSList *server_connection_thread;
+
+#define LOCK(servent)			pthread_mutex_lock( &((servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(servent)))->mutex_data )
+#define UNLOCK(servent)			pthread_mutex_unlock( &((servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(servent)))->mutex_data )
 
 //Crea un server socket
 u_int4 servent_create_server(char *src_ip, u_int4 src_port);
@@ -95,7 +105,7 @@ void servent_init(char *ip, u_int4 port, u_int1 status);
 
 //u_int4 servent_add_chat(servent_data *s_data, u_int8 id, u_int8 chat_id);
 
-//-----Thread--------------
+//-----THREAD--------------
 
 //Thread che riceve i pacchetti e risponde adeguatamente
 void *servent_listen(void *parm);
@@ -103,5 +113,7 @@ void *servent_listen(void *parm);
 void *servent_responde(void *parm);
 
 void *servent_connect(void *parm);
+
+void *servent_timer(void *parm);
 
 #endif //SERVENT_H

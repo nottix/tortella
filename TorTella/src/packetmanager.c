@@ -16,7 +16,7 @@
  
 #include "packetmanager.h"
 
-u_int4 send_join_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 status, u_int8 chat_id) {
+u_int4 send_join_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 status, u_int8 chat_id, char *nick) {
 	
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
@@ -25,7 +25,8 @@ u_int4 send_join_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 stat
 	header->desc_id = JOIN_ID;
 	header->sender_id = sender_id;
 	header->recv_id = recv_id;
-	header->data_len = 0;
+	header->timestamp = time(NULL);
+	header->data_len = strlen(nick);
 	
 	join_desc *join = (join_desc*)malloc(sizeof(join_desc));
 	join->status = status;
@@ -35,7 +36,7 @@ u_int4 send_join_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 stat
 	header->desc_len = sizeof(join_desc);
 		
 	packet->header = header;
-	packet->data = NULL;
+	packet->data = nick;
 	
 	char *buffer;
 	int len;
@@ -57,6 +58,7 @@ u_int4 send_leave_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 cha
 	header->desc_id = LEAVE_ID;
 	header->sender_id = sender_id;
 	header->recv_id = recv_id;
+	header->timestamp = time(NULL);
 	header->data_len = 0;
 	
 	leave_desc *leave = (leave_desc*)malloc(sizeof(leave_desc));
@@ -87,6 +89,7 @@ u_int4 send_ping_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 stat
 	header->desc_id = PING_ID;
 	header->sender_id = sender_id;
 	header->recv_id = recv_id;
+	header->timestamp = time(NULL);
 	header->data_len = 0;
 	
 	ping_desc *ping = (ping_desc*)malloc(sizeof(ping_desc));
@@ -117,6 +120,7 @@ u_int4 send_pong_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 stat
 	header->desc_id = PONG_ID;
 	header->sender_id = sender_id;
 	header->recv_id = recv_id;
+	header->timestamp = time(NULL);
 	header->data_len = 0;
 	
 	pong_desc *pong = (pong_desc*)malloc(sizeof(pong_desc));
@@ -148,6 +152,7 @@ u_int4 send_list_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id) {
 	header->desc_id = LIST_ID;
 	header->sender_id = sender_id;
 	header->recv_id = recv_id;
+	header->timestamp = time(NULL);
 	header->data_len = 0;
 	
 	list_desc *list = (list_desc*)malloc(sizeof(list_desc));
@@ -177,6 +182,7 @@ u_int4 send_listhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 
 	header->desc_id = LISTHITS_ID;
 	header->sender_id = sender_id;
 	header->recv_id = recv_id;
+	header->timestamp = time(NULL);
 	header->data_len = data_len;
 	
 	listhits_desc *listhits = (listhits_desc*)malloc(sizeof(listhits_desc));
@@ -197,7 +203,7 @@ u_int4 send_listhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 
 	return send_packet(fd, buffer, len);
 }
 
-u_int4 send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int4 id_dest_len, u_int4 msg_len, char *id_dest, char *msg) {
+u_int4 send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id, u_int4 msg_len, char *msg) {
 
 	printf("[send_message_packet]Sending msg: %s, msg_len: %d\n", msg, msg_len);
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
@@ -207,11 +213,11 @@ u_int4 send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int4 i
 	header->desc_id = MESSAGE_ID;
 	header->sender_id = sender_id;
 	header->recv_id = recv_id;
-	header->data_len = id_dest_len+msg_len;
+	header->timestamp = time(NULL);
+	header->data_len = msg_len;
 	
 	message_desc *message = (message_desc*)malloc(sizeof(message_desc));
-	message->id_dest_len = id_dest_len;
-	message->msg_len = msg_len;
+	message->chat_id = chat_id;
 	
 	packet->desc = (char*)message;
 
@@ -219,7 +225,7 @@ u_int4 send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int4 i
 		
 	packet->header = header;
 	
-	printf("[send_message_packet]id_dest %s\n", id_dest);
+	/*printf("[send_message_packet]id_dest %s\n", id_dest);
 	char *temp = (char*)malloc(header->data_len);
 	memcpy(temp, id_dest, id_dest_len);
 	printf("[send_message_packet] temp: %s\n", temp);
@@ -227,7 +233,8 @@ u_int4 send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int4 i
 	iter += id_dest_len;
 	memcpy(iter, msg, msg_len);
 	printf("[send_message_packet] temp: %s, msg: %s\n", temp, msg);
-	packet->data = temp;
+	packet->data = temp;*/
+	packet->data = msg;
 	
 	char *buffer;
 	int len;
@@ -236,7 +243,7 @@ u_int4 send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int4 i
 	buffer = http_bin_to_char(h_packet, &len);
 	if(buffer==NULL)
 		printf("Errore\n");
-	printf("[send_message_packet]Sent %s, id_dest_len: %d\n", dump_data(buffer, len), message->id_dest_len);
+	//printf("[send_message_packet]Sent %s, id_dest_len: %d\n", dump_data(buffer, len), message->id_dest_len);
 	
 	return send_packet(fd, buffer, len);
 }
