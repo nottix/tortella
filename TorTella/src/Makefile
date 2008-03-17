@@ -28,6 +28,9 @@ socketmanager_testing: socketmanager.o tortellaprotocol.o httpmanager.o packetma
 servent_testing: testing/servent_testing.c socketmanager.o tortellaprotocol.o httpmanager.o packetmanager.o utils.o servent.o list.o
 	$(CC) -o testing/servent_testing testing/servent_testing.c socketmanager.o tortellaprotocol.o httpmanager.o packetmanager.o utils.o servent.o list.o $(LDFLAGS) $(LIBS) $(INCFLAGS)
 
+supernodedata_testing: testing/supernodedata_testing.c supernodedata.o utils.o
+	$(CC) -o testing/supernodedata_testing testing/supernodedata_testing.c supernodedata.o utils.o $(LDFLAGS) $(LIBS) $(INCFLAGS)
+
 list_testing: testing/list_testing.c list.o
 	$(CC) -o testing/list_testing testing/list_testing.c list.o $(LDFLAGS) $(LIBS) $(INCFLAGS)
 
@@ -51,6 +54,9 @@ packetmanager.o: packetmanager.h packetmanager.c
 
 servent.o: servent.h servent.c packetmanager.o
 	$(CC) $(CFLAGS) $(INCFLAGS) -o servent.o -c servent.c
+
+supernodedata.o: supernodedata.h supernodedata.c
+	$(CC) $(CFLAGS) $(INCFLAGS) -o supernodedata.o -c supernodedata.c
 
 logger.o: logger.h logger.c
 	$(CC) $(CFLAGS) -o logger.o -c logger.c

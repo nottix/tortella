@@ -14,41 +14,26 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
  
-#ifndef CHATSERVER_H
-#define CHATSERVER_H
+#include "supernodedata.h"
 
-#include "common.h"
-#include "packetmanager.h"
-#include <glib.h>
-
-struct chatclient {
-	u_int8 id;
-	char *nick;
-	char *ip;
-	u_int4 port;
-};
-typedef struct chatclient chatclient;
-
-struct chat {
-	u_int8 id;
-	char *name;
-	GSList *users;
-};
-typedef struct chat chat;
-
-GSList *chatclient_list;
-GSList *
-
-//Avvia la chatserver
-u_int4 chatserver_start(char *ip, u_int4 port);
-
-//-----THREAD---------
-
-//Avvia il server
-void *chatserver_listen(void *parm);
-
-//Ne viene avviato uno per ogni client
-void *chatserver_responde(void *parm);
-
-
-#endif //CHATSERVER_H
+int main(void) {
+	add_chat(111, "test", &chat_hashtable);
+	
+	chat *test = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(111));
+	
+	printf("chat: %lld\n", test->id);
+	
+	add_user(111, 22, "simone", "127.0.0.1", 2110, chat_hashtable, &chatclient_hashtable);
+			 
+	chatclient *user = (chatclient*)g_hash_table_lookup(chatclient_hashtable, (gconstpointer)to_string(22));
+	
+	printf("user: %s\n", user->nick);
+	
+	user = (chatclient*)g_hash_table_lookup(test->users, (gconstpointer)to_string(22));
+	
+	printf("userchat: %lld\n", user->id);
+	
+	write_to_file("test", test, MODE_TRUNC);
+	
+	return 0;
+}
