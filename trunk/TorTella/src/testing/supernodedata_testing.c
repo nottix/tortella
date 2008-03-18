@@ -17,7 +17,7 @@
 #include "supernodedata.h"
 
 int main(void) {
-	add_chat(111, "test", &chat_hashtable);
+	/*add_chat(111, "test", &chat_hashtable);
 	
 	chat *test = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(111));
 	
@@ -33,7 +33,13 @@ int main(void) {
 	
 	printf("userchat: %lld\n", user->id);
 	
-	write_to_file("test", test, MODE_TRUNC);
+	write_to_file("test", test, MODE_TRUNC);*/
+	
+	read_from_file("test", &chat_hashtable, &chatclient_hashtable);
+	
+	chatclient *user = (chatclient*)g_hash_table_lookup(chatclient_hashtable, (gconstpointer)to_string(33));
+	
+	printf("user: %s\n", user->nick);
 	
 	return 0;
 }
