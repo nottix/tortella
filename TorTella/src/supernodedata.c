@@ -31,6 +31,9 @@ u_int4 write_to_file(const char *filename, chat *chat_str, u_int4 mode) {
 	
 	int fd;
 	if(mode==MODE_TRUNC) {
+		
+		pthread_mutex_lock(&chat_str->mutex);
+		
 		if((fd=open(filename, O_TRUNC|O_CREAT|O_WRONLY, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH))<0)
 			return 0;
 		
@@ -40,28 +43,42 @@ u_int4 write_to_file(const char *filename, chat *chat_str, u_int4 mode) {
 		chatclient *chatclient_str;
 		char buffer[2000];
 		char bufferclient[2000];
-		int i, j;
-		//for(i=0; i<g_list_length(list); i++) {
-			//chat_str = (chat*)g_list_nth_data(list, i);
+		int j;
+
+		sprintf(buffer, "%lld;%s;\n", chat_str->id, chat_str->title);
 			
-			sprintf(buffer, "%lld;%s;\n", chat_str->id, chat_str->title);
+		listclient = g_hash_table_get_values(chat_str->users);
+		for(j=0; j<g_list_length(listclient); j++) {
+			chatclient_str = (chatclient*)g_list_nth_data(listclient, j);
+			sprintf(bufferclient, "%lld;%s;%s;%d;\n", chatclient_str->id, chatclient_str->nick, chatclient_str->ip, chatclient_str->port);
 			
-			listclient = g_hash_table_get_values(chat_str->users);
-			for(j=0; j<g_list_length(listclient); j++) {
-				chatclient_str = (chatclient*)g_list_nth_data(listclient, j);
-				sprintf(bufferclient, "%lld;%s;%s;%d;\n", chatclient_str->id, chatclient_str->nick, chatclient_str->ip, chatclient_str->port);
+			strcat(buffer, bufferclient);
+		}
 				
-				strcat(buffer, bufferclient);
-			}
-		//}
-		
 		int len=0;
 		if((len=write(fd, buffer, strlen(buffer)))<0)
 			return 0;
 		
 		close(fd);
 		
+		pthread_mutex_unlock(&chat_str->mutex);
+		
 		return len;
+	}
+	
+	return 1;
+}
+
+u_int4 write_all(GHashTable *chat_table, u_int4 mode) {
+	
+	if(mode==MODE_TRUNC) {
+		GList *list = g_hash_table_get_values(chat_table);
+		chat *chat_str;
+		int i;
+		for(i=0; i<g_list_length(list); i++) {
+			chat_str = (chat*)g_list_nth_data(list, i);
+			write_to_file(to_string(chat_str->id), chat_str, mode);
+		}
 	}
 	
 	return 1;
@@ -77,19 +94,50 @@ u_int4 read_from_file(const char *filename, GHashTable **chat_table, GHashTable 
 		return 0;
 	
 	int fd;
-	if((fd=open(filename, O_RDONLY))<0)
+	if((fd=open(filename, O_RDONLY|O_EXCL))<0)
 		return 0;
 	
 	char ch;
+	char line[100];
+	char *buf;
+	int line_count=0;
+	int index=0;
+	
+	char *chat_id=NULL;
+	char *title;
+	char *id;
+	char *nick;
+	char *ip;
+	char *port;
+	//char *token;
 	while(read(fd, &ch, 1)>0) {
+		printf("[read_from_file]char: %c\n", ch);
 		if(ch=='\n') {
-			
-		}
-		else if(ch==';') {
-			
+			if(line_count==0) {
+				printf("[read_from_file]line_count: %d\n", line_count);
+				buf = strdup(line);
+				chat_id = strtok(buf, ";");
+				title = strtok(NULL, ";");
+				printf("[read_from_file]title: %s\n", title);
+				add_chat(strtoull(chat_id, NULL, 10), strdup(title), chat_table);
+				memset(line, 0, strlen(line));
+				index=0;
+			}
+			else if(line_count>0) {
+				buf = strdup(line);
+				id = strtok(buf, ";");
+				nick = strtok(NULL, ";");
+				ip = strtok(NULL, ";");
+				port = strtok(NULL, ";");
+				add_user(strtoull(chat_id, NULL, 10), strtoull(id, NULL, 10), strdup(nick), strdup(ip), strtod(port, NULL), *chat_table, chatclient_table);
+				memset(line, 0, strlen(line));
+				index=0;
+			}
+			line_count++;
 		}
 		else {
-			
+			line[index++]=ch;
+			printf("read_from_file]line: %s\n", line);
 		}
 	}
 	
@@ -100,6 +148,7 @@ u_int4 add_chat(u_int8 id, const char *title, GHashTable **chat_table) {
 	chat *chat_str = (chat*)malloc(sizeof(chat));
 	chat_str->id = id;
 	chat_str->title = (char*)title;
+	pthread_mutex_init(&chat_str->mutex, NULL);
 	
 	printf("[add_chat]chat created\n");
 	if((*chat_table)==NULL) {
@@ -137,9 +186,11 @@ u_int4 add_user(u_int8 chat_id, u_int8 id, const char *nick, const char *ip, u_i
 	g_hash_table_insert((*chatclient_table), (gpointer)to_string(id), (gpointer)chatclient_str);
 	
 	chat *chat_str = (chat*)g_hash_table_lookup(chat_table, (gconstpointer)to_string(chat_id));
+	pthread_mutex_lock(&chat_str->mutex);
 	if(chat_str->users==NULL)
 		chat_str->users = g_hash_table_new(g_str_hash, g_str_equal);
 	g_hash_table_insert(chat_str->users, (gpointer)to_string(id), (gpointer)chatclient_str);
+	pthread_mutex_unlock(&chat_str->mutex);
 	
 	return 1;
 }

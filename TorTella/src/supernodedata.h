@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <pthread.h>
 
 #define MODE_TRUNC 0x900
 #define MODE_APPEND 0x901
@@ -42,6 +43,7 @@ struct chat {
 	u_int8 id;
 	char *title;
 	GHashTable *users;
+	pthread_mutex_t mutex;
 };
 typedef struct chat chat;
 
@@ -58,6 +60,8 @@ GHashTable *chat_hashtable;
  * nella modalità APPEND modifica il file esistente.
  */
 u_int4 write_to_file(const char *filename, chat *chat_str, u_int4 mode);
+
+u_int4 write_all(GHashTable *chat_table, u_int4 mode);
 
 /*
  * Legge le informazioni delle chat e degli utenti dal file specificato.
