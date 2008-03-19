@@ -5,7 +5,7 @@
 #ifndef SOCKETMANAGER_H
 #define SOCKETMANAGER_H
 
-#define SOCKET_DEBUG
+//#define SOCKET_DEBUG
 
 #include <sys/types.h>
 #include <sys/socket.h>
