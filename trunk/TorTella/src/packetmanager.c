@@ -248,6 +248,41 @@ u_int4 send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 c
 	return send_packet(fd, buffer, len);
 }
 
+u_int4 send_create_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id, u_int4 title_len, char *title) {
+	printf("[send_create_packet]Sending title: %s, title_len: %d\n", title, title_len);
+	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
+	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
+	
+	header->id = generate_id();
+	header->desc_id = CREATE_ID;
+	header->sender_id = sender_id;
+	header->recv_id = recv_id;
+	header->timestamp = time(NULL);
+	header->data_len = title_len;
+	
+	create_desc *create = (create_desc*)malloc(sizeof(create_desc));
+	create->chat_id = chat_id;
+	
+	packet->desc = (char*)create;
+
+	header->desc_len = sizeof(create_desc);
+		
+	packet->header = header;
+	
+	packet->data = title;
+	
+	char *buffer;
+	int len;
+	http_packet *h_packet = http_create_packet(packet, HTTP_REQ_POST, 0, NULL, 0, 0, NULL, 0);
+	printf("[send_create_packet]data: %s\n", dump_data(h_packet->data->data, h_packet->data->header->data_len));
+	buffer = http_bin_to_char(h_packet, &len);
+	if(buffer==NULL)
+		printf("Errore\n");
+	//printf("[send_message_packet]Sent %s, id_dest_len: %d\n", dump_data(buffer, len), message->id_dest_len);
+	
+	return send_packet(fd, buffer, len);
+}
+
 u_int4 send_post_response_packet(u_int4 fd, u_int4 status) {
 	char *buffer;
 	int len;

@@ -14,6 +14,7 @@
 #define GET_JOIN(packet)		((join_desc*)packet->desc)
 #define GET_LEAVE(packet)		((leave_desc*)packet->desc)
 #define GET_MESSAGE(packet)		((message_desc*)packet->desc)
+#define GET_CREATE(packet)		((create_desc*)packet->desc)
 
 //Descriptor ID
 #define PING_ID		0x00
@@ -23,6 +24,7 @@
 #define JOIN_ID		0x04
 #define LEAVE_ID	0x05
 #define MESSAGE_ID	0x06
+#define CREATE_ID	0x07
 
 //Status ID
 #define ONLINE_ID	0x80
@@ -93,6 +95,12 @@ struct message_desc {
 	//Campo dati: il msg
 };
 typedef struct message_desc message_desc;
+
+struct create_desc {
+	u_int8 chat_id;		//ID della chat da creare
+	//Campo dati:Title	//Titolo della chat da creare
+};
+typedef struct create_desc create_desc;
 
 /*
         Tortella Packet

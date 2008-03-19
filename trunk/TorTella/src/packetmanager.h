@@ -37,6 +37,8 @@ u_int4 send_listhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 
 
 u_int4 send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id, u_int4 msg_len, char *msg);
 
+u_int4 send_create_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id, u_int4 title_len, char *title);
+
 u_int4 send_post_response_packet(u_int4 fd, u_int4 status);
 
 u_int4 send_get_request_packet(u_int4 fd, char *filename, u_int4 range_start, u_int4 range_end);
