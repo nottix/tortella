@@ -27,9 +27,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <pthread.h>
+#include <dirent.h>
 
 #define MODE_TRUNC 0x900
 #define MODE_APPEND 0x901
+
+#define DATADIR	"./data"
 
 struct chatclient {
 	u_int8 id;
@@ -69,6 +72,8 @@ u_int4 write_all(GHashTable *chat_table, u_int4 mode);
  * alla hashtable relativa.
  */
 u_int4 read_from_file(const char *filename, GHashTable **chat_table, GHashTable **chatclient_table);
+
+u_int4 read_all(GHashTable **chat_table, GHashTable **chatclient_table);
 
 u_int4 add_chat(u_int8 id, const char *title, GHashTable **chat_table);
 

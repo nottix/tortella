@@ -41,6 +41,7 @@ tortella.o: tortella.c
 	$(CC) -o tortella.o -c tortella.c $(CFLAGS) $(INCFLAGS)
 
 tortellaprotocol.o: tortellaprotocol.h tortellaprotocol.c
+	@echo "Building tortellaprotocol"
 	$(CC) $(CFLAGS) -o tortellaprotocol.o -c tortellaprotocol.c
 
 httpmanager.o: httpmanager.h httpmanager.c

@@ -144,6 +144,19 @@ u_int4 read_from_file(const char *filename, GHashTable **chat_table, GHashTable 
 	return 1;
 }
 
+u_int4 read_all(GHashTable **chat_table, GHashTable **chatclient_table) {
+	DIR *dir=opendir(DATADIR);
+	struct dirent *ent;
+	char buf[100];
+	while (0!=(ent=readdir(dir))) {
+		printf("[read_all]Opening %s\n",ent->d_name);
+		sprintf(buf, "%s/%s", DATADIR, ent->d_name);
+		read_from_file(buf, chat_table, chatclient_table);
+	}
+	closedir(dir);
+	return 1;
+}
+
 u_int4 add_chat(u_int8 id, const char *title, GHashTable **chat_table) {
 	chat *chat_str = (chat*)malloc(sizeof(chat));
 	chat_str->id = id;
