@@ -370,6 +370,23 @@ void *servent_responde(void *parm) {
 						status = HTTP_STATUS_OK;
 						//}
 					}
+					else if(h_packet->data->header->desc_id==LEAVE_ID) {
+						printf("[servent_responde]CREATE ricevuto\n");
+						u_int8 chat_id = GET_CREATE(h_packet->data)->chat_id;
+						u_int4 title_len = h_packet->data->header->data_len;
+						char *title = h_packet->data->data;
+						
+						LOCK(local_servent->id);
+						if(local_servent->is_supernode) {
+							add_chat(chat_id, title, &chat_hashtable);
+							//TODO: eventualmente aggiungere un servent_data ????
+						}
+						
+						UNLOCK(local_servent->id);
+						
+						status = HTTP_STATUS_OK;
+						//Crea chat
+					}
 					
 					//Invio la conferma di ricezione
 					printf("[servent_responde]sending\n");
@@ -416,6 +433,8 @@ void *servent_connect(void *parm) {
 	u_int8 chat_id_req;
 	u_int4 msg_len;
 	char *msg;
+	u_int4 title_len;
+	char *title;
 	
 	u_int1 status;
 	char *nick;
@@ -437,6 +456,8 @@ void *servent_connect(void *parm) {
 		LOCK(local_servent->id);
 		status = local_servent->status;
 		nick = local_servent->nick;
+		title = local_servent->title;
+		title_len = local_servent->title_len;
 		UNLOCK(local_servent->id);
 		
 		if(post_type==HTTP_REQ_GET) {
@@ -458,6 +479,9 @@ void *servent_connect(void *parm) {
 			}
 			else if(post_type==MESSAGE_ID) {
 				send_message_packet(fd, local_servent->id, id_dest, chat_id_req, msg_len, msg);
+			}
+			else if(post_type==CREATE_ID) {
+				send_message_packet(fd, local_servent->id, id_dest, chat_id_req, title_len, title);
 			}
 		
 			memset(buffer, 0, 2000);

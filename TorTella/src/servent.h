@@ -21,6 +21,7 @@
 #include "packetmanager.h"
 #include "utils.h"
 #include "list.h"
+#include "supernodedata.h"
 #include <pthread.h>
 #include <signal.h>
 #include <unistd.h>
@@ -48,13 +49,16 @@ struct servent_data {
 	
 	char *msg; 			//Messaggio da inviare o ricevuto
 	u_int4 msg_len;		//Lunghezza messaggio
-	//char *id_dest;		//ID a cui inviare il pacchetto
-	//u_int4 id_dest_len;	//Lunghezza stringa degli ID
+
+	u_int1 is_supernode;	//Indica se il servente è un supernodo 1:si 0:no
 	
 	//USATE SOLO IN LOCALE
 	u_int4 post_type;	//Tipo di pacchetto da inviare
 	
-	u_int8 chat_id_req; //Chat a cui connettersi
+	u_int8 chat_id_req; //Chat a cui connettersi o creare
+	
+	char *title;	//Titolo chat da creare
+	u_int4 title_len;	//Lunghezza del titolo
 	
 };
 typedef struct servent_data servent_data;
