@@ -181,6 +181,14 @@ void servent_init(char *ip, u_int4 port, u_int1 status, u_int1 is_supernode) {
 	timer_thread = NULL;
 }
 
+void servent_init_supernode() {
+	read_all(chat_hashtable, chatclient_hashtable);
+}
+
+void servent_close_supernode() {
+	write_all(&chat_hashtable, MODE_TRUNC);
+}
+
 //---------THREAD---------------
 
 //Thread che riceve le richieste di connessione e avvia nuovi thread

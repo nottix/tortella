@@ -107,7 +107,9 @@ void kill_all_thread(int sig);
 
 void servent_init(char *ip, u_int4 port, u_int1 status, u_int1 is_supernode);
 
-//u_int4 servent_add_chat(servent_data *s_data, u_int8 id, u_int8 chat_id);
+void servent_init_supernode();
+
+void servent_close_supernode();
 
 //-----THREAD--------------
 
