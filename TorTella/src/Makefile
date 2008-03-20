@@ -13,8 +13,8 @@ all: tortella
 tortella: $(OBJECTS)
 	$(CC) -o tortella $(OBJECTS) $(LDFLAGS) $(LIBS)
 
-tortella_gui: gui/callbacks.o
-	$(CC) -o gui/tortella_gui gui/main.c gui/callbacks.o $(LDFLAGS) $(LIBS) $(INCFLAGS) `pkg-config --cflags --libs gtk+-2.0 libglade-2.0` -export-dynamic
+gui: gui.o
+	$(CC) -o gui gui.o $(LDFLAGS) $(LIBS) $(INCFLAGS) `pkg-config --cflags --libs gtk+-2.0`
 
 tortellaprotocol_testing: tortellaprotocol.o testing/tortellaprotocol_testing.c
 	$(CC) -o testing/tortellaprotocol_testing testing/tortellaprotocol_testing.c tortellaprotocol.o $(LDFLAGS) $(LIBS) $(INCFLAGS)
@@ -67,6 +67,9 @@ list.o: list.h list.c
 
 utils.o: utils.h utils.c
 	$(CC) $(CFLAGS) -o utils.o -c utils.c
+
+gui.o: gui.h gui.c
+	$(CC) $(CFLAGS) `pkg-config --cflags --libs gtk+-2.0` -o gui.o -c gui.c 
 
 gui/callbacks.o: gui/callbacks.h gui/callbacks.c
 	$(CC) $(CFLAGS) `pkg-config --cflags --libs gtk+-2.0 libglade-2.0` -o gui/callbacks.o -c gui/callbacks.c
