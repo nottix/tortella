@@ -25,6 +25,7 @@
 #define LEAVE_ID	0x05
 #define MESSAGE_ID	0x06
 #define CREATE_ID	0x07
+#define SEARCH_ID	0x08	//Ricerca una chat
 
 //Status ID
 #define ONLINE_ID	0x80
@@ -101,6 +102,31 @@ struct create_desc {
 	//Campo dati:Title	//Titolo della chat da creare
 };
 typedef struct create_desc create_desc;
+
+/*
+   Data
+ +-------+
+ | Query |
+ +-------+
+
+ */
+struct search_desc {
+	//Campo dati:Query	//Query di ricerca
+};
+typedef struct search_desc search_desc;
+
+/*
+				Data
+ +-----+--------+-----+--------+-----+
+ | ID1 | Title1 | ID2 | Title2 | ... |
+ +-----+--------+-----+--------+-----+
+
+ */
+struct searchhits_desc {
+	u_int4 num;
+	//Campo dati:Risultati
+};
+typedef struct searchhits_desc;
 
 /*
         Tortella Packet
