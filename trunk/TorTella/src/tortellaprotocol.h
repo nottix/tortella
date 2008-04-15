@@ -17,14 +17,16 @@
 #define GET_CREATE(packet)		((create_desc*)packet->desc)
 
 //Descriptor ID
-#define PING_ID		0x00
-#define PONG_ID		0x01
-#define LIST_ID		0x02
-#define LISTHITS_ID	0x03
-#define JOIN_ID		0x04
-#define LEAVE_ID	0x05
-#define MESSAGE_ID	0x06
-#define CREATE_ID	0x07
+#define PING_ID			0x00
+#define PONG_ID			0x01
+#define LIST_ID			0x02
+#define LISTHITS_ID		0x03
+#define JOIN_ID			0x04
+#define LEAVE_ID		0x05
+#define MESSAGE_ID		0x06
+#define CREATE_ID		0x07
+#define SEARCH_ID		0x08
+#define SEARCHHITS_ID	0x10
 #define SEARCH_ID	0x08	//Ricerca una chat
 
 //Status ID
@@ -72,6 +74,21 @@ struct listhits_desc {
 };
 typedef struct listhits_desc listhits_desc;
 
+struct search_desc {
+	u_int1 ttl;
+	u_int1 hops;
+	//Campo dati: stringa ricerca
+};
+typedef struct search_desc search_desc;
+
+struct searchhits_desc {
+	u_int1 ttl;
+	u_int1 hops;
+	u_int4 num_res;
+	//Campo dati: risultati separati da ';'
+};
+typedef struct searchhits_desc searchhits_desc;
+
 struct join_desc {
 	u_int1 status;
 	u_int8 chat_id; //ID della chat room (hash del nome della chat)
@@ -111,22 +128,19 @@ typedef struct create_desc create_desc;
 
  */
 struct search_desc {
-	//Campo dati:Query	//Query di ricerca
+	u_int1 ttl;
+	u_int1 hops;
+	//Campo dati: stringa ricerca
 };
 typedef struct search_desc search_desc;
 
-/*
-				Data
- +-----+--------+-----+--------+-----+
- | ID1 | Title1 | ID2 | Title2 | ... |
- +-----+--------+-----+--------+-----+
-
- */
 struct searchhits_desc {
-	u_int4 num;
-	//Campo dati:Risultati
+	u_int1 ttl;
+	u_int1 hops;
+	u_int4 num_res;
+	//Campo dati: risultati separati da ';'
 };
-typedef struct searchhits_desc;
+typedef struct searchhits_desc searchhits_desc;
 
 /*
         Tortella Packet

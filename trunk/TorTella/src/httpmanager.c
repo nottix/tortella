@@ -83,8 +83,8 @@ http_packet *http_create_packet(tortella_packet *packet, u_int4 type, u_int4 sta
 			ret->data_string = temp;
 			ret->data_len = tortella_len;*/
 			ret->data = NULL;
-			ret->data_string = NULL;
-			ret->data_len = 0;
+			ret->data_string = data;
+			ret->data_len = data_len;
 		}
 		else if(type==HTTP_RES_GET) {
 		/*	ret->data = packet;  //Serve solamente desc_len
@@ -198,18 +198,28 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 	}
 	else if(packet->header_response!=NULL) {
 		http_header_response *header_response = packet->header_response;
-		if(type==HTTP_RES_POST) {
+		/*if(type==HTTP_RES_POST) {
 			buffer = malloc(strlen(header_response->response)+strlen(HTTP_SERVER)+strlen(header_response->server)+2\
 				/*+strlen(HTTP_CONTENT_TYPE)+strlen(header_response->content_type)+2\
 				+strlen(HTTP_CONTENT_LEN)+header_response->content_len+2+2\
-				+sizeof(tortella_header)+packet->data->header->desc_len+packet->data->header->data_len*/+2);
+				+sizeof(tortella_header)+packet->data->header->desc_len+packet->data->header->data_len+2);
 
 			//sprintf(buffer, "%s\r\nServer: %s\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s", header_response->response, header_response->server, header_response->content_type,
-			sprintf(buffer, "%s\r\nServer: %s\r\n\r\n", header_response->response, header_response->server);
+		//	sprintf(buffer, "%s\r\nServer: %s\r\n\r\n", header_response->response, header_response->server);
 			
-			*len = strlen(buffer);
-		}
-		else if(type==HTTP_RES_GET) {
+		//	*len = strlen(buffer);
+							
+		/*	sprintf(buffer, "%s\r\nServer: %s\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s", header_response->response, header_response->server, header_response->content_type, \
+			header_response->content_len, packet->data_string);
+			
+			*len = strlen(buffer)+header_response->content_len;
+		}*/
+		if(type==HTTP_RES_GET || type==HTTP_RES_POST) {
+			
+			if(type==HTTP_RES_POST) {
+				header_response->content_type = "text/html";
+			}
+			
 			buffer = malloc(strlen(header_response->response)+strlen(HTTP_SERVER)+strlen(header_response->server)+2\
 				+strlen(HTTP_CONTENT_TYPE)+strlen(header_response->content_type)+2\
 				+strlen(HTTP_CONTENT_LEN)+header_response->content_len+2+2\
@@ -304,7 +314,7 @@ http_packet *http_char_to_bin(const char *buffer) {
 				   header_request->content_len, header_request->connection, dump_data(packet->data_string, packet->data_len));
 #endif
 		}
-		else if((result=strstr(buffer, "Content-Length"))!=NULL) { //TODO
+		else if((result=strstr(buffer, "application/binary"))!=NULL) { //TODO
 #ifdef HTTP_DEBUG
 			printf("[http_char_to_bin]ype: RES_GET\n");
 #endif
@@ -326,7 +336,7 @@ http_packet *http_char_to_bin(const char *buffer) {
 			printf("[http_char_to_bin]response: %s\nserver: %s\ncontent_len: %d\ndata: %s\n", header_response->response, header_response->server, header_response->content_len, packet->data_string);
 #endif
 		}
-		else if((result=strstr(buffer, "Server"))!=NULL) { //TODO
+		else if((result=strstr(buffer, "text/html"))!=NULL) { //TODO
 #ifdef HTTP_DEBUG
 			printf("[http_char_to_bin]type: RES_POST\n");
 #endif
@@ -338,9 +348,9 @@ http_packet *http_char_to_bin(const char *buffer) {
 			header_response->server = http_get_value(buffer, HTTP_SERVER);
 			
 			packet->header_response = header_response;
-			packet->data_string = NULL;
+			packet->data_string = strstr(buffer, "\r\n\r\n")+4;
 			packet->data = NULL;
-			packet->data_len = 0;
+			packet->data_len = header_response->content_len;
 			
 #ifdef HTTP_DEBUG
 			printf("[http_char_to_bin]response: %s\nserver: %s\n", header_response->response, header_response->server);

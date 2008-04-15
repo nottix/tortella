@@ -325,6 +325,21 @@ void *servent_responde(void *parm) {
 
 						status = HTTP_STATUS_OK;
 					}
+					else if(h_packet->data->header->desc_id==SEARCH_ID) {
+						printf("[servent_responde]SEARCH ricevuto\n");
+						
+						LOCK(local_servent->id);
+						int res=0;
+						//TODO: ricerca nella lista delle chat che possiede
+						if(res>=0) {
+							status = HTTP_STATUS_OK;
+							send_post_response(fd, status, 4, "test");
+						}
+						
+						//TODO: Rinvia il pacchetto agli altri peer se il ttl non è 0
+						
+						status = -1;
+					}
 					else if(h_packet->data->header->desc_id==CREATE_ID) {
 						printf("[servent_responde]CREATE ricevuto\n");
 						u_int8 chat_id = GET_CREATE(h_packet->data)->chat_id;
@@ -348,8 +363,11 @@ void *servent_responde(void *parm) {
 					}
 					
 					//Invio la conferma di ricezione
-					printf("[servent_responde]sending\n");
-					send_post_response_packet(fd, status);
+					if(status>=0) {
+						printf("[servent_responde]sending\n");
+						send_post_response_packet(fd, status, 0, NULL);
+					}
+						
 				}
 				else if(h_packet->type==HTTP_REQ_GET) {
 					printf("[servent_responde]GET ricevuto\n");
