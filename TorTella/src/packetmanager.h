@@ -23,6 +23,10 @@
 #include "socketmanager.h"
 #include "utils.h"
 
+u_int4 send_search_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 ttl, u_int1 hops, u_int4 string_len, char *string);
+
+u_int4 send_searchhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 ttl, u_int1 hops, u_int4 num_res, u_int4 res_len, char *res);
+
 u_int4 send_join_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 status, u_int8 chat_id, char *nick);
 
 u_int4 send_leave_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id);
@@ -39,7 +43,7 @@ u_int4 send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 c
 
 u_int4 send_create_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id, u_int4 title_len, char *title);
 
-u_int4 send_post_response_packet(u_int4 fd, u_int4 status);
+u_int4 send_post_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char *data);
 
 u_int4 send_get_request_packet(u_int4 fd, char *filename, u_int4 range_start, u_int4 range_end);
 

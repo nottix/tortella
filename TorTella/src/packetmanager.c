@@ -16,6 +16,73 @@
  
 #include "packetmanager.h"
 
+u_int4 send_search_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 ttl, u_int1 hops, u_int4 string_len, char *string) {
+
+	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
+	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
+	
+	header->id = generate_id();
+	header->desc_id = SEARCH_ID;
+	header->sender_id = sender_id;
+	header->recv_id = recv_id;
+	header->timestamp = time(NULL);
+	header->data_len = strlen(string_len);
+	
+	search_desc *search = (search_desc*)malloc(sizeof(search_desc));
+	search->ttl = ttl;
+	search->hops = hops;
+	packet->desc = (char*)search;
+
+	header->desc_len = sizeof(search_desc);
+		
+	packet->header = header;
+	packet->data = string;
+	
+	char *buffer;
+	int len;
+	http_packet *h_packet = http_create_packet(packet, HTTP_REQ_POST, 0, NULL, 0, 0, NULL, 0);
+	buffer = http_bin_to_char(h_packet, &len);
+	//printf("[send_join_packet]type: %d\n", HTTP_REQ_POST);
+	if(buffer==NULL)
+		printf("Errore\n");
+	
+	return send_packet(fd, buffer, len);
+}
+
+u_int4 send_searchhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 ttl, u_int1 hops, u_int4 num_res, u_int4 res_len, char *res) {
+	
+	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
+	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
+	
+	header->id = generate_id();
+	header->desc_id = SEARCHHITS_ID;
+	header->sender_id = sender_id;
+	header->recv_id = recv_id;
+	header->timestamp = time(NULL);
+	header->data_len = strlen(res_len);
+	
+	searchhits_desc *searchhits = (searchhits_desc*)malloc(sizeof(searchhits_desc));
+	searchhits->ttl = ttl;
+	searchhits->hops = hops;
+	searchhits->num_res = num_res;
+	packet->desc = (char*)searchhits;
+
+	header->desc_len = sizeof(searchhits_desc);
+		
+	packet->header = header;
+	packet->data = res;
+	
+	char *buffer;
+	int len;
+	http_packet *h_packet = http_create_packet(packet, HTTP_REQ_POST, 0, NULL, 0, 0, NULL, 0);
+	buffer = http_bin_to_char(h_packet, &len);
+	//printf("[send_join_packet]type: %d\n", HTTP_REQ_POST);
+	if(buffer==NULL)
+		printf("Errore\n");
+	
+	return send_packet(fd, buffer, len);
+}
+
 u_int4 send_join_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 status, u_int8 chat_id, char *nick) {
 	
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
@@ -283,11 +350,11 @@ u_int4 send_create_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 ch
 	return send_packet(fd, buffer, len);
 }
 
-u_int4 send_post_response_packet(u_int4 fd, u_int4 status) {
+u_int4 send_post_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char *data) {
 	char *buffer;
 	int len;
 	printf("[send_post_response_packet]Send on socket %d\n", fd);
-	http_packet *h_packet = http_create_packet(NULL, HTTP_RES_POST, status, NULL, 0, 0, NULL, 0);
+	http_packet *h_packet = http_create_packet(NULL, HTTP_RES_POST, status, NULL, 0, 0, data, data_len);
 	if(h_packet!=NULL)
 		printf("[send_post_response_packet]Http created\n");
 	else {

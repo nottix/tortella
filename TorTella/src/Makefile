@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -g -Wall -O2
 OBJECTS = tortella.o
-INCFLAGS = -I./ `pkg-config --cflags glib-2.0` -I./gui
+INCFLAGS = -I./ `pkg-config --cflags glib-2.0`
 LDFLAGS = -Wl,-rpath,/usr/local/lib
 LIBS = -lpthread `pkg-config --libs glib-2.0`
 
