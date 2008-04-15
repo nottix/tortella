@@ -333,7 +333,7 @@ void *servent_responde(void *parm) {
 						//TODO: ricerca nella lista delle chat che possiede
 						if(res>=0) {
 							status = HTTP_STATUS_OK;
-							send_post_response(fd, status, 4, "test");
+							send_post_response_packet(fd, status, 4, "test");
 						}
 						
 						//TODO: Rinvia il pacchetto agli altri peer se il ttl non è 0
