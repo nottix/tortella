@@ -27,7 +27,6 @@
 #define CREATE_ID		0x07
 #define SEARCH_ID		0x08
 #define SEARCHHITS_ID	0x10
-#define SEARCH_ID	0x08	//Ricerca una chat
 
 //Status ID
 #define ONLINE_ID	0x80
@@ -73,21 +72,6 @@ struct listhits_desc {
 	//Riempire campo data
 };
 typedef struct listhits_desc listhits_desc;
-
-struct search_desc {
-	u_int1 ttl;
-	u_int1 hops;
-	//Campo dati: stringa ricerca
-};
-typedef struct search_desc search_desc;
-
-struct searchhits_desc {
-	u_int1 ttl;
-	u_int1 hops;
-	u_int4 num_res;
-	//Campo dati: risultati separati da ';'
-};
-typedef struct searchhits_desc searchhits_desc;
 
 struct join_desc {
 	u_int1 status;
