@@ -149,6 +149,8 @@ void kill_all_thread(int sig) {
 	
 	if(timer_thread!=NULL)
 		pthread_kill(*timer_thread, SIGKILL);
+	
+	servent_close_supernode();
 
 }
 
@@ -179,10 +181,13 @@ void servent_init(char *ip, u_int4 port, u_int1 status, u_int1 is_supernode) {
 	server_connection_thread = NULL;
 	
 	timer_thread = NULL;
+	
+	//Inizializza la lista delle chat conosciute leggendo da un file predefinito
+	servent_init_supernode();
 }
 
 void servent_init_supernode() {
-	read_all(chat_hashtable, chatclient_hashtable);
+	read_all(&chat_hashtable, &chatclient_hashtable);
 }
 
 void servent_close_supernode() {
@@ -331,6 +336,7 @@ void *servent_responde(void *parm) {
 						LOCK(local_servent->id);
 						int res=0;
 						//TODO: ricerca nella lista delle chat che possiede
+						//search_chat(GET_SEARCH(h_packet->data)->
 						if(res>=0) {
 							status = HTTP_STATUS_OK;
 							send_post_response_packet(fd, status, 4, "test");

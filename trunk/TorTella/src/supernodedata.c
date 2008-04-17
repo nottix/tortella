@@ -218,3 +218,35 @@ u_int4 del_user(u_int8 chat_id, u_int8 id, GHashTable *chat_table, GHashTable *c
 
 	return 1;
 }
+
+chat *search_chat(const char *title, GHashTable *chat_table) {
+	if(title==NULL || chat_table==NULL)
+		return NULL;
+	
+	GHashTable *listchat = g_hash_table_get_values(chat_table);
+	chat *chatval;
+	int j;
+	for(j=0; j<g_list_length(listchat); j++) {
+		chatval = (chat*)g_list_nth_data(listchat, j);
+		if(strcmp(chatval->title, title)==0)
+			return chatval;
+	}
+	return NULL;
+}
+
+chatclient *search_chatclient(const char *nick, GHashTable *chatclient_table) {
+	if(nick==NULL || chatclient_table==NULL) {
+		return NULL;
+	}
+	
+	GHashTable *listclient = g_hash_table_get_values(chatclient_table);
+	chatclient *clientval;
+	int j;
+	for(j=0; j<g_list_length(listclient); j++) {
+		clientval = (chat*)g_list_nth_data(listclient, j);
+		if(strcmp(clientval->nick, nick)==0)
+			return clientval;
+	}
+	return NULL;
+	
+}

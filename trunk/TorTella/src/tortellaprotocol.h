@@ -15,6 +15,7 @@
 #define GET_LEAVE(packet)		((leave_desc*)packet->desc)
 #define GET_MESSAGE(packet)		((message_desc*)packet->desc)
 #define GET_CREATE(packet)		((create_desc*)packet->desc)
+#define GET_SEARCH(packet)		((search_desc*)packet->desc)
 
 //Descriptor ID
 #define PING_ID			0x00
