@@ -83,7 +83,9 @@ u_int4 add_user(u_int8 chat_id, u_int8 id, const char *nick, const char *ip, u_i
 
 u_int4 del_user(u_int8 chat_id, u_int8 id, GHashTable *chat_table, GHashTable *chatclient_table);
 
+chat *search_chat(const char *title, GHashTable *chat_table);
 
+chatclient *search_chatclient(const char *nick, GHashTable *chatclient_table);
 //-----THREAD---------
 
 #endif //SUPERNODEDATA_H
