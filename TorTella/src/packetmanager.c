@@ -17,7 +17,7 @@
 #include "packetmanager.h"
 
 u_int4 send_search_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 ttl, u_int1 hops, u_int4 string_len, char *string) {
-
+	printf("[send_search_packet]Preparing\n");
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
 	
@@ -26,7 +26,7 @@ u_int4 send_search_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 tt
 	header->sender_id = sender_id;
 	header->recv_id = recv_id;
 	header->timestamp = time(NULL);
-	header->data_len = strlen(string_len);
+	header->data_len = string_len;
 	
 	search_desc *search = (search_desc*)malloc(sizeof(search_desc));
 	search->ttl = ttl;
@@ -46,6 +46,7 @@ u_int4 send_search_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 tt
 	if(buffer==NULL)
 		printf("Errore\n");
 	
+	printf("[send_search_packet]sending\n");
 	return send_packet(fd, buffer, len);
 }
 

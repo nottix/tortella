@@ -83,9 +83,31 @@ u_int4 add_user(u_int8 chat_id, u_int8 id, const char *nick, const char *ip, u_i
 
 u_int4 del_user(u_int8 chat_id, u_int8 id, GHashTable *chat_table, GHashTable *chatclient_table);
 
+/*
+ * Cerca nella hashtable chat_table l'occorrenza della chat title
+ * Ritorna la struttura dati della chat
+ */
 chat *search_chat(const char *title, GHashTable *chat_table);
 
+/*
+ * Cerca nella hashtable chat_table tutte le chat che hanno come titolo *title*
+ * Ritorna le chat in una slist
+ */
+GSList *search_all_chat(const char *title, GHashTable *chat_table);
+
 chatclient *search_chatclient(const char *nick, GHashTable *chatclient_table);
-//-----THREAD---------
+
+/*
+ * Converte la lista di chat in una stringa del tipo:
+ * 111;test;
+ * 22;simone;127.0.0.1;2110;
+ * 33;simon;127.0.0.1;2110;
+ */
+char *chatlist_to_char(GList *chat_list);
+
+/*
+ * Converte una stringa in una lista di chat con i relativi utenti
+ */
+GList *char_to_chatlist(const char *buffer);
 
 #endif //SUPERNODEDATA_H
