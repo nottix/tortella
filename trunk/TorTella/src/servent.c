@@ -78,7 +78,7 @@ u_int4 servent_start(char *ip, u_int4 port, u_int1 is_supernode) {
 		servent->msg = "Hello";
 		
 		servent->title_len =4;
-		servent->title = "Test";
+		servent->title = "test";
 		
 		servent->post_type=JOIN_ID;
 		g_hash_table_insert(servent_hashtable, (gpointer)to_string(cliid), (gpointer)servent);
@@ -101,7 +101,10 @@ u_int4 servent_start(char *ip, u_int4 port, u_int1 is_supernode) {
 			}
 			else if(ch=='c')
 				servent->post_type=CREATE_ID;
+			else if(ch=='r')
+				servent->post_type=SEARCH_ID;
 			
+			printf("[servent_start]signal\n");
 			pthread_cond_signal(&servent->cond);
 			printf("[servent_start]Premere f per bloccare l'invio\n");
 			
@@ -187,11 +190,14 @@ void servent_init(char *ip, u_int4 port, u_int1 status, u_int1 is_supernode) {
 }
 
 void servent_init_supernode() {
-	read_all(&chat_hashtable, &chatclient_hashtable);
+	//chat_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
+	//chatclient_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
+	//read_all(&chat_hashtable, &chatclient_hashtable);
+	read_from_file("test", &chat_hashtable, &chatclient_hashtable);
 }
 
 void servent_close_supernode() {
-	write_all(&chat_hashtable, MODE_TRUNC);
+	write_all(chat_hashtable, MODE_TRUNC);
 }
 
 //---------THREAD---------------
@@ -334,15 +340,21 @@ void *servent_responde(void *parm) {
 						printf("[servent_responde]SEARCH ricevuto\n");
 						
 						LOCK(local_servent->id);
-						int res=0;
+						GSList *res;
 						//TODO: ricerca nella lista delle chat che possiede
-						//search_chat(GET_SEARCH(h_packet->data)->
-						if(res>=0) {
+						printf("[servent_responde]searching, chat_hashtable: %s\n", (chat_hashtable==NULL)?"null":"notnull");
+						printf("[servent_responde]data: %s\n", tortella_get_data(GET_SEARCH(h_packet->data)));
+						
+						res = search_all_chat(tortella_get_data(GET_SEARCH(h_packet->data)), chat_hashtable);
+						printf("[servent_responde]results\n");
+						if(g_slist_length(res)>=0) {
 							status = HTTP_STATUS_OK;
-							send_post_response_packet(fd, status, 4, "test");
+							char *buf = chatlist_to_char(res);
+							send_post_response_packet(fd, status, strlen(buf), buf);
 						}
 						
 						//TODO: Rinvia il pacchetto agli altri peer se il ttl non è 0
+						UNLOCK(local_servent->id);
 						
 						status = -1;
 					}
@@ -424,6 +436,7 @@ void *servent_connect(void *parm) {
 	
 	//Ora si entra nel ciclio infinito che serve per inviare tutte le richieste
 	while(1) {
+		printf("[servent_connect]waiting\n");
 		pthread_cond_wait(cond, mutex); //In attesa di un segnale che indichi la necessita di comunicare con il peer
 		printf("[servent_connect]socket %d, Signal received\n", fd);
 		
@@ -464,6 +477,9 @@ void *servent_connect(void *parm) {
 			}
 			else if(post_type==CREATE_ID) {
 				send_create_packet(fd, local_servent->id, id_dest, chat_id_req, title_len, title);
+			}
+			else if(post_type==SEARCH_ID) {
+				send_search_packet(fd, local_servent->id, id_dest, 1, 1, title_len, title);
 			}
 		
 			memset(buffer, 0, 2000);
