@@ -340,23 +340,25 @@ void *servent_responde(void *parm) {
 						printf("[servent_responde]SEARCH ricevuto\n");
 						
 						LOCK(local_servent->id);
-						GSList *res;
+						GList *res;
 						//TODO: ricerca nella lista delle chat che possiede
 						printf("[servent_responde]searching, chat_hashtable: %s\n", (chat_hashtable==NULL)?"null":"notnull");
-						printf("[servent_responde]data: %s\n", tortella_get_data(GET_SEARCH(h_packet->data)));
+						//printf("[servent_responde]http data: %s\n", h_packet->data
+						printf("[servent_responde]data: %s\n", tortella_get_data(h_packet->data_string));
 						
-						res = search_all_chat(tortella_get_data(GET_SEARCH(h_packet->data)), chat_hashtable);
-						printf("[servent_responde]results\n");
-						if(g_slist_length(res)>=0) {
+						res = search_all_chat(tortella_get_data(h_packet->data_string), chat_hashtable);
+						printf("[servent_responde]results number %d\n", g_list_length(res));
+						if(g_list_length(res)>=0) {
 							status = HTTP_STATUS_OK;
 							char *buf = chatlist_to_char(res);
+							printf("[servent_responde]status: %d should: %d, buf: %s\n", status, HTTP_STATUS_OK, buf);
 							send_post_response_packet(fd, status, strlen(buf), buf);
 						}
 						
 						//TODO: Rinvia il pacchetto agli altri peer se il ttl non è 0
 						UNLOCK(local_servent->id);
 						
-						status = -1;
+						status = 0;
 					}
 					else if(h_packet->data->header->desc_id==CREATE_ID) {
 						printf("[servent_responde]CREATE ricevuto\n");
@@ -381,7 +383,7 @@ void *servent_responde(void *parm) {
 					}
 					
 					//Invio la conferma di ricezione
-					if(status>=0) {
+					if(status>0) {
 						printf("[servent_responde]sending\n");
 						send_post_response_packet(fd, status, 0, NULL);
 					}
