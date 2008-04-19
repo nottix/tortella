@@ -93,7 +93,7 @@ chat *search_chat(const char *title, GHashTable *chat_table);
  * Cerca nella hashtable chat_table tutte le chat che hanno come titolo *title*
  * Ritorna le chat in una slist
  */
-GSList *search_all_chat(const char *title, GHashTable *chat_table);
+GList *search_all_chat(const char *title, GHashTable *chat_table);
 
 chatclient *search_chatclient(const char *nick, GHashTable *chatclient_table);
 
