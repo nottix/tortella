@@ -103,11 +103,16 @@ chatclient *search_chatclient(const char *nick, GHashTable *chatclient_table);
  * 22;simone;127.0.0.1;2110;
  * 33;simon;127.0.0.1;2110;
  */
-char *chatlist_to_char(GList *chat_list);
+char *chatlist_to_char(GList *chat_list, int *len);
 
 /*
  * Converte una stringa in una lista di chat con i relativi utenti
  */
 GList *char_to_chatlist(const char *buffer);
+
+/*
+ * Ritorna una lista di tutti i client della chat specificata
+ */
+GList *get_chatclient(const char *title, GHashTable *chat_table);
 
 #endif //SUPERNODEDATA_H

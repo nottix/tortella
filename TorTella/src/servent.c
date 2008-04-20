@@ -341,6 +341,9 @@ void *servent_responde(void *parm) {
 						
 						LOCK(local_servent->id);
 						GList *res;
+						GList *servent_list;
+						servent_data *conn_servent
+						int len;
 						//TODO: ricerca nella lista delle chat che possiede
 						printf("[servent_responde]searching, chat_hashtable: %s\n", (chat_hashtable==NULL)?"null":"notnull");
 						//printf("[servent_responde]http data: %s\n", h_packet->data
@@ -350,12 +353,28 @@ void *servent_responde(void *parm) {
 						printf("[servent_responde]results number %d\n", g_list_length(res));
 						if(g_list_length(res)>=0) {
 							status = HTTP_STATUS_OK;
-							char *buf = chatlist_to_char(res);
+							char *buf = chatlist_to_char(res, &len);
 							printf("[servent_responde]status: %d should: %d, buf: %s\n", status, HTTP_STATUS_OK, buf);
-							send_post_response_packet(fd, status, strlen(buf), buf);
+							//Invia la risposta contenente le chat conosciute che hanno come titolo quello richiesto dal peer
+							send_post_response_packet(fd, status, len, buf);
 						}
 						
-						//TODO: Rinvia il pacchetto agli altri peer se il ttl non è 0
+						int i, j;
+						servent_list = g_hash_table_get_values(servent_hashtable);
+						for(i=0; i<g_list_length(servent_list); i++) {
+							
+							conn_servent = (servent_data*)g_list_nth_data(servent_list, i);
+							LOCK(conn_servent->id);
+							conn_servent->ttl = GET_SEARCH(h_packet->data)->ttl-1;
+							conn_servent->hops = GET_SEARCH(h_packet->data)->hops+1;
+							conn_servent->title = h_packet->data;
+							conn_servent->title_len = h_packet->data_len;
+							
+							//send_search_packet(fd, local_servent->id, conn_servent->id, GET_SEARCH(h_packet->data)->ttl-1, GET_SEARCH(h_packet->data)->hops+1, h_packet->data_len, h_packet->data);
+							//TODO: Rinvia il pacchetto agli altri peer se il ttl non è 0
+							UNLOCK(conn_servent->id);
+										   
+						}
 						UNLOCK(local_servent->id);
 						
 						status = 0;
@@ -432,6 +451,7 @@ void *servent_connect(void *parm) {
 	char *msg;
 	u_int4 title_len;
 	char *title;
+	u_int1 ttl, hops;
 	
 	u_int1 status;
 	char *nick;
@@ -449,6 +469,8 @@ void *servent_connect(void *parm) {
 		msg = servent_peer->msg;
 		title = servent_peer->title;
 		title_len = servent_peer->title_len;
+		ttl = servent_peer->ttl;
+		hops = servent_peer->hops;
 		printf("[servent_connect]id_dest: %lld, post_type=%d\n", servent_peer->id, servent_peer->post_type);
 		UNLOCK(id_dest);
 		
@@ -481,7 +503,7 @@ void *servent_connect(void *parm) {
 				send_create_packet(fd, local_servent->id, id_dest, chat_id_req, title_len, title);
 			}
 			else if(post_type==SEARCH_ID) {
-				send_search_packet(fd, local_servent->id, id_dest, 1, 1, title_len, title);
+				send_search_packet(fd, local_servent->id, id_dest, ttl, hops, title_len, title);
 			}
 		
 			memset(buffer, 0, 2000);
