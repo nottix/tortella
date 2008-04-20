@@ -268,7 +268,7 @@ chatclient *search_chatclient(const char *nick, GHashTable *chatclient_table) {
 	chatclient *clientval;
 	int j;
 	for(j=0; j<g_list_length(listclient); j++) {
-		clientval = (chat*)g_list_nth_data(listclient, j);
+		clientval = (chatclient*)g_list_nth_data(listclient, j);
 		if(strcmp(clientval->nick, nick)==0)
 			return clientval;
 	}
@@ -282,7 +282,7 @@ chatclient *search_chatclient(const char *nick, GHashTable *chatclient_table) {
  * 22;simone;127.0.0.1;2110;
  * 33;simon;127.0.0.1;2110;
  */
-char *chatlist_to_char(GList *chat_list) {
+char *chatlist_to_char(GList *chat_list, int *len) {
 	chat *chat_elem;
 	chatclient *chatclient_elem;
 	int cur_size = 512;
@@ -294,12 +294,13 @@ char *chatlist_to_char(GList *chat_list) {
 	
 	for(i=0; i<g_list_length(chat_list); i++) {
 		chat_elem = (chat*)g_list_nth_data(chat_list, i);
-		printf("[chatlist_to_char]chat: %s\n", chat_elem->title);
+		printf("[chatlist_to_char]chat: %lld, %s.\n", chat_elem->id, chat_elem->title);
 		sprintf(line, "%lld;%s\n", chat_elem->id, chat_elem->title);
-		cur += strlen(line);
+		printf("[chatlist_to_char]chat len: %d\n", strlen(line));
+		cur += strlen(line)+1;
 		if(cur>=cur_size) {
 			cur_size *= 2;
-			realloc(ret, cur_size);
+			ret = realloc(ret, cur_size);
 		}
 		strcat(ret, line);
 		
@@ -308,21 +309,37 @@ char *chatlist_to_char(GList *chat_list) {
 			chatclient_elem = (chatclient*)g_list_nth_data(chatclient_list, j);
 			printf("[chatlist_to_char]chatclient: %s\n", chatclient_elem->nick);
 			sprintf(line, "%lld;%s;%s;%d\n", chatclient_elem->id, chatclient_elem->nick, chatclient_elem->ip, chatclient_elem->port);
-			cur += strlen(line);
+			cur += strlen(line)+1;
+			printf("[chatlist_to_char]cur: %d\n", cur);
 			if(cur>=cur_size) {
 				cur_size *= 2;
-				realloc(ret, cur_size);
+				ret = realloc(ret, cur_size);
 			}
 			strcat(ret, line);
 		}
 	}
+	ret = realloc(ret, cur);
+	*len = cur;
+	printf("[chatlist_to_char] strlen(ret): %d, len: %d\n", strlen(ret), *len);
+	char *temp = calloc(1, *len);
+	memcpy(temp, ret, *len);
 	
-	return ret;
+	return temp;
 }
 
 /*
  * Converte una stringa in una lista di chat con i relativi utenti
  */
 GList *char_to_chatlist(const char *buffer) {
-	
+	return NULL;
+}
+
+/*
+ * Ritorna una lista di tutti i client della chat specificata
+ */
+GList *get_chatclient(const char *title, GHashTable *chat_table) {
+	chat *chatval;
+	if((chatval=search_chat(title, chat_table))!=NULL)
+		return g_hash_table_get_values(chatval->users);
+	return NULL;
 }

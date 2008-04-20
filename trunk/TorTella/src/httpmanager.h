@@ -4,6 +4,7 @@
 #include "common.h"
 #include "tortellaprotocol.h"
 #include "socketmanager.h"
+#include "utils.h"
 
 //#define HTTP_DEBUG
 

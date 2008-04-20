@@ -60,7 +60,7 @@ u_int4 send_searchhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int
 	header->sender_id = sender_id;
 	header->recv_id = recv_id;
 	header->timestamp = time(NULL);
-	header->data_len = strlen(res_len);
+	header->data_len = res_len;
 	
 	searchhits_desc *searchhits = (searchhits_desc*)malloc(sizeof(searchhits_desc));
 	searchhits->ttl = ttl;
@@ -355,6 +355,7 @@ u_int4 send_post_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char
 	char *buffer;
 	int len;
 	printf("[send_post_response_packet]Send on socket %d\n", fd);
+	printf("[send_post_response_packet]data_len: %d\n", data_len);
 	http_packet *h_packet = http_create_packet(NULL, HTTP_RES_POST, status, NULL, 0, 0, data, data_len);
 	if(h_packet!=NULL)
 		printf("[send_post_response_packet]Http created\n");
@@ -365,7 +366,7 @@ u_int4 send_post_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char
 	buffer = http_bin_to_char(h_packet, &len);
 	if(buffer==NULL)
 		printf("Errore\n");
-	printf("[send_post_response_packet]Buffered\n");
+	printf("[send_post_response_packet]Buffered, len: %d\n", len);
 	
 	return send_packet(fd, buffer, len);
 }

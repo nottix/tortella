@@ -57,8 +57,11 @@ struct servent_data {
 	
 	u_int8 chat_id_req; //Chat a cui connettersi o creare
 	
-	char *title;	//Titolo chat da creare
+	char *title;	//Titolo chat da creare o ricercare
 	u_int4 title_len;	//Lunghezza del titolo
+	
+	u_int1 ttl;		//ttl da inviare
+	u_int1 hops;	//hops da inviare
 	
 };
 typedef struct servent_data servent_data;
