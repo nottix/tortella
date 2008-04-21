@@ -85,22 +85,16 @@ void print_packet(tortella_packet * packet) {
 		printf("desc_id:   %d\n", packet->header->desc_id);
 		printf("sender_id: %lld\n", packet->header->sender_id);
 		printf("recv_id:   %lld\n", packet->header->recv_id);
-		printf("timestamp:   %lld\n", packet->header->timestamp);
+		printf("timestamp: %ld\n", packet->header->timestamp);
 		//printf("ttl: %d\n", packet->header->ttl);
 		//printf("hops: %d\n", packet->header->hops);
 		printf("desc_len:  %d\n", packet->header->desc_len);
 		printf("data_len:  %d\n", packet->header->data_len);
 		
 		if(packet->header->desc_id==LIST_ID) {
-			list_desc *list = (list_desc *) packet->desc;
-			//int i;
-			//for(i=0; i<sizeof(list_desc); i++) {
-			//printf("elem[%d]: %c\n", i, packet->desc[i]);
-			//} 
 			printf("--list_desc--\n");
 		}
 		else if(packet->header->desc_id==LISTHITS_ID) {
-			listhits_desc *list = (listhits_desc *) packet->desc;
 			printf("--listhits_desc--\n");
 		}
 		else if(packet->header->desc_id==JOIN_ID) {
@@ -113,7 +107,7 @@ void print_packet(tortella_packet * packet) {
 		printf("data: %s\n", dump_data(packet->data, packet->header->data_len));
 	}
 }
-
+/*
 char *dump_data(const char *data, u_int4 len) {
 	if(data!=NULL) {
 		char *buffer = (char*)malloc(len+1);
@@ -131,7 +125,7 @@ char *dump_data(const char *data, u_int4 len) {
 		return buffer;
 	}
 	return NULL;
-}
+}*/
 
 tortella_packet *tortella_create_packet(tortella_header *header, char *desc, char *data) {
 	

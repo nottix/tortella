@@ -41,7 +41,7 @@ struct servent_data {
 	char *nick;
 	time_t timestamp;	//Timestamp ricezione pacchetto
 	
-	GSList *chat_list;	//Lista delle chat a cui è connesso il servente
+	GList *chat_list;	//Lista delle chat a cui è connesso il servente
 	
 	pthread_cond_t cond;
 	pthread_mutex_t mutex;

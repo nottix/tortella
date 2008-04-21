@@ -14,4 +14,6 @@ char *to_string(u_int8 num);
 
 //char *to_string(u_int8 num1, u_int8 num2);
 
+char *dump_data(const char *packet, int len);
+
 #endif //UTILS_H

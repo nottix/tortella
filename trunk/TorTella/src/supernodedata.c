@@ -117,7 +117,7 @@ u_int4 read_from_file(const char *filename, GHashTable **chat_table, GHashTable 
 				buf = strdup(line);
 				chat_id = strtok(buf, ";");
 				title = strtok(NULL, ";");
-				printf("[read_from_file]title: %s\n", title);
+				//printf("[read_from_file]title: %s\n", title);
 				add_chat(strtoull(chat_id, NULL, 10), strdup(title), chat_table);
 				memset(line, 0, 100);
 				index=0;
@@ -136,7 +136,7 @@ u_int4 read_from_file(const char *filename, GHashTable **chat_table, GHashTable 
 		}
 		else {
 			line[index++]=ch;
-			printf("read_from_file]line: %s\n", line);
+			//printf("read_from_file]line: %s\n", line);
 		}
 	}
 	
@@ -147,13 +147,20 @@ u_int4 read_all(GHashTable **chat_table, GHashTable **chatclient_table) {
 	DIR *dir=opendir(DATADIR);
 	struct dirent *ent;
 	char buf[100];
+	GList *dir_list = NULL;
 	while (0!=(ent=readdir(dir))) {
-		//printf("[read_all]Opening %s\n",ent->d_name);
-		sprintf(buf, "%s/%s", DATADIR, ent->d_name);
-		//printf("[read_all]dir %s\n", buf);
-		read_from_file(buf, chat_table, chatclient_table);
+		printf("[read_all]Opening %s\n",ent->d_name);
+		if(strcmp(ent->d_name, ".")!=0 && strcmp(ent->d_name, "..")!=0) {
+			sprintf(buf, "%s/%s", DATADIR, ent->d_name);
+			dir_list = g_list_append(dir_list, (gpointer)buf);
+		}
 	}
 	closedir(dir);
+	
+	int i;
+	for(i=0; i<g_list_length(dir_list); i++) {
+		read_from_file((char*)g_list_nth_data(dir_list, i), chat_table, chatclient_table);
+	}
 	return 1;
 }
 
@@ -163,9 +170,7 @@ u_int4 add_chat(u_int8 id, const char *title, GHashTable **chat_table) {
 	chat_str->title = (char*)title;
 	pthread_mutex_init(&chat_str->mutex, NULL);
 	
-	printf("[add_chat]chat created\n");
 	if((*chat_table)==NULL) {
-		printf("[add_chat]just creating table\n");
 		(*chat_table) = g_hash_table_new(g_str_hash, g_str_equal);
 	}
 	printf("[add_chat]table created\n");
@@ -346,7 +351,6 @@ GList *char_to_chatlist(const char *buffer,int len) {
 		if (buffer[i]=='\0')
 			return chat_list;
 		if(buffer[i]=='\n' && count==1){
-			printf("dentro terzo if\n");
 			chat_list=g_list_append(chat_list,chat_elem);
 			line=0;
 			count = 0;
@@ -355,51 +359,37 @@ GList *char_to_chatlist(const char *buffer,int len) {
 		count = 0;
 	        if(buffer[i]=='\n' && line>0){
 			count =1;
-                        printf("dentro secondo if\n");
 			chatclient *chat_client=(chatclient *)calloc(sizeof(chatclient),1);			
 			r=0;
 			token=strtok(tmp,";");
 			chat_client->id=atoll(token);
-			//printf("chat_client->id:%lld\n",chat_client->id);
 			token=strtok(NULL,";");					
 			chat_client->nick=token;
-			//printf("chat_client->nick->id:%s\n",chat_client->nick);	
 			token=strtok(NULL,";");
 			chat_client->ip=token;
 			token=strtok(NULL,";");
 			chat_client->port=atoi(token);
 					
 			g_hash_table_insert(chat_elem->users,(gpointer)to_string(chat_client->id),(gpointer)chat_client);
-				
-			printf("id dentro hash users: %lld\n ",((chatclient *)g_hash_table_lookup(chat_elem->users,(gpointer)to_string(chat_client->id) ) )->id );
+			
 			memset(tmp,0,strlen(tmp));
-		
 		}
 		else if(buffer[i]== '\n' && line==0){
 			count = 1;			
 			chat_elem=(chat *)calloc(sizeof(chat),1);
-			chat_elem->users= g_hash_table_new(g_str_hash, g_str_equal);
-			printf("dentro primo if\n");			
+			chat_elem->users= g_hash_table_new(g_str_hash, g_str_equal);			
 			r=0;
-			line++;			
-			//char *buff_temp=buffer;			
+			line++;						
 			token=strtok(tmp,";");	
 			
 			chat_elem->id=atoll(token);
-			//printf("chat_elem:%lld\n",chat_elem->id);
 			token=strtok(NULL,";");								
 			chat_elem->title=token;	
 			memset(tmp,0,strlen(tmp));
-		
-			
 		}		 
-		
-			
-			tmp[r]=buffer[i];
-			r++;
-				
+		tmp[r]=buffer[i];
+		r++;
 	}
-
 	return chat_list;
 }
 
