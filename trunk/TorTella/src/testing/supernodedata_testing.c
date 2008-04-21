@@ -35,14 +35,14 @@ int main(void) {
 	
 	write_to_file("test", test, MODE_TRUNC);*/
 	
-	//read_from_file("test", &chat_hashtable, &chatclient_hashtable);
-	read_all(&chat_hashtable, &chatclient_hashtable);
+	read_from_file("111", &chat_hashtable, &chatclient_hashtable);
+	//read_all(&chat_hashtable, &chatclient_hashtable);
 	
 	chatclient *user = (chatclient*)g_hash_table_lookup(chatclient_hashtable, (gconstpointer)to_string(33));
 	
 	printf("user: %s\n", user->nick);
 	
-	printf("chat: %s\n", chatlist_to_char(g_hash_table_get_values(chat_hashtable)));
+	//printf("chat: %s\n", chatlist_to_char(g_hash_table_get_values(chat_hashtable)));
 	
 	return 0;
 }

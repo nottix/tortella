@@ -120,10 +120,8 @@ struct search_desc {
 typedef struct search_desc search_desc;
 
 struct searchhits_desc {
-	u_int1 ttl;
-	u_int1 hops;
 	u_int4 num_res;
-	//Campo dati: risultati separati da ';'
+	//Campo dati: chat separate da '\n\n'
 };
 typedef struct searchhits_desc searchhits_desc;
 

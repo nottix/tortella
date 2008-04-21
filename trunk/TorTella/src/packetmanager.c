@@ -16,12 +16,12 @@
  
 #include "packetmanager.h"
 
-u_int4 send_search_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 ttl, u_int1 hops, u_int4 string_len, char *string) {
+u_int4 send_search_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int1 ttl, u_int1 hops, u_int4 string_len, char *string) {
 	printf("[send_search_packet]Preparing\n");
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
 	
-	header->id = generate_id();
+	header->id = (packet_id>0 ? packet_id : generate_id());
 	header->desc_id = SEARCH_ID;
 	header->sender_id = sender_id;
 	header->recv_id = recv_id;
@@ -50,12 +50,12 @@ u_int4 send_search_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 tt
 	return send_packet(fd, buffer, len);
 }
 
-u_int4 send_searchhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 ttl, u_int1 hops, u_int4 num_res, u_int4 res_len, char *res) {
+u_int4 send_searchhits_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int4 num_res, u_int4 res_len, char *res) {
 	
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
 	
-	header->id = generate_id();
+	header->id = (packet_id>0 ? packet_id : generate_id());
 	header->desc_id = SEARCHHITS_ID;
 	header->sender_id = sender_id;
 	header->recv_id = recv_id;
@@ -63,8 +63,6 @@ u_int4 send_searchhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int
 	header->data_len = res_len;
 	
 	searchhits_desc *searchhits = (searchhits_desc*)malloc(sizeof(searchhits_desc));
-	searchhits->ttl = ttl;
-	searchhits->hops = hops;
 	searchhits->num_res = num_res;
 	packet->desc = (char*)searchhits;
 
