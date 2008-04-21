@@ -13,9 +13,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
- 
+#include <string.h> 
 #include "supernodedata.h"
-
 /*
  * Scrive la struttura dati 'chat' in un file, nel seguente modo:
  * chat_id;chat_title;
@@ -118,7 +117,7 @@ u_int4 read_from_file(const char *filename, GHashTable **chat_table, GHashTable 
 				buf = strdup(line);
 				chat_id = strtok(buf, ";");
 				title = strtok(NULL, ";");
-				//printf("[read_from_file]title: %s\n", title);
+				printf("[read_from_file]title: %s\n", title);
 				add_chat(strtoull(chat_id, NULL, 10), strdup(title), chat_table);
 				memset(line, 0, 100);
 				index=0;
@@ -137,7 +136,7 @@ u_int4 read_from_file(const char *filename, GHashTable **chat_table, GHashTable 
 		}
 		else {
 			line[index++]=ch;
-			//printf("read_from_file]line: %s\n", line);
+			printf("read_from_file]line: %s\n", line);
 		}
 	}
 	
@@ -317,6 +316,7 @@ char *chatlist_to_char(GList *chat_list, int *len) {
 			}
 			strcat(ret, line);
 		}
+		strcat(ret,"\n");
 	}
 	ret = realloc(ret, cur);
 	*len = cur;
@@ -330,8 +330,77 @@ char *chatlist_to_char(GList *chat_list, int *len) {
 /*
  * Converte una stringa in una lista di chat con i relativi utenti
  */
-GList *char_to_chatlist(const char *buffer) {
-	return NULL;
+GList *char_to_chatlist(const char *buffer,int len) {
+	
+	GList *chat_list=NULL;
+	chat *chat_elem=NULL;
+	
+	char *tmp=calloc(1,len);
+	
+	char *token;
+	int i=0;
+	int r=0;	
+	int line=0;
+        int count = 0;
+	for(i=0; i<len; i++){
+		if (buffer[i]=='\0')
+			return chat_list;
+		if(buffer[i]=='\n' && count==1){
+			printf("dentro terzo if\n");
+			chat_list=g_list_append(chat_list,chat_elem);
+			line=0;
+			count = 0;
+			continue;
+		}
+		count = 0;
+	        if(buffer[i]=='\n' && line>0){
+			count =1;
+                        printf("dentro secondo if\n");
+			chatclient *chat_client=(chatclient *)calloc(sizeof(chatclient),1);			
+			r=0;
+			token=strtok(tmp,";");
+			chat_client->id=atoll(token);
+			//printf("chat_client->id:%lld\n",chat_client->id);
+			token=strtok(NULL,";");					
+			chat_client->nick=token;
+			//printf("chat_client->nick->id:%s\n",chat_client->nick);	
+			token=strtok(NULL,";");
+			chat_client->ip=token;
+			token=strtok(NULL,";");
+			chat_client->port=atoi(token);
+					
+			g_hash_table_insert(chat_elem->users,(gpointer)to_string(chat_client->id),(gpointer)chat_client);
+				
+			printf("id dentro hash users: %lld\n ",((chatclient *)g_hash_table_lookup(chat_elem->users,(gpointer)to_string(chat_client->id) ) )->id );
+			memset(tmp,0,strlen(tmp));
+		
+		}
+		else if(buffer[i]== '\n' && line==0){
+			count = 1;			
+			chat_elem=(chat *)calloc(sizeof(chat),1);
+			chat_elem->users= g_hash_table_new(g_str_hash, g_str_equal);
+			printf("dentro primo if\n");			
+			r=0;
+			line++;			
+			//char *buff_temp=buffer;			
+			token=strtok(tmp,";");	
+			
+			chat_elem->id=atoll(token);
+			//printf("chat_elem:%lld\n",chat_elem->id);
+			token=strtok(NULL,";");								
+			chat_elem->title=token;	
+			memset(tmp,0,strlen(tmp));
+		
+			
+		}		 
+		
+			
+			tmp[r]=buffer[i];
+			r++;
+				
+	}
+
+	return chat_list;
 }
 
 /*
