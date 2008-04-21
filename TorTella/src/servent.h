@@ -52,6 +52,11 @@ struct servent_data {
 
 	u_int1 is_supernode;	//Indica se il servente è un supernodo 1:si 0:no
 	
+	GList *chat_res; //Risultati della ricerca richiesta dal peer
+	u_int1 ttl;		//ttl da inviare
+	u_int1 hops;	//hops da inviare
+	u_int8 packet_id;	//ID del pacchetto da ritrasmettere
+	
 	//USATE SOLO IN LOCALE
 	u_int4 post_type;	//Tipo di pacchetto da inviare
 	
@@ -60,8 +65,7 @@ struct servent_data {
 	char *title;	//Titolo chat da creare o ricercare
 	u_int4 title_len;	//Lunghezza del titolo
 	
-	u_int1 ttl;		//ttl da inviare
-	u_int1 hops;	//hops da inviare
+	
 	
 };
 typedef struct servent_data servent_data;
@@ -69,6 +73,15 @@ typedef struct servent_data servent_data;
 GHashTable *servent_hashtable;
 
 static servent_data *local_servent;
+
+struct route_entry {
+	//u_int1 counter;
+	u_int8 sender_id;
+	u_int8 recv_id;
+};
+typedef struct route_entry route_entry;
+
+GHashTable *route_hashtable;
 
 static u_int1 last_request_type = 0;
 static u_int4 server_connection_num = 0;
@@ -124,5 +137,19 @@ void *servent_responde(void *parm);
 void *servent_connect(void *parm);
 
 void *servent_timer(void *parm);
+
+//-----UTILS---------------
+
+/*
+ * Aggiunge una regola di routing alla tabella di routing. Se la regola è già presente
+ * incrementa il contatore associato alla regola.
+ */
+int add_route_entry(u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, GHashTable *route_table);
+
+int del_route_entry(u_int8 id, GHashTable *route_table);
+
+route_entry *get_route_entry(u_int8 packet_id, GHashTable *route_table);
+
+u_int8 get_iddest_route_entry(u_int8 id, GHashTable *route_table);
 
 #endif //SERVENT_H

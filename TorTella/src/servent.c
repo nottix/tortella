@@ -160,6 +160,7 @@ void kill_all_thread(int sig) {
 void servent_init(char *ip, u_int4 port, u_int1 status, u_int1 is_supernode) {
 	
 	servent_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
+	route_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
 	
 	local_servent = (servent_data*)malloc(sizeof(servent_data));
 	u_int8 id = local_servent->id = generate_id();
@@ -339,45 +340,79 @@ void *servent_responde(void *parm) {
 					else if(h_packet->data->header->desc_id==SEARCH_ID) {
 						printf("[servent_responde]SEARCH ricevuto\n");
 						
-						LOCK(local_servent->id);
 						GList *res;
 						GList *servent_list;
-						servent_data *conn_servent
+						servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));;
 						int len;
-						//TODO: ricerca nella lista delle chat che possiede
-						printf("[servent_responde]searching, chat_hashtable: %s\n", (chat_hashtable==NULL)?"null":"notnull");
-						//printf("[servent_responde]http data: %s\n", h_packet->data
-						printf("[servent_responde]data: %s\n", tortella_get_data(h_packet->data_string));
+						LOCK(conn_servent->id);
 						
-						res = search_all_chat(tortella_get_data(h_packet->data_string), chat_hashtable);
-						printf("[servent_responde]results number %d\n", g_list_length(res));
-						if(g_list_length(res)>=0) {
-							status = HTTP_STATUS_OK;
-							char *buf = chatlist_to_char(res, &len);
-							printf("[servent_responde]status: %d should: %d, buf: %s\n", status, HTTP_STATUS_OK, buf);
-							//Invia la risposta contenente le chat conosciute che hanno come titolo quello richiesto dal peer
-							send_post_response_packet(fd, status, len, buf);
+						if(local_servent->title_len>0) {
+							res = search_all_chat(tortella_get_data(h_packet->data_string), chat_hashtable);
+							printf("[servent_connect]results number %d\n", g_list_length(res));
+							if(g_list_length(res)>0) {
+								conn_servent->chat_list = res;
+								conn_servent->packet_id = h_packet->data->header->id;
+							}
+						}
+				
+						//local_servent->title = tortella_get_data(h_packet->data_string);
+						//local_servent->title_len = h_packet->data_len;
+						UNLOCK(conn_servent->id);
+						pthread_cond_signal(&conn_servent->cond);
+						
+						if(GET_SEARCH(h_packet->data)->ttl>0) {
+						
+							int i, j;
+							servent_list = g_hash_table_get_values(servent_hashtable);
+							for(i=0; i<g_list_length(servent_list); i++) {
+							
+								conn_servent = (servent_data*)g_list_nth_data(servent_list, i);
+								if(conn_servent->id!=h_packet->data->header->sender_id) {
+									LOCK(conn_servent->id);
+									conn_servent->ttl = GET_SEARCH(h_packet->data)->ttl-1;
+									conn_servent->hops = GET_SEARCH(h_packet->data)->hops+1;
+									conn_servent->title = h_packet->data;
+									conn_servent->title_len = h_packet->data_len;
+									conn_servent->packet_id = h_packet->data->header->id;
+									conn_servent->post_type = SEARCH_ID;
+									
+									//Aggiunta regola di routing alla tabella
+									add_route_entry(h_packet->data->header->id, h_packet->data->header->sender_id, conn_servent->id, route_hashtable);
+									UNLOCK(conn_servent->id);
+									pthread_cond_signal(&conn_servent->cond);
+								}
+							}		   
 						}
 						
-						int i, j;
-						servent_list = g_hash_table_get_values(servent_hashtable);
-						for(i=0; i<g_list_length(servent_list); i++) {
-							
-							conn_servent = (servent_data*)g_list_nth_data(servent_list, i);
-							LOCK(conn_servent->id);
-							conn_servent->ttl = GET_SEARCH(h_packet->data)->ttl-1;
-							conn_servent->hops = GET_SEARCH(h_packet->data)->hops+1;
-							conn_servent->title = h_packet->data;
-							conn_servent->title_len = h_packet->data_len;
-							
-							//send_search_packet(fd, local_servent->id, conn_servent->id, GET_SEARCH(h_packet->data)->ttl-1, GET_SEARCH(h_packet->data)->hops+1, h_packet->data_len, h_packet->data);
-							//TODO: Rinvia il pacchetto agli altri peer se il ttl non è 0
-							UNLOCK(conn_servent->id);
-										   
-						}
+						LOCK(local_servent->id);
+						
 						UNLOCK(local_servent->id);
+					}
+					else if(h_packet->data->header->desc_id==SEARCHHITS_ID) {
+						printf("[servent_responde]SEARCHHITS ricevuto\n");
 						
-						status = 0;
+						GList *chat_list = char_to_chatlist(h_packet->data, h_packet->data_len);
+						int i;
+						chat *chat_elem;
+						for(i=0; i<g_list_length(chat_list); i++) {
+							chat_elem = (chat*)g_list_nth(chat_list, i);
+							add_chat(chat_elem->id, chat_elem->title, &chat_hashtable);
+						}
+						
+						route_entry *entry = get_route_entry(h_packet->data->header->id, route_hashtable);
+						if(entry!=NULL) {
+							LOCK(entry->sender_id);
+							
+							servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(entry->sender_id));
+							conn_servent->packet_id = h_packet->data->header->id;
+							conn_servent->chat_res = chat_list;
+							conn_servent->post_type = SEARCHHITS_ID;
+							
+							UNLOCK(entry->sender_id);
+							pthread_cond_signal(&conn_servent->cond);
+							del_route_entry(h_packet->data->header->id, route_hashtable);
+						}
+						
 					}
 					else if(h_packet->data->header->desc_id==CREATE_ID) {
 						printf("[servent_responde]CREATE ricevuto\n");
@@ -452,6 +487,7 @@ void *servent_connect(void *parm) {
 	u_int4 title_len;
 	char *title;
 	u_int1 ttl, hops;
+	u_int8 packet_id;
 	
 	u_int1 status;
 	char *nick;
@@ -471,6 +507,7 @@ void *servent_connect(void *parm) {
 		title_len = servent_peer->title_len;
 		ttl = servent_peer->ttl;
 		hops = servent_peer->hops;
+		packet_id = servent_peer->packet_id;
 		printf("[servent_connect]id_dest: %lld, post_type=%d\n", servent_peer->id, servent_peer->post_type);
 		UNLOCK(id_dest);
 		
@@ -503,7 +540,21 @@ void *servent_connect(void *parm) {
 				send_create_packet(fd, local_servent->id, id_dest, chat_id_req, title_len, title);
 			}
 			else if(post_type==SEARCH_ID) {
-				send_search_packet(fd, local_servent->id, id_dest, ttl, hops, title_len, title);
+				send_search_packet(fd, packet_id, local_servent->id, id_dest, ttl, hops, title_len, title);
+			}
+			else if(post_type==SEARCHHITS_ID) {
+				
+				servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id_dest));
+				
+				LOCK(local_servent->id);
+				LOCK(id_dest);
+				
+				char *buf = chatlist_to_char(conn_servent->chat_list, &len);
+				send_searchhits_packet(fd, packet_id, local_servent->id, id_dest, g_list_length(conn_servent->chat_list), len, buf);
+				
+				UNLOCK(id_dest);
+				UNLOCK(local_servent->id);
+				
 			}
 		
 			memset(buffer, 0, 2000);
@@ -553,4 +604,60 @@ void *servent_timer(void *parm) {
 		printf("[servent_timer]Sleeping\n");
 		sleep(timer_interval);
 	}
+}
+
+/*
+ * Aggiunge una regola di routing alla tabella di routing. Se la regola è già presente
+ * incrementa il contatore associato alla regola.
+ */
+int add_route_entry(u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, GHashTable *route_table) {
+	if(route_table==NULL)
+		return -1;
+	
+	/*char *key = to_string(recv_id);
+	route_entry *entry = (route_entry*)g_hash_table_lookup(route_table, (gconstpointer)key);
+	if(entry!=NULL) {
+		entry->counter++;
+		entry->sender_id = sender_id;
+		g_hash_table_replace(route_table, (gpointer)key, (gpointer)entry);
+	}*/
+
+	char *key = to_string(packet_id);
+	route_entry *entry = (route_entry*)calloc(sizeof(route_entry), 1);
+	entry->sender_id = sender_id;
+	entry->recv_id = recv_id;
+	g_hash_table_insert(route_table, (gpointer)key, (gpointer)entry);
+	
+	return 1;
+}
+
+int del_route_entry(u_int8 id, GHashTable *route_table) {
+	if(route_table==NULL)
+		return -1;
+	
+	char *key = to_string(id);
+	g_hash_table_remove(route_table, (gconstpointer)key);
+	/*route_entry *entry = (route_entry*)g_hash_table_lookup(route_table, (gconstpointer)key);
+	if(entry!=NULL) {
+		entry->counter--;
+		if(entry->counter==0)
+			
+		g_hash_table_replace(route_table, (gpointer)key, (gpointer)entry);
+	}*/
+	
+	return 1;
+}
+
+route_entry *get_route_entry(u_int8 packet_id, GHashTable *route_table) {
+	if(route_table==NULL)
+		return NULL;
+	
+	char *key = to_string(packet_id);
+	route_entry *entry = (route_entry*)g_hash_table_lookup(route_table, (gconstpointer)key);
+	return entry;
+}
+
+u_int8 get_iddest_route_entry(u_int8 id, GHashTable *route_table) {
+	
+	return ((route_entry*)get_route_entry(id, route_table))->sender_id;
 }

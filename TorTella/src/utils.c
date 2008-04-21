@@ -22,7 +22,15 @@ u_int8 generate_id(void) {
 }
 
 char *to_string(u_int8 num) {
-	char *ret = (char*)malloc(8);
+	char *ret = (char*)malloc(512);
 	sprintf(ret, "%lld", num);
+	ret = realloc(ret, strlen(ret));
 	return ret;
 }
+
+/*char *to_string(u_int8 num1, u_int8 num2) {
+	char *ret = (char*)malloc(512);
+	sprintf(ret, "%lld;%lld", num1, num2);
+	ret = realloc(ret, strlen(ret);
+	return ret;
+}*/
