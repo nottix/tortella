@@ -108,7 +108,7 @@ char *chatlist_to_char(GList *chat_list, int *len);
 /*
  * Converte una stringa in una lista di chat con i relativi utenti
  */
-GList *char_to_chatlist(const char *buffer);
+GList *char_to_chatlist(const char *buffer,int len);
 
 /*
  * Ritorna una lista di tutti i client della chat specificata
