@@ -320,9 +320,9 @@ void *servent_responde(void *parm) {
 		len = switch_http_packet(fd, buffer, LP_READ);
 		printf("[servent_responde]Data received, buffer: %s, len: %d\n", buffer, len);
 		
-		if(len>0) {
+		if(strcmp(buffer, "")!=0 && len>0) {
 			printf("[servent_responde]Converting\n");
-			h_packet = http_char_to_bin(buffer);
+			h_packet = http_char_to_bin((const char*)buffer);
 			printf("[servent_responde]char converted\n");
 			if(h_packet!=NULL) {
 				printf("[servent_responde]http packet received, type=%d\n", h_packet->type);
@@ -536,6 +536,16 @@ void *servent_responde(void *parm) {
 				else if(h_packet->type==HTTP_REQ_GET) {
 					printf("[servent_responde]GET ricevuto\n");
 				}
+				
+				/*if(h_packet->header_request!=NULL)
+					free(h_packet->header_request);
+				if(h_packet->header_response!=NULL)
+					free(h_packet->header_response);
+				if(h_packet->data!=NULL)
+					free(h_packet->data);
+				if(h_packet->data_string!=NULL)
+					free(h_packet->data_string);*/
+				free(h_packet);
 			}
 		}
 		else {
