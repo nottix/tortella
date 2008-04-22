@@ -28,11 +28,11 @@
 int main(int argc, char **argv) {
 
 	if(argc<4) {
-		printf("Usage: <ip> <port> <is_supernode>\n");
+		printf("Usage: <local_ip> <local_port> <dest_ip> <dest_port>\n");
 		return 0;
 	}	
 	
-	servent_start(argv[1], atoi(argv[2]), atoi(argv[3]));
+	servent_start(argv[1], atoi(argv[2]), argv[3], atoi(argv[4]));
 
 	printf("Exiting\n");
 	

@@ -306,7 +306,7 @@ int recv_sized_packet(int sock_descriptor, char *buffer, int max_len)
 		buffer[char_read] = 0;
     }
 	fprintf(stdout, "\n[recv_packet]char_read = %d\n", char_read);
-	printf("[recv_packet]buffer: %s\n", dump_data(buffer, char_read));
+	printf("[recv_packet]buffer: %s\n", buffer);
     if (char_read < 0) {
 		fprintf(stderr, "\n[recv_packet]read error");
 		return -1;
