@@ -17,7 +17,7 @@
 #include "packetmanager.h"
 
 u_int4 send_search_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int1 ttl, u_int1 hops, u_int4 string_len, char *string) {
-	printf("[send_search_packet]Preparing\n");
+	//printf("[send_search_packet]Preparing\n");
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
 	
@@ -46,7 +46,7 @@ u_int4 send_search_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 
 	if(buffer==NULL)
 		printf("Errore\n");
 	
-	printf("[send_search_packet]sending\n");
+	//printf("[send_search_packet]sending\n");
 	return send_packet(fd, buffer, len);
 }
 
@@ -204,7 +204,7 @@ u_int4 send_pong_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 stat
 	buffer = http_bin_to_char(h_packet, &len);
 	if(buffer==NULL)
 		printf("Errore\n");
-	printf("[send_pong_packet]Sending\n");
+	//printf("[send_pong_packet]Sending\n");
 	
 	return send_packet(fd, buffer, len);
 }
@@ -271,7 +271,7 @@ u_int4 send_listhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 
 
 u_int4 send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id, u_int4 msg_len, char *msg) {
 
-	printf("[send_message_packet]Sending msg: %s, msg_len: %d\n", msg, msg_len);
+	//printf("[send_message_packet]Sending msg: %s, msg_len: %d\n", msg, msg_len);
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
 	
@@ -305,7 +305,7 @@ u_int4 send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 c
 	char *buffer;
 	int len;
 	http_packet *h_packet = http_create_packet(packet, HTTP_REQ_POST, 0, NULL, 0, 0, NULL, 0);
-	printf("[send_message_packet]data: %s\n", dump_data(h_packet->data->data, h_packet->data->header->data_len));
+	//printf("[send_message_packet]data: %s\n", dump_data(h_packet->data->data, h_packet->data->header->data_len));
 	buffer = http_bin_to_char(h_packet, &len);
 	if(buffer==NULL)
 		printf("Errore\n");
@@ -315,7 +315,7 @@ u_int4 send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 c
 }
 
 u_int4 send_create_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id, u_int4 title_len, char *title) {
-	printf("[send_create_packet]Sending title: %s, title_len: %d\n", title, title_len);
+	//printf("[send_create_packet]Sending title: %s, title_len: %d\n", title, title_len);
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
 	
@@ -340,7 +340,7 @@ u_int4 send_create_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 ch
 	char *buffer;
 	int len;
 	http_packet *h_packet = http_create_packet(packet, HTTP_REQ_POST, 0, NULL, 0, 0, NULL, 0);
-	printf("[send_create_packet]data: %s\n", dump_data(h_packet->data->data, h_packet->data->header->data_len));
+	//printf("[send_create_packet]data: %s\n", dump_data(h_packet->data->data, h_packet->data->header->data_len));
 	buffer = http_bin_to_char(h_packet, &len);
 	if(buffer==NULL)
 		printf("Errore\n");
@@ -352,8 +352,8 @@ u_int4 send_create_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 ch
 u_int4 send_post_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char *data) {
 	char *buffer;
 	int len;
-	printf("[send_post_response_packet]Send on socket %d\n", fd);
-	printf("[send_post_response_packet]data_len: %d\n", data_len);
+	//printf("[send_post_response_packet]Send on socket %d\n", fd);
+	//printf("[send_post_response_packet]data_len: %d\n", data_len);
 	http_packet *h_packet = http_create_packet(NULL, HTTP_RES_POST, status, NULL, 0, 0, data, data_len);
 	if(h_packet!=NULL)
 		printf("[send_post_response_packet]Http created\n");
@@ -364,7 +364,7 @@ u_int4 send_post_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char
 	buffer = http_bin_to_char(h_packet, &len);
 	if(buffer==NULL)
 		printf("Errore\n");
-	printf("[send_post_response_packet]Buffered, len: %d\n", len);
+	//printf("[send_post_response_packet]Buffered, len: %d\n", len);
 	
 	return send_packet(fd, buffer, len);
 }

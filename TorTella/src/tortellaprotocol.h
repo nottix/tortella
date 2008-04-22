@@ -19,15 +19,15 @@
 #define GET_SEARCH(packet)		((search_desc*)packet->desc)
 
 //Descriptor ID
-#define PING_ID			0x00
-#define PONG_ID			0x01
-#define LIST_ID			0x02
-#define LISTHITS_ID		0x03
-#define JOIN_ID			0x04
-#define LEAVE_ID		0x05
-#define MESSAGE_ID		0x06
-#define CREATE_ID		0x07
-#define SEARCH_ID		0x08
+#define PING_ID			0x01
+#define PONG_ID			0x02
+#define LIST_ID			0x03
+#define LISTHITS_ID		0x04
+#define JOIN_ID			0x05
+#define LEAVE_ID		0x06
+#define MESSAGE_ID		0x07
+#define CREATE_ID		0x08
+#define SEARCH_ID		0x09
 #define SEARCHHITS_ID	0x10
 
 //Status ID
