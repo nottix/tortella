@@ -244,6 +244,7 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 		}
 
 	}
+	
 #ifdef HTTP_DEBUG
 	//printf("[http_bin_to_char]buffer:\n%s", buffer);
 #endif
@@ -251,14 +252,16 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 }
 
 http_packet *http_char_to_bin(const char *buffer) {
-	
+	printf("[http_char_to_bin]Init\n");
 	http_packet *packet = NULL;
 	
 	if(buffer==NULL)
 		printf("[http_char_to_bin]buffer NULL\n");
 	
 	if(buffer!=NULL) {
+		printf("[http_char_to_bin]prealloc\n");
 		packet = (http_packet*)malloc(sizeof(http_packet));
+		printf("[http_char_to_bin]allocated\n");
 		char *result;
 
 #ifdef HTTP_DEBUG
@@ -286,10 +289,10 @@ http_packet *http_char_to_bin(const char *buffer) {
 			packet->data_string = NULL;
 			packet->data_len = 0;
 			
-#ifdef HTTP_DEBUG
+//#ifdef HTTP_DEBUG
 			printf("[http_char_to_bin]request: %s\nagent: %s\nstart: %d\nend: %d\nconnection: %s\n", header_request->request, header_request->user_agent, header_request->range_start,
 				   header_request->range_end, header_request->connection);
-#endif
+//#endif
 		}
 		else if((result=strstr(buffer, "POST"))!=NULL) { //TODO
 #ifdef HTTP_DEBUG
