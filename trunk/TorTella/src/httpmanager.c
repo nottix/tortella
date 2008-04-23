@@ -40,9 +40,9 @@ http_packet *http_create_packet(tortella_packet *packet, u_int4 type, u_int4 sta
 		if(temp==NULL)
 			return NULL;
 	}
-	//printf("[http_create_packet]Entered %d\n", type);
+	printf("[http_create_packet]Entered %d\n", type);
 	if(type==HTTP_REQ_POST || type==HTTP_REQ_GET) {
-		//printf("[http_create_packet]REQ POST or REQ_GET\n");
+		printf("[http_create_packet]REQ POST or REQ_GET\n");
 		http_header_request *request = (http_header_request*)malloc(sizeof(http_header_request));
 		request = http_create_header_request(request, type, filename, range_start, range_end, tortella_len);
 		ret = (http_packet*)malloc(sizeof(http_packet));
@@ -67,7 +67,7 @@ http_packet *http_create_packet(tortella_packet *packet, u_int4 type, u_int4 sta
 	}
 	else if((type==HTTP_RES_POST || type==HTTP_RES_GET) && status>=HTTP_STATUS_OK) {
 		http_header_response *response = (http_header_response*)malloc(sizeof(http_header_response));
-		//printf("[http_create_packet]before response creating with status %d\n", status);
+		printf("[http_create_packet]before response creating with status %d\n", status);
 		response = http_create_header_response(response, type, status, data_len);
 		if(response!=NULL)
 			printf("[http_create_packet]response created with status %s\n", response->response);
@@ -168,10 +168,10 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 			char *iter = buffer;
 			iter += buflen;
 			memcpy(iter, packet->data_string, header_request->content_len);
-			//printf("[http_bin_to_char]data_string: %s\n", packet->data_string);
+			printf("[http_bin_to_char]data_string: %s\n", packet->data_string);
 			
 			*len = buflen+header_request->content_len;
-			//printf("[http_bin_to_char]content_len: %d, data_len: %d, sizeof: %d, buffer: %s\n", header_request->content_len, packet->data->header->data_len, sizeof(tortella_header), dump_data(buffer, *len));
+			printf("[http_bin_to_char]content_len: %d, data_len: %d, sizeof: %d, buffer: %s\n", header_request->content_len, packet->data->header->data_len, sizeof(tortella_header), dump_data(buffer, *len));
 			/*
 			int i, j;
 			int strpos = strstr(buffer, "\r\n\r\n")-buffer;
@@ -198,7 +198,7 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 		}
 	}
 	else if(packet->header_response!=NULL) {
-		//printf("[http_bin_to_char]response not NULL\n");
+		printf("[http_bin_to_char]response not NULL\n");
 		http_header_response *header_response = packet->header_response;
 		/*if(type==HTTP_RES_POST) {
 			buffer = malloc(strlen(header_response->response)+strlen(HTTP_SERVER)+strlen(header_response->server)+2\
@@ -218,12 +218,12 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 		}*/
 		if(type==HTTP_RES_GET || type==HTTP_RES_POST) {
 			
-			//printf("[http_bin_to_char]Before check\n");
+			printf("[http_bin_to_char]Before check\n");
 			if(type==HTTP_RES_POST) {
 				header_response->content_type = "text/html";
-				//printf("[http_bin_to_char]inside check\n");
+				printf("[http_bin_to_char]inside check\n");
 			}
-			//printf("[http_bin_to_char]response: %s, server: %s, data_len: %d, content_len: %d\n", header_response->response, header_response->server, packet->data_len, header_response->content_len);
+			printf("[http_bin_to_char]response: %s, server: %s, data_len: %d, content_len: %d\n", header_response->response, header_response->server, packet->data_len, header_response->content_len);
 			
 			*len = strlen(header_response->response)+strlen(HTTP_SERVER)+strlen(header_response->server)+2\
 				+strlen(HTTP_CONTENT_TYPE)+strlen(header_response->content_type)+2\
@@ -231,6 +231,7 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 				+packet->data_len;
 			buffer = malloc(*len);
 
+			//to_string(header_response->content_len);
 			//printf("[http_bin_to_char]allocated memory, strlen(to_string(header_response->content_len)): %d\n", strlen(to_string(header_response->content_len)));
 			//sprintf(buffer, "%s\r\nServer: %s\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s", header_response->response, header_response->server, header_response->content_type,
 			//header_response->content_len, packet->data_string);

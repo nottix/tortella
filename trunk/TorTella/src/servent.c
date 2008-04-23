@@ -82,7 +82,7 @@ u_int4 servent_start_client(char *dest_ip, u_int4 dest_port) {
 	pthread_create(clithread, NULL, servent_connect, (void*)cliid);
 	client_thread = g_slist_prepend(client_thread, (gpointer)(*clithread));
 	int ch = 'j';
-	sleep(1);
+	//sleep(1);
 	do {
 		if(ch=='j')
 			servent->post_type=JOIN_ID;
@@ -125,8 +125,8 @@ u_int4 servent_start(char *local_ip, u_int4 local_port, char *dest_ip, u_int4 de
 	char *ip_dest = "127.0.0.1";
 	u_int4 port_dest = 2110;*/
 	
-	//printf("Avviare il server? ");
-	//if(getchar()=='s') {
+	printf("Avviare il server? ");
+	if(getchar()=='s') {
 		//Avvia il server
 		/*int serfd = servent_create_server(ip, port); //Locale
 		if(serfd<0) {
@@ -140,7 +140,7 @@ u_int4 servent_start(char *local_ip, u_int4 local_port, char *dest_ip, u_int4 de
 		server_fd = g_slist_prepend(server_fd, (gpointer)serfd);
 		server_thread = g_slist_prepend(server_thread, (gpointer)serthread);*/
 	  servent_start_server (local_ip, local_port);
-	//}
+	}
 	//printf("Avviare il client? ");
 	//if(getchar()=='s') {
 		//Avvia il client
@@ -198,6 +198,7 @@ u_int4 servent_start(char *local_ip, u_int4 local_port, char *dest_ip, u_int4 de
 	printf("\nPremere q per uscire\n");
 	while(getchar()!='q');*/
 		servent_start_client(dest_ip, dest_port);
+	//}
 	kill_all_thread(1);
 	return 0;
 }
@@ -338,7 +339,7 @@ void *servent_responde(void *parm) {
 	u_int4 status = 0;
 	
 	while(1) {
-		sleep(1);
+		//sleep(1);
 		memset(buffer, 0, 2000);
 		len = switch_http_packet(fd, buffer, LP_READ);
 		printf("[servent_responde]Data received, buffer: %s, len: %d\n", buffer, len);
@@ -443,7 +444,7 @@ void *servent_responde(void *parm) {
 
 						status = HTTP_STATUS_OK;
 					}
-					/*else if(h_packet->data->header->desc_id==SEARCH_ID) {
+					else if(h_packet->data->header->desc_id==SEARCH_ID) {
 						printf("[servent_responde]SEARCH ricevuto\n");
 						
 						GList *res;
@@ -530,7 +531,7 @@ void *servent_responde(void *parm) {
 							printf("[servent_responde]Route entry %lld deleted\n", h_packet->data->header->id);
 						}
 						
-					}*/
+					}
 					else if(h_packet->data->header->desc_id==CREATE_ID) {
 						printf("[servent_responde]CREATE ricevuto\n");
 						u_int8 chat_id = GET_CREATE(h_packet->data)->chat_id;

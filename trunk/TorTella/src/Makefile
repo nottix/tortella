@@ -78,7 +78,7 @@ count:
 	wc *.c *.cc *.C *.cpp *.h *.hpp
 
 clean:
-	rm -f *.o
+	rm -f *.o testing/*.o
 
 .PHONY: all
 .PHONY: count
