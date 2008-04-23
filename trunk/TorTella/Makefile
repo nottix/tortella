@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -g -Wall
-OBJECTS = objs/tortella.o
+OBJECTS = 
 INCFLAGS = 
 LDFLAGS = -Wl,-rpath,/usr/local/lib
 LIBS = 
@@ -8,14 +8,13 @@ LIBS =
 all:
 	make -C ./src
 
-.SUFFIXES:
-.SUFFIXES:	.c .cc .C .cpp .o
+.SUFFIXES:	.c .h .o
 
 count:
-	wc *.c *.cc *.C *.cpp *.h *.hpp
+	wc -l src/*.c src/*.h src/*/*.c src/*/*.h
 
 clean:
-	rm -f *.o
+	rm -f src/*.o src/*/*.o
 
 .PHONY: all
 .PHONY: count
