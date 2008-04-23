@@ -89,6 +89,7 @@ u_int4 write_all(GHashTable *chat_table, u_int4 mode) {
  * alla hashtable relativa.
  */
 u_int4 read_from_file(const char *filename, GHashTable **chat_table, GHashTable **chatclient_table) {
+	char *saveptr;
 	if(filename==NULL || strcmp(filename, "")==0)
 		return 0;
 	
@@ -115,8 +116,8 @@ u_int4 read_from_file(const char *filename, GHashTable **chat_table, GHashTable 
 			if(line_count==0) {
 				//printf("[read_from_file]line_count: %d\n", line_count);
 				buf = strdup(line);
-				chat_id = strtok(buf, ";");
-				title = strtok(NULL, ";");
+				chat_id = strtok_r(buf, ";",&saveptr);
+				title = strtok_r(NULL, ";",&saveptr);
 				//printf("[read_from_file]title: %s\n", title);
 				add_chat(strtoull(chat_id, NULL, 10), strdup(title), chat_table);
 				memset(line, 0, 100);
@@ -124,10 +125,10 @@ u_int4 read_from_file(const char *filename, GHashTable **chat_table, GHashTable 
 			}
 			else if(line_count>0) {
 				buf = strdup(line);
-				id = strtok(buf, ";");
-				nick = strtok(NULL, ";");
-				ip = strtok(NULL, ";");
-				port = strtok(NULL, ";");
+				id = strtok_r(buf, ";",&saveptr);
+				nick = strtok_r(NULL, ";",&saveptr);
+				ip = strtok_r(NULL, ";",&saveptr);
+				port = strtok_r(NULL, ";",&saveptr);
 				add_user(strtoull(chat_id, NULL, 10), strtoull(id, NULL, 10), strdup(nick), strdup(ip), strtod(port, NULL), *chat_table, chatclient_table);
 				memset(line, 0, 100);
 				index=0;
@@ -336,7 +337,7 @@ char *chatlist_to_char(GList *chat_list, int *len) {
  * Converte una stringa in una lista di chat con i relativi utenti
  */
 GList *char_to_chatlist(const char *buffer,int len) {
-	
+	char *saveptr;
 	GList *chat_list=NULL;
 	chat *chat_elem=NULL;
 	
@@ -361,13 +362,13 @@ GList *char_to_chatlist(const char *buffer,int len) {
 			count =1;
 			chatclient *chat_client=(chatclient *)calloc(sizeof(chatclient),1);			
 			r=0;
-			token=strtok(tmp,";");
+			token=strtok_r(tmp,";",&saveptr);
 			chat_client->id=atoll(token);
-			token=strtok(NULL,";");					
+			token=strtok_r(NULL,";",&saveptr);					
 			chat_client->nick=token;
-			token=strtok(NULL,";");
+			token=strtok_r(NULL,";",&saveptr);
 			chat_client->ip=token;
-			token=strtok(NULL,";");
+			token=strtok_r(NULL,";",&saveptr);
 			chat_client->port=atoi(token);
 					
 			g_hash_table_insert(chat_elem->users,(gpointer)to_string(chat_client->id),(gpointer)chat_client);
@@ -380,10 +381,10 @@ GList *char_to_chatlist(const char *buffer,int len) {
 			chat_elem->users= g_hash_table_new(g_str_hash, g_str_equal);			
 			r=0;
 			line++;						
-			token=strtok(tmp,";");	
+			token=strtok_r(tmp,";",&saveptr);	
 			
 			chat_elem->id=atoll(token);
-			token=strtok(NULL,";");								
+			token=strtok_r(NULL,";",&saveptr);								
 			chat_elem->title=token;	
 			memset(tmp,0,strlen(tmp));
 		}		 

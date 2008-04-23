@@ -318,6 +318,7 @@ int recv_sized_packet(int sock_descriptor, char *buffer, int max_len)
  * buffer deve essere allocato ad una grandezza abbastanza sufficiente
  */
 char *recv_http_packet(int sock_descriptor, char *buffer, int *len) {
+	char *saveptr;
 	u_int4 char_read = 0;
     u_int4 counter = 0;
 
@@ -365,7 +366,7 @@ char *recv_http_packet(int sock_descriptor, char *buffer, int *len) {
 #endif
 			if(strstr(line, HTTP_CONTENT_LEN)!=NULL) {
 				
-				char *token = strtok(line, "\r\n");
+				char *token = strtok_r(line, "\r\n",&saveptr);
 				content_len = strstr(token, HTTP_CONTENT_LEN);
 				data_len = atoi(content_len+strlen(HTTP_CONTENT_LEN));
 				
