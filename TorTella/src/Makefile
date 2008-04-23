@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -g -Wall -O2
+CFLAGS = -g -Wall
 OBJECTS = tortella.o
 INCFLAGS = -I./ `pkg-config --cflags glib-2.0`
 LDFLAGS = -Wl,-rpath,/usr/local/lib

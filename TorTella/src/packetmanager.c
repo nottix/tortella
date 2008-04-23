@@ -365,6 +365,8 @@ u_int4 send_post_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char
 	if(buffer==NULL)
 		printf("Errore\n");
 	//printf("[send_post_response_packet]Buffered, len: %d\n", len);
+	free(h_packet->header_response);
+	free(h_packet);
 	
 	return send_packet(fd, buffer, len);
 }
