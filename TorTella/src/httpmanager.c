@@ -252,6 +252,7 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 }
 
 http_packet *http_char_to_bin(const char *buffer) {
+	char *saveptr;
 	printf("[http_char_to_bin]Init\n");
 	http_packet *packet = NULL;
 	if(buffer==NULL)
@@ -278,8 +279,8 @@ http_packet *http_char_to_bin(const char *buffer) {
 			header_request->user_agent = http_get_value(buffer, HTTP_AGENT);
 			
 			char *range = http_get_value(buffer, HTTP_REQ_RANGE);
-			header_request->range_start = atoi(strtok(range, "-"));
-			header_request->range_end = atoi(strtok(NULL, "-"));
+			header_request->range_start = atoi(strtok_r(range, "-",&saveptr));
+			header_request->range_end = atoi(strtok_r(NULL, "-",&saveptr));
 			
 			header_request->connection = http_get_value(buffer, HTTP_CONNECTION);
 			
@@ -381,31 +382,32 @@ http_packet *http_char_to_bin(const char *buffer) {
 }
 
 char *http_get_value(const char *buffer, const char *name) {
-	
+	char *saveptr;
 	char *buf = (char*)malloc(strlen(buffer));
 	memcpy(buf, buffer, strlen(buffer));
 	char *token;
 	char *ret;
 	
-	token=strtok(buf, "\r\n");
+	token=strtok_r(buf, "\r\n",&saveptr);
 	if(token==NULL)
 		return NULL;
 	do {
 		//printf("name: %s, token: %s\n", name, token);
 		if((ret=strstr(token, name))!=NULL)
 			return ret+=strlen(name);
-	}while((token=strtok(NULL, "\r\n"))!=NULL);
+	}while((token=strtok_r(NULL, "\r\n",&saveptr))!=NULL);
 	return NULL;
 	
 }
 
 char *http_get_line(const char *buffer, u_int4 num) {
+	char *saveptr;
 	char *buf = (char*)malloc(strlen(buffer));
 	memcpy(buf, buffer, strlen(buffer));
 	char *token;
 	u_int4 counter = -1;
 	
-	token=strtok(buf, "\r\n");
+	token=strtok_r(buf, "\r\n",&saveptr);
 	if(token==NULL)
 		return NULL;
 	counter++;
@@ -413,7 +415,7 @@ char *http_get_line(const char *buffer, u_int4 num) {
 		if(counter==num)
 			return token;
 		counter++;
-	}while((token=strtok(NULL, "\r\n"))!=NULL);
+	}while((token=strtok_r(NULL, "\r\n",&saveptr))!=NULL);
 	return NULL;
 	
 }
