@@ -155,7 +155,7 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 		http_header_request *header_request = packet->header_request;
 		if(type==HTTP_REQ_POST) {
 			printf("[http_bin_to_char]HTTP_REQ_POST\n");
-			buffer = malloc(strlen(header_request->request)+2\
+			buffer = (char*)malloc(strlen(header_request->request)+2\
 				+strlen(header_request->user_agent)+strlen(HTTP_AGENT)+2\
 				+strlen(HTTP_CONTENT_LEN)+10+2\
 				+strlen(HTTP_CONNECTION)+strlen(header_request->connection)+2+2\
@@ -254,7 +254,6 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 http_packet *http_char_to_bin(const char *buffer) {
 	printf("[http_char_to_bin]Init\n");
 	http_packet *packet = NULL;
-	
 	if(buffer==NULL)
 		printf("[http_char_to_bin]buffer NULL\n");
 	
@@ -299,16 +298,22 @@ http_packet *http_char_to_bin(const char *buffer) {
 			printf("[http_char_to_bin]type: POST\n");
 #endif
 			packet->type = HTTP_REQ_POST;
-			http_header_request *header_request = (http_header_request*)malloc(sizeof(http_header_request));
+			http_header_request *header_request = NULL;
+			header_request = calloc(1, sizeof(http_header_request));
+			if(header_request == NULL)
+				printf("son of a bitch\n");
+			//http_header_request header_request_tmp;
+			//http_header_request *header_request = &header_request_tmp;
 			
+			printf("[http_char_to_bin]1\n");
 			header_request->request = http_get_line(buffer, 0);
-			
+			printf("[http_char_to_bin]2\n");
 			header_request->user_agent = http_get_value(buffer, HTTP_AGENT);
-			
+			printf("[http_char_to_bin]3\n");
 			header_request->content_len = atoi(http_get_value(buffer, HTTP_CONTENT_LEN));
-			
+			printf("[http_char_to_bin]4\n");
 			header_request->connection = http_get_value(buffer, HTTP_CONNECTION);
-			
+			printf("[http_char_to_bin]5\n");
 			packet->header_request = header_request;
 			packet->data_string = strstr(buffer, "\r\n\r\n")+4;
 			tortella_packet *t_packet = (tortella_packet*)malloc(sizeof(tortella_packet));
