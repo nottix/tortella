@@ -38,6 +38,8 @@ u_int4 send_search_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 
 	packet->header = header;
 	packet->data = string;
 	
+	printf("[send_search_packet]sending query: %s\n", string);
+	
 	char *buffer;
 	int len;
 	http_packet *h_packet = http_create_packet(packet, HTTP_REQ_POST, 0, NULL, 0, 0, NULL, 0);
@@ -46,7 +48,6 @@ u_int4 send_search_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 
 	if(buffer==NULL)
 		printf("Errore\n");
 	
-	//printf("[send_search_packet]sending\n");
 	return send_packet(fd, buffer, len);
 }
 
@@ -83,6 +84,8 @@ u_int4 send_searchhits_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_i
 }
 
 u_int4 send_join_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 status, u_int8 chat_id, char *nick) {
+	
+	printf("[send_join_packet]nick: %s\n", nick);
 	
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));

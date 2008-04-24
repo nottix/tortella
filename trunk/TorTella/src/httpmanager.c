@@ -50,6 +50,7 @@ http_packet *http_create_packet(tortella_packet *packet, u_int4 type, u_int4 sta
 		ret->header_response = NULL;
 		if(type==HTTP_REQ_POST) {
 			ret->data = packet;
+			printf("[http_create_packet]data_string: %s\n", temp);
 			ret->data_string = temp;
 			ret->data_len = tortella_len;
 			//dump_data(temp, tortella_len);
@@ -115,7 +116,7 @@ http_header_request *http_create_header_request(http_header_request *header, u_i
 		header->content_len = data_len;
 	}
 	else if(type==HTTP_REQ_GET) {
-		header->request = malloc(4+strlen(filename)+9);
+		header->request = calloc(4+strlen(filename)+9, 1);
 		sprintf(header->request, "GET %s HTTP/1.1", filename);
 	}
 	else
@@ -155,11 +156,11 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 		http_header_request *header_request = packet->header_request;
 		if(type==HTTP_REQ_POST) {
 			printf("[http_bin_to_char]HTTP_REQ_POST\n");
-			buffer = (char*)malloc(strlen(header_request->request)+2\
+			buffer = calloc(strlen(header_request->request)+2\
 				+strlen(header_request->user_agent)+strlen(HTTP_AGENT)+2\
 				+strlen(HTTP_CONTENT_LEN)+strlen(to_string(header_request->content_len))+2\
 				+strlen(HTTP_CONNECTION)+strlen(header_request->connection)+2+2\
-				+sizeof(tortella_header)+packet->data->header->desc_len+packet->data->header->data_len);
+				+sizeof(tortella_header)+packet->data->header->desc_len+packet->data->header->data_len+1, 1);
 
 			sprintf(buffer, "%s\r\nUser-Agent: %s\r\nContent-Length: %d\r\nConnection: %s\r\n\r\n", header_request->request,\
 				header_request->user_agent, header_request->content_len, header_request->connection);
@@ -168,28 +169,20 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 			char *iter = buffer;
 			iter += buflen;
 			memcpy(iter, packet->data_string, header_request->content_len);
+			iter += header_request->content_len;
+			memcpy(iter, "\n", 1);
 			printf("[http_bin_to_char]data_string: %s\n", packet->data_string);
+			printf("[http_bin_to_char]tortella->data: %s\n", packet->data->data);
 			
-			*len = buflen+header_request->content_len;
+			*len = buflen+header_request->content_len+1;
 			printf("[http_bin_to_char]content_len: %d, data_len: %d, sizeof: %d, buffer: %s\n", header_request->content_len, packet->data->header->data_len, sizeof(tortella_header), dump_data(buffer, *len));
-			/*
-			int i, j;
-			int strpos = strstr(buffer, "\r\n\r\n")-buffer;
-			strpos += 4;
-			for(j=0, i=strpos; i<(strpos+header_request->content_len); i++, j++) {
-				printf("[http_bin_to_char]buf[i]: %c\n", buffer[i]);
-				buffer[i] = packet->data_string[j];
-			}*/
-			//*len = (strlen(buffer)+header_request->content_len);
-			//printf("[http_bin_to_char]dump: %s\n", dump_data(buffer, i));
-			
-			//printf("data:\n%s", dump_data(buffer, strlen(buffer)+39));
+
 		}
 		else if(type==HTTP_REQ_GET) {
-			buffer = malloc(strlen(header_request->request)+2\
+			buffer = calloc(strlen(header_request->request)+2\
 				+strlen(header_request->user_agent)+strlen(HTTP_AGENT)+2\
-				+strlen(HTTP_REQ_RANGE)+10+1+10+2\
-				+strlen(HTTP_CONNECTION)+strlen(header_request->connection)+2+2);
+				+strlen(HTTP_REQ_RANGE)+strlen(to_string(header_request->range_start))+1+strlen(to_string(header_request->range_end))+2\
+				+strlen(HTTP_CONNECTION)+strlen(header_request->connection)+2+2, 1);
 
 			sprintf(buffer, "%s\r\nUser-Agent: %s\r\nRange: bytes=%d-%d\r\nConnection: %s\r\n\r\n", header_request->request, header_request->user_agent, \
 				header_request->range_start, header_request->range_end, header_request->connection);
@@ -200,22 +193,6 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 	else if(packet->header_response!=NULL) {
 		printf("[http_bin_to_char]response not NULL\n");
 		http_header_response *header_response = packet->header_response;
-		/*if(type==HTTP_RES_POST) {
-			buffer = malloc(strlen(header_response->response)+strlen(HTTP_SERVER)+strlen(header_response->server)+2\
-				+strlen(HTTP_CONTENT_TYPE)+strlen(header_response->content_type)+2\
-				+strlen(HTTP_CONTENT_LEN)+header_response->content_len+2+2\
-				+sizeof(tortella_header)+packet->data->header->desc_len+packet->data->header->data_len+2);
-
-			//sprintf(buffer, "%s\r\nServer: %s\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s", header_response->response, header_response->server, header_response->content_type,
-		//	sprintf(buffer, "%s\r\nServer: %s\r\n\r\n", header_response->response, header_response->server);
-			
-		//	*len = strlen(buffer);
-							
-			sprintf(buffer, "%s\r\nServer: %s\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s", header_response->response, header_response->server, header_response->content_type, \
-			header_response->content_len, packet->data_string);
-			
-			*len = strlen(buffer)+header_response->content_len;
-		}*/
 		if(type==HTTP_RES_GET || type==HTTP_RES_POST) {
 			
 			int con_len = strlen(to_string(header_response->content_len));
@@ -226,20 +203,6 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 				printf("[http_bin_to_char]inside check\n");
 			}
 			
-		/*	*len = strlen(header_response->response)+strlen(HTTP_SERVER)+strlen(header_response->server)+2\
-				+strlen(HTTP_CONTENT_TYPE)+strlen(header_response->content_type)+2\
-				+strlen(HTTP_CONTENT_LEN)+con_len+2+2\
-				+packet->data_len+2;
-			
-			printf("[http_bin_to_char]response: %s, server: %s, data_len: %d, content_len: %d, len: %d", header_response->response, header_response->server, packet->data_len, header_response->content_len, *len);
-			
-			
-			buffer = malloc(*len);
-*/
-			//to_string(header_response->content_len);
-			//printf("[http_bin_to_char]allocated memory, strlen(to_string(header_response->content_len)): %d\n", strlen(to_string(header_response->content_len)));
-			//sprintf(buffer, "%s\r\nServer: %s\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s", header_response->response, header_response->server, header_response->content_type,
-			//header_response->content_len, packet->data_string);
 			if(packet->data_string!=NULL) {
 				
 				*len = strlen(header_response->response)+2
@@ -250,7 +213,7 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 			
 				printf("[http_bin_to_char]response: %s, server: %s, data_len: %d, content_len: %d, len: %d, con_len: %d", header_response->response, header_response->server, packet->data_len, header_response->content_len, *len, con_len);
 			
-				buffer = malloc(*len);
+				buffer = calloc(*len, 1);
 				
 				sprintf(buffer, "%s\r\nServer: %s\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n", header_response->response, header_response->server, header_response->content_type, \
 					header_response->content_len);
@@ -270,7 +233,7 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 					+strlen(HTTP_CONTENT_TYPE)+strlen(header_response->content_type)+2
 					+strlen(HTTP_CONTENT_LEN)+con_len+2+2;
 				
-				printf("[http_bin_to_char]strlen(header_response->response): %d\n", strlen(header_response->response));
+				/*printf("[http_bin_to_char]strlen(header_response->response): %d\n", strlen(header_response->response));
 				printf("[http_bin_to_char]strlen(HTTP_SERVER): %d\n", strlen(HTTP_SERVER));
 				printf("[http_bin_to_char]strlen(header_response->server): %d\n", strlen(header_response->server));
 				printf("[http_bin_to_char]strlen(HTTP_CONTENT_TYPE): %d\n", strlen(HTTP_CONTENT_TYPE));
@@ -284,7 +247,7 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 				printf("[http_bin_to_char](header_response->server): %s\n", (header_response->server));
 				printf("[http_bin_to_char](HTTP_CONTENT_TYPE): %s\n", (HTTP_CONTENT_TYPE));
 				printf("[http_bin_to_char](header_response->content_type): %s\n", (header_response->content_type));
-				printf("[http_bin_to_char](HTTP_CONTENT_LEN): %s\n", (HTTP_CONTENT_LEN));
+				printf("[http_bin_to_char](HTTP_CONTENT_LEN): %s\n", (HTTP_CONTENT_LEN));*/
 			
 				buffer = calloc(*len, 1);
 				
@@ -352,10 +315,6 @@ http_packet *http_char_to_bin(const char *buffer) {
 			packet->type = HTTP_REQ_POST;
 			http_header_request *header_request = NULL;
 			header_request = calloc(1, sizeof(http_header_request));
-			if(header_request == NULL)
-				printf("son of a bitch\n");
-			//http_header_request header_request_tmp;
-			//http_header_request *header_request = &header_request_tmp;
 			
 			printf("[http_char_to_bin]1\n");
 			header_request->request = http_get_line(buffer, 0);
@@ -372,6 +331,7 @@ http_packet *http_char_to_bin(const char *buffer) {
 			tortella_header *t_header = (tortella_header*)packet->data_string;
 			char *t_desc = tortella_get_desc(packet->data_string);
 			char *t_data = tortella_get_data(packet->data_string);
+			printf("[http_char_to_bin]data_string: %s, data: %s\n", packet->data_string, t_data);
 			t_packet->header = t_header;
 			t_packet->desc = t_desc;
 			t_packet->data = t_data;
@@ -434,7 +394,7 @@ http_packet *http_char_to_bin(const char *buffer) {
 
 char *http_get_value(const char *buffer, const char *name) {
 	char *saveptr;
-	char *buf = (char*)malloc(strlen(buffer));
+	char *buf = calloc(strlen(buffer), 1);
 	memcpy(buf, buffer, strlen(buffer));
 	char *token;
 	char *ret;
@@ -453,7 +413,7 @@ char *http_get_value(const char *buffer, const char *name) {
 
 char *http_get_line(const char *buffer, u_int4 num) {
 	char *saveptr;
-	char *buf = (char*)malloc(strlen(buffer));
+	char *buf = calloc(strlen(buffer), 1);
 	memcpy(buf, buffer, strlen(buffer));
 	char *token;
 	u_int4 counter = -1;

@@ -439,7 +439,7 @@ void *servent_responde(void *parm) {
 						conn_servent->msg = h_packet->data->data;
 						conn_servent->msg_len = h_packet->data->header->data_len;
 						conn_servent->timestamp = h_packet->data->header->timestamp;
-						printf("[servent_responde]msg: %s, msg_len: %d\n", dump_data(conn_servent->msg, conn_servent->msg_len), conn_servent->msg_len);
+						printf("[servent_responde]msg: %s, msg_len: %d\n", conn_servent->msg, conn_servent->msg_len);
 						UNLOCK(h_packet->data->header->sender_id);
 
 						status = HTTP_STATUS_OK;
@@ -460,7 +460,7 @@ void *servent_responde(void *parm) {
 						printf("[servent_respond]Locked\n");
 						
 						if(h_packet->data_len>0) {
-							printf("[servent_responde]Searching\n");
+							printf("[servent_responde]Searching %s\n", tortella_get_data(h_packet->data_string));
 							res = search_all_chat(tortella_get_data(h_packet->data_string), chat_hashtable);
 							printf("[servent_responde]Results number %d\n", g_list_length(res));
 							if(g_list_length(res)>0) {
