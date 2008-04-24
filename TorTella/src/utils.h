@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "common.h"
 
@@ -14,6 +15,6 @@ char *to_string(u_int8 num);
 
 //char *to_string(u_int8 num1, u_int8 num2);
 
-char *dump_data(const char *packet, int len);
+void hex_dump(char *packet, int len, int n);
 
 #endif //UTILS_H

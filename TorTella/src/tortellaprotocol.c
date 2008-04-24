@@ -14,7 +14,7 @@ char *tortella_bin_to_char(tortella_packet * packet, u_int4 * len) {
 	printf("[tortella_bin_to_char]data: %s, desc_len: %d header_len: %d data_len: %d\n", dump_data(packet->data, data_len), desc_len,
 		   header_len, data_len);
 #endif
-	
+	*len = header_len + desc_len + data_len;
 	char *ret = malloc(header_len + desc_len + data_len + 1);	//Il +1 serve per il \0
 	memcpy(ret, header, header_len);
 	char *iter = ret;
@@ -28,16 +28,11 @@ char *tortella_bin_to_char(tortella_packet * packet, u_int4 * len) {
 #endif
 	iter += data_len;
 	
-	*len = header_len + desc_len + data_len;
+	
 #ifdef DEBUG_TORTELLA
 	printf("[tortella_bin_to_char]len: %d\n", *len);
 #endif
 	
-	/*int i;
-	for(i=0; i<(*len); i++) {
-	printf("elem[%d]: %c\n", i, ret[i]);
-	} */
-
 #ifdef DEBUG_TORTELLA
 	printf("[tortella_bin_to_char]End\n\n");
 #endif
@@ -50,8 +45,7 @@ tortella_packet *tortella_char_to_bin(char *packet) {
 	printf("[tortella_char_to_bin]Start\n");
 #endif
 	
-	tortella_packet *ret =
-		(tortella_packet *) malloc(sizeof(tortella_packet));
+	tortella_packet *ret = (tortella_packet *) malloc(sizeof(tortella_packet));
 	tortella_header *header = (tortella_header *) packet;
 	char *desc = (packet + sizeof(tortella_header));
 	char *data = NULL;
@@ -60,13 +54,6 @@ tortella_packet *tortella_char_to_bin(char *packet) {
 	if (desc_id == LISTHITS_ID) {
 		data = (packet + sizeof(tortella_header) + sizeof(listhits_desc));
 	}
-	/*if(payloadDesc==QUERY_ID) {
-	data = (packet+sizeof(GnutellaHeader)+sizeof(QueryDesc));
-	}
-	else if(payloadDesc==QUERYHITS_ID) {
-	data = (packet+sizeof(GnutellaHeader)+sizeof(QueryHitsDesc));
-	}
-	printf("data: \"%s\"\n", data); */
 	
 	ret->header = header;
 	ret->desc = desc;
@@ -75,6 +62,7 @@ tortella_packet *tortella_char_to_bin(char *packet) {
 #ifdef TORTELLA_DEBUG
 	printf("[tortella_char_to_bin]End\n");
 #endif
+		
 	return ret;
 }
 
@@ -86,8 +74,6 @@ void print_packet(tortella_packet * packet) {
 		printf("sender_id: %lld\n", packet->header->sender_id);
 		printf("recv_id:   %lld\n", packet->header->recv_id);
 		printf("timestamp: %ld\n", packet->header->timestamp);
-		//printf("ttl: %d\n", packet->header->ttl);
-		//printf("hops: %d\n", packet->header->hops);
 		printf("desc_len:  %d\n", packet->header->desc_len);
 		printf("data_len:  %d\n", packet->header->data_len);
 		
@@ -107,25 +93,6 @@ void print_packet(tortella_packet * packet) {
 		printf("data: %s\n", dump_data(packet->data, packet->header->data_len));
 	}
 }
-/*
-char *dump_data(const char *data, u_int4 len) {
-	if(data!=NULL) {
-		char *buffer = (char*)malloc(len+1);
-		int i;
-		for(i=0; i<len; i++) {
-			//if(i%20==0)
-			//	printf("\n");
-#ifdef TORTELLA_DEBUG
-			printf(" %c, x:%X -", data[i], data[i]);
-#endif
-			buffer[i] = data[i];
-		}
-		buffer[i] = '\0';
-		
-		return buffer;
-	}
-	return NULL;
-}*/
 
 tortella_packet *tortella_create_packet(tortella_header *header, char *desc, char *data) {
 	
