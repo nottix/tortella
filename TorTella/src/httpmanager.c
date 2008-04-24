@@ -157,7 +157,7 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 			printf("[http_bin_to_char]HTTP_REQ_POST\n");
 			buffer = (char*)malloc(strlen(header_request->request)+2\
 				+strlen(header_request->user_agent)+strlen(HTTP_AGENT)+2\
-				+strlen(HTTP_CONTENT_LEN)+10+2\
+				+strlen(HTTP_CONTENT_LEN)+strlen(to_string(header_request->content_len))+2\
 				+strlen(HTTP_CONNECTION)+strlen(header_request->connection)+2+2\
 				+sizeof(tortella_header)+packet->data->header->desc_len+packet->data->header->data_len);
 
@@ -218,30 +218,80 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 		}*/
 		if(type==HTTP_RES_GET || type==HTTP_RES_POST) {
 			
+			int con_len = strlen(to_string(header_response->content_len));
+			
 			printf("[http_bin_to_char]Before check\n");
 			if(type==HTTP_RES_POST) {
 				header_response->content_type = "text/html";
 				printf("[http_bin_to_char]inside check\n");
 			}
-			printf("[http_bin_to_char]response: %s, server: %s, data_len: %d, content_len: %d\n", header_response->response, header_response->server, packet->data_len, header_response->content_len);
 			
-			*len = strlen(header_response->response)+strlen(HTTP_SERVER)+strlen(header_response->server)+2\
+		/*	*len = strlen(header_response->response)+strlen(HTTP_SERVER)+strlen(header_response->server)+2\
 				+strlen(HTTP_CONTENT_TYPE)+strlen(header_response->content_type)+2\
-				+strlen(HTTP_CONTENT_LEN)+strlen(to_string(header_response->content_len))+2+2\
-				+packet->data_len;
+				+strlen(HTTP_CONTENT_LEN)+con_len+2+2\
+				+packet->data_len+2;
+			
+			printf("[http_bin_to_char]response: %s, server: %s, data_len: %d, content_len: %d, len: %d", header_response->response, header_response->server, packet->data_len, header_response->content_len, *len);
+			
+			
 			buffer = malloc(*len);
-
+*/
 			//to_string(header_response->content_len);
 			//printf("[http_bin_to_char]allocated memory, strlen(to_string(header_response->content_len)): %d\n", strlen(to_string(header_response->content_len)));
 			//sprintf(buffer, "%s\r\nServer: %s\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s", header_response->response, header_response->server, header_response->content_type,
 			//header_response->content_len, packet->data_string);
-			if(packet->data_string!=NULL)
-				sprintf(buffer, "%s\r\nServer: %s\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n%s", header_response->response, header_response->server, header_response->content_type, \
-					header_response->content_len, packet->data_string);
-			else
+			if(packet->data_string!=NULL) {
+				
+				*len = strlen(header_response->response)+2
+					+strlen(HTTP_SERVER)+strlen(header_response->server)+2
+					+strlen(HTTP_CONTENT_TYPE)+strlen(header_response->content_type)+2
+					+strlen(HTTP_CONTENT_LEN)+con_len+2+2
+					+packet->data_len+1;
+			
+				printf("[http_bin_to_char]response: %s, server: %s, data_len: %d, content_len: %d, len: %d, con_len: %d", header_response->response, header_response->server, packet->data_len, header_response->content_len, *len, con_len);
+			
+				buffer = malloc(*len);
+				
 				sprintf(buffer, "%s\r\nServer: %s\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n", header_response->response, header_response->server, header_response->content_type, \
 					header_response->content_len);
-			//printf("[http_bin_to_char] printed\n");
+				
+				char *temp = buffer;
+				temp+=strlen(buffer);
+				
+				memcpy(temp, packet->data_string, packet->data_len);
+				
+				temp+=packet->data_len;
+				memcpy(temp, "\n", 1);
+			}
+			else {
+				
+				*len = strlen(header_response->response)+2
+					+strlen(HTTP_SERVER)+strlen(header_response->server)+2
+					+strlen(HTTP_CONTENT_TYPE)+strlen(header_response->content_type)+2
+					+strlen(HTTP_CONTENT_LEN)+con_len+2+2;
+				
+				printf("[http_bin_to_char]strlen(header_response->response): %d\n", strlen(header_response->response));
+				printf("[http_bin_to_char]strlen(HTTP_SERVER): %d\n", strlen(HTTP_SERVER));
+				printf("[http_bin_to_char]strlen(header_response->server): %d\n", strlen(header_response->server));
+				printf("[http_bin_to_char]strlen(HTTP_CONTENT_TYPE): %d\n", strlen(HTTP_CONTENT_TYPE));
+				printf("[http_bin_to_char]strlen(header_response->content_type): %d\n", strlen(header_response->content_type));
+				printf("[http_bin_to_char]strlen(HTTP_CONTENT_LEN): %d\n", strlen(HTTP_CONTENT_LEN));
+			
+				printf("[http_bin_to_char]response: %s, server: %s, data_len: %d, content_len: %d, len: %d, con_len: %d", header_response->response, header_response->server, packet->data_len, header_response->content_len, *len, con_len);
+			
+				printf("[http_bin_to_char](header_response->response): %s\n", header_response->response);
+				printf("[http_bin_to_char](HTTP_SERVER): %s\n", HTTP_SERVER);
+				printf("[http_bin_to_char](header_response->server): %s\n", (header_response->server));
+				printf("[http_bin_to_char](HTTP_CONTENT_TYPE): %s\n", (HTTP_CONTENT_TYPE));
+				printf("[http_bin_to_char](header_response->content_type): %s\n", (header_response->content_type));
+				printf("[http_bin_to_char](HTTP_CONTENT_LEN): %s\n", (HTTP_CONTENT_LEN));
+			
+				buffer = calloc(*len, 1);
+				
+				snprintf(buffer, *len+1, "%s\r\nServer: %s\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n", header_response->response, header_response->server, header_response->content_type, \
+					header_response->content_len);
+				printf("[http_bin_to_char]buffer result: %s\n", buffer);
+			}
 		}
 
 	}
