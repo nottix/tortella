@@ -35,131 +35,123 @@ char *to_string(u_int8 num) {
 	return ret;
 }*/
 
-char *hex_dump(char *packet, int len, int n)
+char *hex_dump(const char *packet, int len, int n)
 {
 	int i=0;
-        int count = 0;
-        int modulo =0;
-        int div = len/n;
-        int k = 0;
-        int divtemp = div;
-        if(len%n!=0) 
-        {
-          modulo = n-(len%n);
-          divtemp++;
-        }
-     
-        char *buffer = (char*)malloc(sizeof(char)*(len*4+(divtemp)*4+(modulo)*3));
-        int length =   len*4+(divtemp)*4+(modulo)*3;
-        printf("length %d\n", length);
-        char *strtemp = (char*)calloc(4,1);
-	
-        if(len == 1)
-        {
-          sprintf(strtemp,"%x ",packet[i]);
-          strcat(buffer,strtemp);
-          int templ = 0;
-          templ = templ%n;
+	int count = 0;
+	int modulo =0;
+	int div = len/n;
+	int k = 0;
+	int divtemp = div;
+	if(len%n!=0) {
+		modulo = n-(len%n);
+		divtemp++;
+	}
 
-             for(k=n;k>templ+1;k--)
-	     {
-               sprintf(strtemp,"   ");
-               strcat(buffer,strtemp);
-             }
-             sprintf(strtemp,"\t  ");
-             strcat(buffer,strtemp);
-             sprintf(strtemp,"%c",packet[i]);
-             strcat(buffer,strtemp); 
-             sprintf(strtemp,"\n");
-             strcat(buffer,strtemp);
-           return buffer;
-        }
-        
-        for(i=0;i<len;i++)
-	{	
-          if(i==len-1 && ((len)%n)!=0)
-          {
-             if((len-1)%n==0)
-             {
-                for(k=n;k>0;k--)
-                {  
-                   sprintf(strtemp,"%x ", packet[i-k]);
-                   strcat(buffer,strtemp);
-                }
-                sprintf(strtemp,"\t  ");
-                strcat(buffer,strtemp);
-                for(k=n;k>0;k--)
-                {
-		  sprintf(strtemp,"%c", ((isprint(packet[i-k])!=0)?packet[i-k]:'.'));
-                  strcat(buffer,strtemp);
-                }
-                  sprintf(strtemp,"\n");
-                  strcat(buffer,strtemp);
-             }
-             int temp = 0;
-             for(k=div*n;k<len;k++)
-             {
-               sprintf(strtemp,"%x ",packet[k]);
-               strcat(buffer,strtemp);
-               temp = k;
-             }
-          
-             temp = temp%n;
-             for(k=n;k>temp+1;k--)
-	     {
-               sprintf(strtemp,"   ");
-               strcat(buffer,strtemp);
-             }
-             sprintf(strtemp,"\t  ");
-             strcat(buffer,strtemp);
-             for(k=div*n;k<len;k++)
-             {  
-	       sprintf(strtemp,"%c",((isprint(packet[k])!=0)?packet[k]:'.')); 
-               strcat(buffer,strtemp);
-             } 
-            sprintf(strtemp,"\n");
-            strcat(buffer,strtemp);
-            break;
-          }
-          if(i==len-1 && (len)%n==0)
-          {
-             for(k=count;k<len;k++)
-             {
-               sprintf(strtemp,"%x ",packet[k]);
-               strcat(buffer,strtemp);
-             }
-             sprintf(strtemp,"\t  ");
-             strcat(buffer,strtemp);
-             for(k=count;k<len;k++)
-             {
-               sprintf(strtemp,"%c",((isprint(packet[k])!=0)?packet[k]:'.')); 
-               strcat(buffer,strtemp);
-             }
-            sprintf(strtemp,"\n");
-            strcat(buffer,strtemp);
-            break;
-          }
-	  if(i!= 0 && i%n==0)
-          {
-           count = i;
-           for(k=n;k>0;k--)
-           {  
-             sprintf(strtemp,"%x ", packet[i-k]);
-             strcat(buffer,strtemp);
-           }
-           sprintf(strtemp,"\t  ");
-           strcat(buffer,strtemp);
-           for(k=n;k>0;k--)
-           {
-             sprintf(strtemp,"%c", ((isprint(packet[i-k])!=0)?packet[i-k]:'.'));
-             strcat(buffer,strtemp);
-           }
-           sprintf(strtemp,"\n");
-           strcat(buffer,strtemp);
-           continue;
-          }
-          
-        }
+	int length =   (len*4+(divtemp)*4+(modulo)*3)*2;
+	//int length = 5000;
+	char *buffer = (char*)malloc(length);
+	char *strtemp = (char*)calloc(4,1);
 
+	strcat(buffer, "\n");
+
+	if(len == 1) {
+		sprintf(strtemp,"%02x ",(u_int1)packet[i]);
+		strcat(buffer,strtemp);
+		int templ = 0;
+		templ = templ%n;
+
+		for(k=n;k>templ+1;k--) {
+			sprintf(strtemp,"   ");
+			strcat(buffer,strtemp);
+		}
+		sprintf(strtemp,"\t  ");
+		strcat(buffer,strtemp);
+		sprintf(strtemp,"%c",packet[i]);
+		strcat(buffer,strtemp); 
+		sprintf(strtemp,"\n\n");
+		strcat(buffer,strtemp);
+		return buffer;
+	}
+
+	for(i=0;i<len;i++) {	
+		
+		if(i==len-1 && ((len)%n)!=0) {
+			if((len-1)%n==0) {
+				for(k=n;k>0;k--) {  
+					sprintf(strtemp,"%02x ", (u_int1)packet[i-k]);
+					strcat(buffer,strtemp);
+				}
+				sprintf(strtemp,"\t  ");
+				strcat(buffer,strtemp);
+				for(k=n;k>0;k--) {
+					sprintf(strtemp,"%c", ((isprint(packet[i-k])!=0)?packet[i-k]:'.'));
+					strcat(buffer,strtemp);
+				}
+				sprintf(strtemp,"\n");
+				strcat(buffer,strtemp);
+			}
+			int temp = 0;
+			for(k=div*n;k<len;k++) {
+				sprintf(strtemp,"%02x ",(u_int1)packet[k]);
+				strcat(buffer,strtemp);
+				temp = k;
+			}
+			
+			temp = temp%n;
+			for(k=n;k>temp+1;k--) {
+				sprintf(strtemp,"   ");
+				strcat(buffer,strtemp);
+			}
+			sprintf(strtemp,"\t  ");
+			strcat(buffer,strtemp);
+			for(k=div*n;k<len;k++) {  
+				sprintf(strtemp,"%c",((isprint(packet[k])!=0)?packet[k]:'.')); 
+				strcat(buffer,strtemp);
+			}
+			sprintf(strtemp,"\n");
+			strcat(buffer,strtemp);
+			break;
+		}
+		if(i==len-1 && (len)%n==0) {
+			for(k=count;k<len;k++) {
+				sprintf(strtemp,"%02x ",(u_int1)packet[k]);
+				strcat(buffer,strtemp);
+			}
+			sprintf(strtemp,"\t  ");
+			strcat(buffer,strtemp);
+			for(k=count;k<len;k++) {
+				sprintf(strtemp,"%c",((isprint(packet[k])!=0)?packet[k]:'.')); 
+				strcat(buffer,strtemp);
+			}
+			sprintf(strtemp,"\n");
+			strcat(buffer,strtemp);
+			break;
+		}
+		if(i!= 0 && i%n==0) {
+			count = i;
+			for(k=n;k>0;k--) {  
+				sprintf(strtemp,"%02x ", (u_int1)packet[i-k]);
+				strcat(buffer,strtemp);
+			}
+			sprintf(strtemp,"\t  ");
+			strcat(buffer,strtemp);
+			for(k=n;k>0;k--) {
+				sprintf(strtemp,"%c", ((isprint(packet[i-k])!=0)?packet[i-k]:'.'));
+				strcat(buffer,strtemp);
+			}
+			sprintf(strtemp,"\n");
+			strcat(buffer,strtemp);
+			continue;
+		}
+
+	}
+
+	strcat(buffer, "\n");
 	return buffer;
+}
+
+char *dump_data(const char *packet, int len) {
+	return hex_dump(packet, len, 10);
+	//return packet;
 }

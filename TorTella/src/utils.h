@@ -15,6 +15,8 @@ char *to_string(u_int8 num);
 
 //char *to_string(u_int8 num1, u_int8 num2);
 
-void hex_dump(char *packet, int len, int n);
+char *hex_dump(const char *packet, int len, int n);
+
+char *dump_data(const char *packet, int len);
 
 #endif //UTILS_H
