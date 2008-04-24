@@ -17,6 +17,7 @@
 #define GET_MESSAGE(packet)		((message_desc*)packet->desc)
 #define GET_CREATE(packet)		((create_desc*)packet->desc)
 #define GET_SEARCH(packet)		((search_desc*)packet->desc)
+#define GET_SEARCHHITS(packet)  ((searchhits_desc*)packet->desc)
 
 //Descriptor ID
 #define PING_ID			0x01
@@ -46,8 +47,6 @@ struct tortella_header {
 	u_int4 desc_id; //PING_ID, PONG_ID, etc..
 	u_int8 sender_id;   //ID del servente che invia
 	u_int8 recv_id; //ID del servente che riceve
-	//u_int1 ttl;
-	//u_int1 hops;
 	time_t timestamp;
 	u_int4 desc_len; //lunghezza del descrittore
 	u_int4 data_len; //lunghezza del campo dati
