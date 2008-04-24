@@ -354,6 +354,8 @@ char *chatlist_to_char(GList *chat_list, int *len) {
  * Converte una stringa in una lista di chat con i relativi utenti
  */
 GList *char_to_chatlist(const char *buffer,int len) {
+	//printf("[char_to_chatlist]buffer: %s\n", buffer);
+	
 	char *saveptr;
 	GList *chat_list=NULL;
 	chat *chat_elem=NULL;
@@ -375,7 +377,7 @@ GList *char_to_chatlist(const char *buffer,int len) {
 			continue;
 		}
 		count = 0;
-	        if(buffer[i]=='\n' && line>0){
+		if(buffer[i]=='\n' && line>0) {
 			count =1;
 			chatclient *chat_client=(chatclient *)calloc(sizeof(chatclient),1);			
 			r=0;
@@ -408,6 +410,7 @@ GList *char_to_chatlist(const char *buffer,int len) {
 		tmp[r]=buffer[i];
 		r++;
 	}
+
 	return chat_list;
 }
 
