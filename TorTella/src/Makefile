@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -g -Wall
-OBJECTS = tortellaprotocol.o httpmanager.o socketmanager.o packetmanager.o servent.o supernodedata.o logger.o utils.o
+OBJECTS = tortellaprotocol.o httpmanager.o socketmanager.o packetmanager.o servent.o supernodedata.o logger.o utils.o init.o
 INCFLAGS = -I./ `pkg-config --cflags glib-2.0`
 LDFLAGS = -Wl,-rpath,/usr/local/lib
 LIBS = -lpthread `pkg-config --libs glib-2.0`
@@ -34,6 +34,9 @@ supernodedata_testing: $(OBJECTS) testing/supernodedata_testing.c
 list_testing: $(OBJECTS) testing/list_testing.c
 	$(CC) -o testing/list_testing testing/list_testing.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS)
 
+init_testing: $(OBJECTS) testing/init_testing.c
+	$(CC) -o testing/init_testing testing/init_testing.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS)
+	
 .SUFFIXES:	.c .h .o
 
 tortellaprotocol.o: tortellaprotocol.h tortellaprotocol.c
@@ -75,6 +78,11 @@ utils.o: utils.h utils.c
 gui.o: gui.h gui.c
 	@echo -e "\nBuilding gui"
 	$(CC) $(CFLAGS) $(INCFLAGS) -o gui.o -c gui.c 
+
+init.o: init.h init.c
+	@echo -e "\nBuilding init"
+	$(CC) $(CFLAGS) $(INCFLAGS) -o init.o -c init.c 
+
 
 count:
 	wc -l *.c *.h */*.c */*.h
