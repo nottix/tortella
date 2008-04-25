@@ -22,6 +22,7 @@
 #include "utils.h"
 #include "list.h"
 #include "supernodedata.h"
+#include "init.h"
 #include <pthread.h>
 #include <signal.h>
 #include <unistd.h>
@@ -84,6 +85,8 @@ GHashTable *route_hashtable;
 static u_int1 last_request_type = 0;
 static u_int4 server_connection_num = 0;
 
+static u_int8 new_connection_counter = 0;
+
 //static list *connection_list;
 
 /*static list *client_fd;
@@ -113,7 +116,9 @@ u_int4 servent_create_server(char *src_ip, u_int4 src_port);
 //Crea un client socket
 u_int4 servent_create_client(char *dst_ip, u_int4 dst_port);
 
-u_int4 servent_start(char *local_ip, u_int4 local_port, char *dest_ip, u_int4 dest_port);
+u_int4 servent_start(char *local_ip, u_int4 local_port, GList *init_servent);
+
+int servent_init_connection(GList *init_servent);
 
 void servent_close_all(void);
 

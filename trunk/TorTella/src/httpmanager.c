@@ -273,13 +273,12 @@ http_packet *http_char_to_bin(const char *buffer) {
 		printf("[http_char_to_bin]buffer NULL\n");
 	
 	if(buffer!=NULL) {
-		printf("[http_char_to_bin]prealloc\n");
 		packet = (http_packet*)malloc(sizeof(http_packet));
 		printf("[http_char_to_bin]allocated\n");
 		char *result;
 
 #ifdef HTTP_DEBUG
-		printf("[http_char_to_bin]buffer: %s\n", buffer);
+		//printf("[http_char_to_bin]buffer: %s\n", dump_data(buffer, buffer);
 #endif
 		if((result=strstr(buffer, "GET"))!=NULL) { //TODO
 #ifdef HTTP_DEBUG
@@ -376,14 +375,17 @@ http_packet *http_char_to_bin(const char *buffer) {
 			
 			header_response->server = http_get_value(buffer, HTTP_SERVER);
 			
+			header_response->content_len = atoi(http_get_value(buffer, HTTP_CONTENT_LEN));
+			
 			packet->header_response = header_response;
 			packet->data_string = strstr(buffer, "\r\n\r\n")+4;
 			packet->data = NULL;
 			packet->data_len = header_response->content_len;
-			
+
 #ifdef HTTP_DEBUG
-			printf("[http_char_to_bin]response: %s\nserver: %s\n", header_response->response, header_response->server);
+			printf("[http_char_to_bin]response: %s\nserver: %s\ncontent_len: %d\ndata: %s\n", header_response->response, header_response->server, header_response->content_len, packet->data_string);
 #endif
+
 		}
 		
 		

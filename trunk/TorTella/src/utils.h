@@ -9,6 +9,8 @@
 
 #include "common.h"
 
+#define GEN_START 100000
+
 u_int8 generate_id(void);
 
 char *to_string(u_int8 num);

@@ -21,6 +21,7 @@
 #include <unistd.h>
 
 GList *init_read_file(const char *filename) {
+	GList *init_list=NULL;
 	char buffer;
 	int fd=0;
 	int nread=0; 
@@ -64,11 +65,11 @@ init_data *init_char_to_initdata(char *buffer){
 	init_data *data=calloc(1,sizeof(init_data));	
 	
 	ip=strtok_r(buffer,";",&saveptr);
-	data->ip=ip;
+	data->ip=strdup(ip);
 	printf("data->ip:%s\n",data->ip);
 	port=strtok_r(NULL,"\n",&saveptr);
-	data->port=port;
-	printf("data->port:%s\n",data->port);
+	data->port=atoi(port);
+	printf("data->port:%d\n",data->port);
 		
 	return data;
 }

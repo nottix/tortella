@@ -230,9 +230,7 @@ int switch_http_packet(int connFd, char *buffer, unsigned int mode) {
 			if ((len=recv_packet(connFd, buffer)) < 0) {
 	    		fprintf(stderr, "\nErrore in lettura!");
 			}
-#ifdef SOCKET_DEBUG
-			fprintf(stdout, "\n[listen_packet]Dati ricevuti buffer: %s\n", dump_data(buffer, 40));
-#endif
+			fprintf(stdout, "\n[listen_packet]Dati ricevuti buffer: %s\n", dump_data(buffer, len));
 			break;
     	case LP_NONE:
 			break;
