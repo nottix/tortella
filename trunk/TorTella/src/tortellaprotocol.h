@@ -54,7 +54,9 @@ struct tortella_header {
 typedef struct tortella_header tortella_header;
 
 struct ping_desc {
+	u_int4 port;
 	u_int1 status;
+	//Cambo dati: nickname
 };
 typedef struct ping_desc ping_desc;
 

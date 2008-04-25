@@ -149,7 +149,7 @@ u_int4 send_leave_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 cha
 	return send_packet(fd, buffer, len);
 }
 
-u_int4 send_ping_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 status) {
+u_int4 send_ping_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, char *nick, u_int4 port, u_int1 status) {
 	
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
@@ -159,16 +159,17 @@ u_int4 send_ping_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 stat
 	header->sender_id = sender_id;
 	header->recv_id = recv_id;
 	header->timestamp = time(NULL);
-	header->data_len = 0;
+	header->data_len = strlen(nick);
 	
 	ping_desc *ping = (ping_desc*)malloc(sizeof(ping_desc));
 	ping->status = status;
+	ping->port = port;
 	packet->desc = (char*)ping;
 
 	header->desc_len = sizeof(ping_desc);
 		
 	packet->header = header;
-	packet->data = NULL;
+	packet->data = nick;
 	
 	char *buffer;
 	int len;

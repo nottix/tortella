@@ -18,8 +18,12 @@
 
 int main(int argc, char **argv){
 
+	if(argc<2) {
+		printf("Usage: <filename>\n");
+		return -1;
+	}
 
-	GList * data=init_read_file("/home/ibrahim/Scrivania/progettoIW/src/data/init_conn.txt");
+	GList * data=init_read_file(argv[1]);
 	//printf("prova 1\n");
 	//printf("Inidirizzo ip: %s- porta: %s\n",((init_data *)g_list_nth_data(data,0))->ip,((init_data *)g_list_nth_data(data,0))->port);
 	//printf("prova 2\n");

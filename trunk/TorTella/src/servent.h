@@ -65,8 +65,6 @@ struct servent_data {
 	char *title;	//Titolo chat da creare o ricercare
 	u_int4 title_len;	//Lunghezza del titolo
 	
-	
-	
 };
 typedef struct servent_data servent_data;
 

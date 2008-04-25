@@ -20,68 +20,55 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-
 GList *init_read_file(const char *filename) {
-	printf("dentro init_read_file\n");
 	char buffer;
 	int fd=0;
 	int nread=0; 
 	char *tmp=(char *)calloc(22,1);
 	int i=0;	
 
-		
-	if(strlen(filename)==0 || filename==NULL){
-		
+	if(strlen(filename)==0 || filename==NULL) {
 		printf("Il nome del file non è corretto\n");
 		return NULL;
 	}
 	
 	if((fd=open(filename,O_RDONLY|O_EXCL))<0){
-		perror("Errore apertura file\n");
+		printf("Errore apertura file\n");
 		return NULL;	
 	}
 	
 	while((nread=read(fd,&buffer,1))>0){
-		
 		tmp[i]=buffer;
-		printf("tmp: %c\n",tmp[i]);
-		
-		if(tmp[i]==NULL)
-			break;
 		
 		if(tmp[i]=='\n'){
 			init_list=g_list_append(init_list,(gpointer)init_char_to_initdata(tmp));
 			memset(tmp,0,strlen(tmp));
 			i=0;
-			continue;
 		}
-		i++;
+		else
+			i++;
 	}
 	
 	if(close(fd)<0){
-		perror("Errore chiusura\n");
+		printf("Errore chiusura\n");
 		return NULL;
 	}		
 	return init_list;
 }
 
 init_data *init_char_to_initdata(char *buffer){
-	printf("dentro 2 funz\n");
 	
 	char *ip;
 	char *port;
 	char *saveptr;
 	init_data *data=calloc(1,sizeof(init_data));	
 	
-		ip=strtok_r(buffer,";",&saveptr);
-		data->ip=ip;
-		printf("data->ip:%s\n",data->ip);
-		port=strtok_r(NULL,"\n",&saveptr);
-		data->port=port;
-		printf("data->port:%s\n",data->port);
-	
-	
+	ip=strtok_r(buffer,";",&saveptr);
+	data->ip=ip;
+	printf("data->ip:%s\n",data->ip);
+	port=strtok_r(NULL,"\n",&saveptr);
+	data->port=port;
+	printf("data->port:%s\n",data->port);
+		
 	return data;
-	
-
 }
