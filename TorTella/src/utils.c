@@ -18,7 +18,7 @@
 
 u_int8 generate_id(void) {
 	srandom(time(0));
-	return random()^time(NULL);
+	return (GEN_START+random())^time(NULL);
 }
 
 char *to_string(u_int8 num) {

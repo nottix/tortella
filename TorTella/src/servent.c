@@ -47,43 +47,46 @@ u_int4 servent_start_server(char *local_ip, u_int4 local_port) {
 
 u_int4 servent_start_client(char *dest_ip, u_int4 dest_port) {
 	pthread_t *clithread = (pthread_t*)malloc(sizeof(pthread_t));
-	u_int8 cliid;
-	printf("Inserisci l'ID del peer: ");
-	scanf("%lld", &cliid);
-	if(cliid==0) {
-		while(getchar()!='q');
-		return 0;
-	}
+	u_int8 cliid = new_connection_counter++;
+	//printf("Inserisci l'ID del peer: ");
+	//scanf("%lld", &cliid);
+	//if(cliid==0) {
+	//	while(getchar()!='q');
+	//	return 0;
+	//}
 	
 	servent_data *servent = (servent_data*)malloc(sizeof(servent_data));
 	servent->id = cliid;
 	servent->ip = dest_ip;
 	servent->port = dest_port;
-	servent->chat_id_req = 111;
-	servent->status = ONLINE_ID;
+	//servent->chat_id_req = 111;
+	//servent->status = ONLINE_ID;
 	
 	//local_servent->id_dest = to_string(servent->id);
 	//local_servent->id_dest_len = strlen(servent->id);
-	servent->msg_len = 5;
-	servent->msg = "Hello";
+	//servent->msg_len = 5;
+	//servent->msg = "Hello";
 	
-	servent->title_len =4;
-	servent->title = "test";
+	//servent->title_len =4;
+	//servent->title = "test";
 
-	servent->ttl = 3;
-	servent->hops = 0;
+	//servent->ttl = 3;
+	//servent->hops = 0;
 	
 	pthread_mutex_init(&servent->mutex, NULL);
 	pthread_mutex_init(&servent->mutex_data, NULL);
 	pthread_cond_init(&servent->cond, NULL);
-		
+
 	servent->post_type=PING_ID;
+
 	g_hash_table_insert(servent_hashtable, (gpointer)to_string(cliid), (gpointer)servent);
 	pthread_create(clithread, NULL, servent_connect, (void*)cliid);
 	client_thread = g_slist_prepend(client_thread, (gpointer)(*clithread));
-	int ch = 'p';
+
+	pthread_cond_signal(&servent->cond);
+	//int ch = 'p';
 	//sleep(1);
-	do {
+	/*do {
 		if(ch=='j')
 			servent->post_type=JOIN_ID;
 		else if(ch=='p')
@@ -109,24 +112,25 @@ u_int4 servent_start_client(char *dest_ip, u_int4 dest_port) {
 //}
 
 	printf("\nPremere q per uscire\n");
-	while(getchar()!='q');
+	while(getchar()!='q');*/
 	
 	return 1;
 }
 
-u_int4 servent_start(char *local_ip, u_int4 local_port, char *dest_ip, u_int4 dest_port) {
+u_int4 servent_start(char *local_ip, u_int4 local_port, GList *init_servent) {
+	//Inizializzazione servent locale
 	servent_init(local_ip, local_port, ONLINE_ID);
-	//Fase iniziale di reperimento dell'ID della chat e degli utenti che ne fanno parte
-	//Si registra tale lista in memoria
-	//Esempio di dati
-	/*u_int8 chat_id = 21101959;
-	u_int8 id = 11111111;
-	u_int8 id_dest = 22222222;
-	char *ip_dest = "127.0.0.1";
-	u_int4 port_dest = 2110;*/
 	
-	printf("Avviare il server? ");
-	if(getchar()=='s') {
+	//Avvio server di ascolto richieste
+	servent_start_server(local_ip, local_port);
+	
+	//Fase iniziale di reperimento degli utenti iniziali
+	if(init_servent!=NULL)
+		servent_init_connection(init_servent);
+	
+	
+	//printf("Avviare il server? ");
+	//if(getchar()=='s') {
 		//Avvia il server
 		/*int serfd = servent_create_server(ip, port); //Locale
 		if(serfd<0) {
@@ -139,38 +143,31 @@ u_int4 servent_start(char *local_ip, u_int4 local_port, char *dest_ip, u_int4 de
 		
 		server_fd = g_slist_prepend(server_fd, (gpointer)serfd);
 		server_thread = g_slist_prepend(server_thread, (gpointer)serthread);*/
-	  servent_start_server (local_ip, local_port);
-	}
+	  //servent_start_server (local_ip, local_port);
+	//}
 	//printf("Avviare il client? ");
 	//if(getchar()=='s') {
 		//Avvia il client
 		
-		/*pthread_t *clithread = (pthread_t*)malloc(sizeof(pthread_t));
+		pthread_t *clithread = (pthread_t*)malloc(sizeof(pthread_t));
 		u_int8 cliid;
-		printf("Inserisci l'ID del peer: ");
-		scanf("%lld", &cliid);
-		servent_data *servent = (servent_data*)malloc(sizeof(servent_data));
-		servent->id = cliid;
-		servent->ip = ip;
-		servent->port = port;
+
+	  GList *clients = g_hash_table_get_values(servent_hashtable);
+		servent_data *servent = (servent_data*)g_list_nth(clients, 0);
+
 		servent->chat_id_req = 111;
-		servent->status = ONLINE_ID;
 		
-		//local_servent->id_dest = to_string(servent->id);
-		//local_servent->id_dest_len = strlen(servent->id);
 		servent->msg_len = 5;
 		servent->msg = "Hello";
 		
 		servent->title_len =4;
 		servent->title = "test";
-		
-		servent->post_type=JOIN_ID;
-		g_hash_table_insert(servent_hashtable, (gpointer)to_string(cliid), (gpointer)servent);
-		pthread_create(clithread, NULL, servent_connect, (void*)cliid);
-		client_thread = g_slist_prepend(client_thread, (gpointer)(*clithread));
-		int ch = 'j';
+
+		int ch = 'b';
 		sleep(1);
-		do {
+		while((ch=getchar())!='q') {
+			if(ch=='\n')
+				continue;
 			if(ch=='j')
 				servent->post_type=JOIN_ID;
 			else if(ch=='p')
@@ -187,19 +184,26 @@ u_int4 servent_start(char *local_ip, u_int4 local_port, char *dest_ip, u_int4 de
 				servent->post_type=CREATE_ID;
 			else if(ch=='r')
 				servent->post_type=SEARCH_ID;
-			
+
 			printf("[servent_start]signal\n");
 			pthread_cond_signal(&servent->cond);
 			printf("[servent_start]Premere f per bloccare l'invio\n");
 			
-		}while((ch=getchar())!='f');
-	//}
+		}
 
-	printf("\nPremere q per uscire\n");
-	while(getchar()!='q');*/
-		servent_start_client(dest_ip, dest_port);
-	//}
 	kill_all_thread(1);
+	return 0;
+}
+
+int servent_init_connection(GList *init_servent) {
+	int i;
+	init_data *peer;
+	for(i=0; i<g_list_length(init_servent); i++) {
+		peer = (init_data*)g_list_nth_data(init_servent, i);
+		printf("[servent_init_connection]ip: %s, port: %d\n", peer->ip, peer->port);
+		servent_start_client(peer->ip, peer->port);
+	}
+	
 	return 0;
 }
 
@@ -279,8 +283,8 @@ void servent_init(char *ip, u_int4 port, u_int1 status) {
 }
 
 void servent_init_supernode() {
-	read_all(&chat_hashtable, &chatclient_hashtable);
-	//read_from_file("test", &chat_hashtable, &chatclient_hashtable);
+	//read_all(&chat_hashtable, &chatclient_hashtable);
+	read_from_file("data/111", &chat_hashtable, &chatclient_hashtable);
 }
 
 void servent_close_supernode() {
@@ -360,7 +364,7 @@ void *servent_responde(void *parm) {
 						
 						status = HTTP_STATUS_CERROR;
 					}
-					else if(h_packet->data->header->recv_id!=local_servent->id) {
+					else if(h_packet->data->header->recv_id!=local_servent->id && h_packet->data->header->recv_id>=GEN_START) {
 						status = HTTP_STATUS_CERROR;
 					}
 					else if(h_packet->data->header->desc_id==JOIN_ID) {
@@ -412,8 +416,24 @@ void *servent_responde(void *parm) {
 							conn_servent->timestamp = h_packet->data->header->timestamp;
 							conn_servent->nick = h_packet->data->data;
 							UNLOCK(id);
+							printf("[servent_responde]PING old\n");
+							
+							status = HTTP_STATUS_OK;
 						}
 						else {
+							printf("[servent_responde]New ping\n");
+							
+							if(h_packet->data->header->recv_id < GEN_START) {
+								status = HTTP_STATUS_OK;
+								char *new_id = to_string(local_servent->id);
+								printf("[servent_responde]sending new ID: %s with len %d\n", new_id, strlen(new_id));
+								send_post_response_packet(fd, status, strlen(new_id), new_id);
+								status = 0;
+							}
+							else {
+								status = HTTP_STATUS_OK;
+							}
+							
 							conn_servent = (servent_data*)malloc(sizeof(servent_data));
 							conn_servent->ip = get_dest_ip(fd);
 							conn_servent->port = GET_PING(h_packet->data)->port;
@@ -444,11 +464,14 @@ void *servent_responde(void *parm) {
 							pthread_t *cli_thread = (pthread_t*)malloc(sizeof(pthread_t));
 							pthread_create(cli_thread, NULL, servent_connect, (void*)id);
 							client_thread = g_slist_prepend(client_thread, (gpointer)(*cli_thread));
+							//sleep(1);
+							printf("[servent_responde]Invio a %lld\n", conn_servent->id);
 							
 							pthread_cond_signal(&conn_servent->cond); //FIXIT: probabile race condition
-						}
 						
-						status = HTTP_STATUS_OK;
+							
+							
+						}
 					}
 					else if(h_packet->data->header->desc_id==PONG_ID) {
 						printf("[servent_responde]PONG ricevuto\n");
@@ -649,11 +672,11 @@ void *servent_connect(void *parm) {
 	int fd = servent_create_client(ip_dest, port_dest);
 	
 	pthread_mutex_t *mutex = &servent_peer->mutex;
-	pthread_cond_t *cond = &servent_peer->cond;	
+	pthread_cond_t *cond = &servent_peer->cond;
 	
 	client_fd = g_slist_prepend(client_fd, (gpointer)fd);
 	
-	printf("[servent_connect]Init\n");
+	printf("[servent_connect]Init %lld\n", id_dest);
 	
 	u_int4 post_type;
 	u_int8 chat_id_req;
@@ -739,10 +762,29 @@ void *servent_connect(void *parm) {
 			len = switch_http_packet(fd, buffer, LP_READ);
 			printf("[sevente_connect]Received response\n");
 			if(len>0) {
+				printf("[servent_connect]buffer recv: %s\n", dump_data(buffer, len));
 				h_packet = http_char_to_bin(buffer);
 				if(h_packet!=NULL && h_packet->type==HTTP_RES_POST) {
 					if(strcmp(h_packet->header_response->response, HTTP_OK)==0) {
 						printf("[servent_connect]OK POST received\n");
+						if(post_type==PING_ID && id_dest<GEN_START) {
+							printf("[servent_connect]Responding to PING\n");
+							//servent_data *data = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id_dest));
+							if(servent_peer!=NULL) {
+								printf("[servent_connect]Removing old\n");
+								g_hash_table_remove(servent_hashtable, (gconstpointer)to_string(id_dest));
+								printf("[servent_connect]Removed old\n");
+								printf("[servent_connect]Converting %s, len: %d\n", h_packet->data_string, h_packet->data_len);
+								char *buf = malloc(h_packet->data_len+1);
+								sprintf(buf, "%s", strndup(h_packet->data_string, h_packet->data_len));
+								printf("[servent_connect]buf: %s.\n", buf);
+								id_dest = strtoull(buf, NULL, 10);
+								printf("[servent_connect]New ID: %lld.\n", id_dest);
+								g_hash_table_insert(servent_hashtable, (gpointer)to_string(id_dest), (gpointer)servent_peer);
+							}
+							else
+								printf("[servent_connect]Data isn't present\n");
+						}
 					}
 					else {
 						printf("[servent_connect]Error\n");

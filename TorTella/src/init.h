@@ -25,16 +25,13 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include "common.h"
 
-struct init_data{
-	
+struct init_data {
 	char *ip;
-	char *port;
-	
+	u_int4 port;
 };
 typedef struct init_data init_data;
-
-GList *init_list;
 
 GList *init_read_file(const char *filename);
 init_data *init_char_to_initdata(char *buffer);

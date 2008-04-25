@@ -206,25 +206,45 @@ u_int4 del_chat(u_int8 id, GHashTable *chat_table) {
 
 //FIXIT: da togliere il doppio inserimento nella lista degli utenti
 u_int4 add_user_to_chat(u_int8 chat_id, u_int8 id, const char *nick, const char *ip, u_int4 port, GHashTable *chat_table, GHashTable **chatclient_table) {
+	
 	if(chat_table==NULL)
 		return 0;
 	
 	if((*chatclient_table)==NULL)
 		(*chatclient_table) = g_hash_table_new(g_str_hash, g_str_equal);
 	
+	add_user(id, nick, ip, port, chatclient_table);
+	
+	printf("[add_user_to_chat]Init\n");
 	chatclient *chatclient_str = (chatclient*)malloc(sizeof(chatclient));
 	chatclient_str->id = id;
 	chatclient_str->nick = (char*)nick;
 	chatclient_str->ip = (char*)ip;
 	chatclient_str->port = port;
+	printf("[add_user_to_chat] ID: %lld\n", chatclient_str->id);
 	g_hash_table_insert((*chatclient_table), (gpointer)to_string(id), (gpointer)chatclient_str);
+	printf("[add_user_to_chat] ID: %lld\n", chatclient_str->id);
 	
 	chat *chat_str = (chat*)g_hash_table_lookup(chat_table, (gconstpointer)to_string(chat_id));
+	printf("[add_user_to_chat] ID: %lld\n", chatclient_str->id);
+	if(chat_str==NULL) {
+		printf("[add_user_to_chat]chat non presente\n");
+		return 0;
+	}
+	printf("[add_user_to_chat] ID: %lld\n", chatclient_str->id);
+	printf("[add_user_to_chat]Chat presente\n");
 	pthread_mutex_lock(&chat_str->mutex);
+	printf("[add_user_to_chat]Locked\n");
+	printf("[add_user_to_chat] ID: %lld\n", chatclient_str->id);
 	if(chat_str->users==NULL)
 		chat_str->users = g_hash_table_new(g_str_hash, g_str_equal);
+	printf("[add_user_to_chat] ID: %lld\n", chatclient_str->id);
+	printf("[add_user_to_chat]Created table %s, %lld.\n", to_string(id), chatclient_str->id);
 	g_hash_table_insert(chat_str->users, (gpointer)to_string(id), (gpointer)chatclient_str);
+	printf("[add_user_to_chat]Inserted\n");
 	pthread_mutex_unlock(&chat_str->mutex);
+	
+	printf("[add_user_to_chat]End\n");
 	
 	return 1;
 }

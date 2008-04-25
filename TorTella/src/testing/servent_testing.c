@@ -19,6 +19,7 @@
 #include "tortellaprotocol.h"
 #include "packetmanager.h"
 #include "servent.h"
+#include "init.h"
 #include <pthread.h>
 #include <sys/types.h>
 #include <sched.h>
@@ -27,12 +28,18 @@
 
 int main(int argc, char **argv) {
 
-	if(argc<4) {
-		printf("Usage: <local_ip> <local_port> <dest_ip> <dest_port>\n");
+	if(argc<3) {
+		printf("Usage: <local_ip> <local_port> [cache_path]\n");
 		return 0;
 	}	
 	
-	servent_start(argv[1], atoi(argv[2]), argv[3], atoi(argv[4]));
+	GList *init_list = NULL;
+	if(argc==4) {
+		printf("[main]Init read file\n");
+		init_list = init_read_file(argv[3]);
+	}
+	
+	servent_start(argv[1], atoi(argv[2]), init_list);
 
 	printf("Exiting\n");
 	

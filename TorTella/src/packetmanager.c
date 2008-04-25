@@ -354,6 +354,7 @@ u_int4 send_create_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 ch
 }
 
 u_int4 send_post_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char *data) {
+	printf("[send_post_response_packet]Sending with status: %d\n", status);
 	char *buffer;
 	int len;
 	//printf("[send_post_response_packet]Send on socket %d\n", fd);
