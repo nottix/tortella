@@ -392,7 +392,7 @@ void *servent_responde(void *parm) {
 						}
 						
 						pthread_t *cli_thread = (pthread_t*)malloc(sizeof(pthread_t));
-						pthread_create(cli_thread, NULL, servent_connect, (void*)id);
+						pthread_create(cli_thread, NULL, servent_connect, (void*)id); //FIXME: da aggiungere post_type
 						client_thread = g_slist_prepend(client_thread, (gpointer)(*cli_thread));
 						
 						status = HTTP_STATUS_OK;
