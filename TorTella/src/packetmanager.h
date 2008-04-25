@@ -31,7 +31,7 @@ u_int4 send_join_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 stat
 
 u_int4 send_leave_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id);
 
-u_int4 send_ping_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 status);
+u_int4 send_ping_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, char *nick, u_int4 port, u_int1 status);
 
 u_int4 send_pong_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 status);
 

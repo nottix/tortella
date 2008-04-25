@@ -77,11 +77,11 @@ u_int4 servent_start_client(char *dest_ip, u_int4 dest_port) {
 	pthread_mutex_init(&servent->mutex_data, NULL);
 	pthread_cond_init(&servent->cond, NULL);
 		
-	servent->post_type=JOIN_ID;
+	servent->post_type=PING_ID;
 	g_hash_table_insert(servent_hashtable, (gpointer)to_string(cliid), (gpointer)servent);
 	pthread_create(clithread, NULL, servent_connect, (void*)cliid);
 	client_thread = g_slist_prepend(client_thread, (gpointer)(*clithread));
-	int ch = 'j';
+	int ch = 'p';
 	//sleep(1);
 	do {
 		if(ch=='j')
@@ -377,9 +377,8 @@ void *servent_responde(void *parm) {
 						conn_servent->status = GET_JOIN(h_packet->data)->status;
 						conn_servent->nick = h_packet->data->data;
 						conn_servent->id = h_packet->data->header->sender_id;
-						//if(local_servent->is_supernode) {
-							add_user(chat_id, conn_servent->id, conn_servent->nick, conn_servent->ip, conn_servent->port, chat_hashtable, &chatclient_hashtable);
-						//}
+						
+						add_user_to_chat(chat_id, conn_servent->id, conn_servent->nick, conn_servent->ip, conn_servent->port, chat_hashtable, &chatclient_hashtable);
 						
 						//Si inizializzano il mutex e il cond
 						pthread_mutex_init(&conn_servent->mutex, NULL);
@@ -391,6 +390,11 @@ void *servent_responde(void *parm) {
 							g_hash_table_insert(servent_hashtable, (gpointer)to_string(id), (gpointer)conn_servent);
 						}
 						
+						conn_servent->post_type = PING_ID;
+						LOCK(local_servent->id);
+						conn_servent->status = local_servent->status;
+						UNLOCK(local_servent->id);
+						
 						pthread_t *cli_thread = (pthread_t*)malloc(sizeof(pthread_t));
 						pthread_create(cli_thread, NULL, servent_connect, (void*)id); //FIXME: da aggiungere post_type
 						client_thread = g_slist_prepend(client_thread, (gpointer)(*cli_thread));
@@ -399,11 +403,50 @@ void *servent_responde(void *parm) {
 					}
 					else if(h_packet->data->header->desc_id==PING_ID) {
 						printf("[servent_responde]PING ricevuto\n");
-						servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
-						LOCK(h_packet->data->header->sender_id);
-						conn_servent->status = GET_PING(h_packet->data)->status;
-						conn_servent->timestamp = h_packet->data->header->timestamp;
-						UNLOCK(h_packet->data->header->sender_id);
+						
+						servent_data *conn_servent;
+						u_int8 id = h_packet->data->header->sender_id;
+						if((conn_servent=g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id)))!=NULL) {
+							LOCK(id);
+							conn_servent->status = GET_PING(h_packet->data)->status;
+							conn_servent->timestamp = h_packet->data->header->timestamp;
+							conn_servent->nick = h_packet->data->data;
+							UNLOCK(id);
+						}
+						else {
+							conn_servent = (servent_data*)malloc(sizeof(servent_data));
+							conn_servent->ip = get_dest_ip(fd);
+							conn_servent->port = GET_PING(h_packet->data)->port;
+							conn_servent->timestamp = h_packet->data->header->timestamp;
+							
+							conn_servent->status = GET_PING(h_packet->data)->status;
+							conn_servent->timestamp = h_packet->data->header->timestamp;
+							conn_servent->nick = h_packet->data->data;
+							conn_servent->id = h_packet->data->header->sender_id;
+							
+							add_user(conn_servent->id, conn_servent->nick, conn_servent->ip, conn_servent->port, &chatclient_hashtable);
+							
+							//Si inizializzano il mutex e il cond
+							pthread_mutex_init(&conn_servent->mutex, NULL);
+							pthread_mutex_init(&conn_servent->mutex_data, NULL);
+							pthread_cond_init(&conn_servent->cond, NULL);
+							
+							if(g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id))==NULL) {
+								printf("[servent_responde]connection added to hashtable\n");
+								g_hash_table_insert(servent_hashtable, (gpointer)to_string(id), (gpointer)conn_servent);
+							}
+							
+							conn_servent->post_type = PING_ID;
+							LOCK(local_servent->id);
+							conn_servent->status = local_servent->status;
+							UNLOCK(local_servent->id);
+							
+							pthread_t *cli_thread = (pthread_t*)malloc(sizeof(pthread_t));
+							pthread_create(cli_thread, NULL, servent_connect, (void*)id);
+							client_thread = g_slist_prepend(client_thread, (gpointer)(*cli_thread));
+							
+							pthread_cond_signal(&conn_servent->cond); //FIXIT: probabile race condition
+						}
 						
 						status = HTTP_STATUS_OK;
 					}
@@ -657,13 +700,13 @@ void *servent_connect(void *parm) {
 				send_join_packet(fd, local_servent->id, id_dest, status, chat_id_req, nick); //TODO: Dubbio su chat_id_req Local o peer???
 			}
 			else if(post_type==PING_ID) {
-				send_ping_packet(fd, local_servent->id, id_dest, status);
+				send_ping_packet(fd, local_servent->id, id_dest, nick, local_servent->port, status);
 			}
 			else if(post_type==PONG_ID) {
 				send_pong_packet(fd, local_servent->id, id_dest, status);
 			}
 			else if(post_type==LEAVE_ID) {
-				send_ping_packet(fd, local_servent->id, id_dest, chat_id_req);
+				send_leave_packet(fd, local_servent->id, id_dest, chat_id_req);
 			}
 			else if(post_type==MESSAGE_ID) {
 				send_message_packet(fd, local_servent->id, id_dest, chat_id_req, msg_len, msg);
