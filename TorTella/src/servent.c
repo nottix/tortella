@@ -57,6 +57,7 @@ u_int4 servent_start_client(char *dest_ip, u_int4 dest_port) {
 	
 	servent_data *servent = (servent_data*)malloc(sizeof(servent_data));
 	servent->id = cliid;
+	printf("[servent_start_client]cliid: %lld\n", cliid);
 	servent->ip = dest_ip;
 	servent->port = dest_port;
 	//servent->chat_id_req = 111;
@@ -80,7 +81,7 @@ u_int4 servent_start_client(char *dest_ip, u_int4 dest_port) {
 	servent->post_type=PING_ID;
 
 	g_hash_table_insert(servent_hashtable, (gpointer)to_string(cliid), (gpointer)servent);
-	pthread_create(clithread, NULL, servent_connect, (void*)cliid);
+	pthread_create(clithread, NULL, servent_connect, (void*)&cliid);
 	client_thread = g_slist_prepend(client_thread, (gpointer)(*clithread));
 
 	pthread_cond_signal(&servent->cond);
@@ -153,8 +154,18 @@ u_int4 servent_start(char *local_ip, u_int4 local_port, GList *init_servent) {
 		u_int8 cliid;
 
 	  GList *clients = g_hash_table_get_values(servent_hashtable);
-		servent_data *servent = (servent_data*)g_list_nth(clients, 0);
-
+	  GList *keys = g_hash_table_get_keys(servent_hashtable);
+	  getchar();
+	  printf("[servent_start]Sblocked\n");
+		
+	  servent_data *servent;
+	  int j;
+	  for(j=0; j<g_list_length(clients); j++) {
+		  servent = (servent_data*)g_list_nth_data(clients, j);
+		  if(servent->id!=local_servent->id)
+			  break;
+	  }
+	  
 		servent->chat_id_req = 111;
 		
 		servent->msg_len = 5;
@@ -184,6 +195,27 @@ u_int4 servent_start(char *local_ip, u_int4 local_port, GList *init_servent) {
 				servent->post_type=CREATE_ID;
 			else if(ch=='r')
 				servent->post_type=SEARCH_ID;
+			else if(ch=='l') {
+				int i;
+				clients = g_hash_table_get_values(servent_hashtable);
+				keys = g_hash_table_get_keys(servent_hashtable);
+				for(i=0; i<g_list_length(clients); i++) {
+					servent_data *ser = (servent_data*)g_list_nth_data(clients, i);
+					printf("[servent_start]local_servent->id: %lld\n", local_servent->id);
+					if(ser->id!=local_servent->id) {
+						printf("[servent_start]client[%s]: %lld, ip: %s:%d\n", (char*)g_list_nth_data(keys, i), ser->id, ser->ip, ser->port);
+						servent = ser;
+						servent->chat_id_req = 111;
+		
+						servent->msg_len = 5;
+						servent->msg = "Hello";
+		
+						servent->title_len =4;
+						servent->title = "test";
+					}
+				}
+				continue;
+			}
 
 			printf("[servent_start]signal\n");
 			pthread_cond_signal(&servent->cond);
@@ -250,7 +282,11 @@ void kill_all_thread(int sig) {
 
 void servent_init(char *ip, u_int4 port, u_int1 status) {
 	
-	servent_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
+	//Inizializza la lista delle chat conosciute leggendo da un file predefinito
+	servent_init_supernode();
+	printf("[servent_init]Supernode initialized\n");
+	
+	servent_hashtable = g_hash_table_new_full(g_str_hash, g_str_equal, free, NULL);
 	route_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
 	
 	local_servent = (servent_data*)malloc(sizeof(servent_data));
@@ -267,6 +303,8 @@ void servent_init(char *ip, u_int4 port, u_int1 status) {
 	
 	g_hash_table_insert(servent_hashtable, (gpointer)to_string(id), (gpointer)local_servent);
 	
+	printf("[servent_init]ID added: %lld\n", ((servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id)))->id);
+	
 	server_fd = NULL;
 	client_fd = NULL;
 	server_connection_fd = NULL;
@@ -276,15 +314,11 @@ void servent_init(char *ip, u_int4 port, u_int1 status) {
 	server_connection_thread = NULL;
 	
 	timer_thread = NULL;
-	
-	//Inizializza la lista delle chat conosciute leggendo da un file predefinito
-	servent_init_supernode();
-	printf("[servent_init]Supernode initialized\n");
 }
 
 void servent_init_supernode() {
-	//read_all(&chat_hashtable, &chatclient_hashtable);
-	read_from_file("data/111", &chat_hashtable, &chatclient_hashtable);
+	read_all(&chat_hashtable, &chatclient_hashtable);
+	//read_from_file("data/111", &chat_hashtable, &chatclient_hashtable);
 }
 
 void servent_close_supernode() {
@@ -377,7 +411,7 @@ void *servent_responde(void *parm) {
 						
 						//TODO: Aggiungere l'ID alla lista degli utenti della chat
 						u_int8 chat_id = GET_JOIN(h_packet->data)->chat_id;
-						conn_servent->chat_list = g_list_prepend(conn_servent->chat_list, (gpointer)chat_id);
+						conn_servent->chat_list = g_list_prepend(conn_servent->chat_list, (gpointer)&chat_id);
 						conn_servent->status = GET_JOIN(h_packet->data)->status;
 						conn_servent->nick = h_packet->data->data;
 						conn_servent->id = h_packet->data->header->sender_id;
@@ -400,13 +434,13 @@ void *servent_responde(void *parm) {
 						UNLOCK(local_servent->id);
 						
 						pthread_t *cli_thread = (pthread_t*)malloc(sizeof(pthread_t));
-						pthread_create(cli_thread, NULL, servent_connect, (void*)id); //FIXME: da aggiungere post_type
+						pthread_create(cli_thread, NULL, servent_connect, (void*)&id); //FIXME: da aggiungere post_type
 						client_thread = g_slist_prepend(client_thread, (gpointer)(*cli_thread));
 						
 						status = HTTP_STATUS_OK;
 					}
 					else if(h_packet->data->header->desc_id==PING_ID) {
-						printf("[servent_responde]PING ricevuto\n");
+						printf("[servent_responde]PING ricevuto da %lld a %lld\n", h_packet->data->header->sender_id, h_packet->data->header->recv_id);
 						
 						servent_data *conn_servent;
 						u_int8 id = h_packet->data->header->sender_id;
@@ -434,7 +468,7 @@ void *servent_responde(void *parm) {
 								status = HTTP_STATUS_OK;
 							}
 							
-							conn_servent = (servent_data*)malloc(sizeof(servent_data));
+							conn_servent = (servent_data*)calloc(1, sizeof(servent_data));
 							conn_servent->ip = get_dest_ip(fd);
 							conn_servent->port = GET_PING(h_packet->data)->port;
 							conn_servent->timestamp = h_packet->data->header->timestamp;
@@ -451,8 +485,9 @@ void *servent_responde(void *parm) {
 							pthread_mutex_init(&conn_servent->mutex_data, NULL);
 							pthread_cond_init(&conn_servent->cond, NULL);
 							
+							printf("[servent_responde]Lookup ID: %s\n", to_string(id));
 							if(g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id))==NULL) {
-								printf("[servent_responde]connection added to hashtable\n");
+								printf("[servent_responde]connection %s added to hashtable\n", to_string(id));
 								g_hash_table_insert(servent_hashtable, (gpointer)to_string(id), (gpointer)conn_servent);
 							}
 							
@@ -462,7 +497,7 @@ void *servent_responde(void *parm) {
 							UNLOCK(local_servent->id);
 							
 							pthread_t *cli_thread = (pthread_t*)malloc(sizeof(pthread_t));
-							pthread_create(cli_thread, NULL, servent_connect, (void*)id);
+							pthread_create(cli_thread, NULL, servent_connect, (void*)&id);
 							client_thread = g_slist_prepend(client_thread, (gpointer)(*cli_thread));
 							//sleep(1);
 							printf("[servent_responde]Invio a %lld\n", conn_servent->id);
@@ -489,7 +524,7 @@ void *servent_responde(void *parm) {
 						
 						servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
 						LOCK(h_packet->data->header->sender_id);
-						conn_servent->chat_list = g_list_remove(conn_servent->chat_list, (gconstpointer)chat_id);
+						conn_servent->chat_list = g_list_remove(conn_servent->chat_list, (gconstpointer)&chat_id);
 						conn_servent->timestamp = h_packet->data->header->timestamp;
 						UNLOCK(h_packet->data->header->sender_id);
 						
@@ -663,7 +698,7 @@ void *servent_connect(void *parm) {
 	char *buffer = (char*)malloc(2000);
 	http_packet *h_packet;
 	
-	u_int8 id_dest = (u_int8)parm;
+	u_int8 id_dest = *((u_int8*)(parm));
 	//Si prendono l'ip e la porta dalla lista degli id
 	servent_data *servent_peer = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id_dest));
 	char *ip_dest = servent_peer->ip;
@@ -771,15 +806,16 @@ void *servent_connect(void *parm) {
 							printf("[servent_connect]Responding to PING\n");
 							//servent_data *data = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id_dest));
 							if(servent_peer!=NULL) {
-								printf("[servent_connect]Removing old\n");
+								printf("[servent_connect]Removing old %s\n", to_string(id_dest));
 								g_hash_table_remove(servent_hashtable, (gconstpointer)to_string(id_dest));
-								printf("[servent_connect]Removed old\n");
+								printf("[servent_connect]Removed old ID: %lld\n", servent_peer->id);
 								printf("[servent_connect]Converting %s, len: %d\n", h_packet->data_string, h_packet->data_len);
 								char *buf = malloc(h_packet->data_len+1);
 								sprintf(buf, "%s", strndup(h_packet->data_string, h_packet->data_len));
 								printf("[servent_connect]buf: %s.\n", buf);
 								id_dest = strtoull(buf, NULL, 10);
 								printf("[servent_connect]New ID: %lld.\n", id_dest);
+								servent_peer->id = id_dest;
 								g_hash_table_insert(servent_hashtable, (gpointer)to_string(id_dest), (gpointer)servent_peer);
 							}
 							else

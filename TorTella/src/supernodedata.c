@@ -186,6 +186,7 @@ u_int4 add_chat(u_int8 id, const char *title, GHashTable **chat_table) {
 	chat *chat_str = (chat*)malloc(sizeof(chat));
 	chat_str->id = id;
 	chat_str->title = (char*)title;
+	chat_str->users = g_hash_table_new(g_str_hash, g_str_equal);
 	pthread_mutex_init(&chat_str->mutex, NULL);
 	
 	printf("[add_chat]table created\n");
@@ -233,16 +234,24 @@ u_int4 add_user_to_chat(u_int8 chat_id, u_int8 id, const char *nick, const char 
 	}
 	printf("[add_user_to_chat] ID: %lld\n", chatclient_str->id);
 	printf("[add_user_to_chat]Chat presente\n");
-	pthread_mutex_lock(&chat_str->mutex);
+	//pthread_mutex_lock(&chat_str->mutex);
 	printf("[add_user_to_chat]Locked\n");
 	printf("[add_user_to_chat] ID: %lld\n", chatclient_str->id);
-	if(chat_str->users==NULL)
+	/*if(chat_str->users==NULL) {
+		printf("[add_user_to_chat]Creating hashtable\n");
 		chat_str->users = g_hash_table_new(g_str_hash, g_str_equal);
+	}*/
 	printf("[add_user_to_chat] ID: %lld\n", chatclient_str->id);
+	/*if(chat_str->users==NULL) {
+		printf("[add_user_to_chat]chat NULL\n");
+	}*/
 	printf("[add_user_to_chat]Created table %s, %lld.\n", to_string(id), chatclient_str->id);
-	g_hash_table_insert(chat_str->users, (gpointer)to_string(id), (gpointer)chatclient_str);
+	if(g_hash_table_lookup(chat_str->users, (gpointer)to_string(id))==NULL) {
+		printf("[add_user_to_chat]non è presente\n");
+		g_hash_table_insert(chat_str->users, (gpointer)to_string(id), (gpointer)chatclient_str);
+	}
 	printf("[add_user_to_chat]Inserted\n");
-	pthread_mutex_unlock(&chat_str->mutex);
+	//pthread_mutex_unlock(&chat_str->mutex);
 	
 	printf("[add_user_to_chat]End\n");
 	
