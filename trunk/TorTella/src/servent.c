@@ -84,7 +84,11 @@ u_int4 servent_start_client(char *dest_ip, u_int4 dest_port) {
 	pthread_create(clithread, NULL, servent_connect, (void*)&cliid);
 	client_thread = g_slist_prepend(client_thread, (gpointer)(*clithread));
 
-	pthread_cond_signal(&servent->cond);
+	//printf("[servent_start_client]Wait for signal\n");
+	//pthread_cond_wait(&servent->cond, &servent->mutex);
+	//printf("[servent_start_client]received signal\n");
+	
+	//pthread_cond_signal(&servent->cond);
 	//int ch = 'p';
 	//sleep(1);
 	/*do {
@@ -173,6 +177,9 @@ u_int4 servent_start(char *local_ip, u_int4 local_port, GList *init_servent) {
 		
 		servent->title_len =4;
 		servent->title = "test";
+	  
+	  servent->ttl=3;
+	  servent->hops=0;
 
 		int ch = 'b';
 		sleep(1);
@@ -502,10 +509,7 @@ void *servent_responde(void *parm) {
 							//sleep(1);
 							printf("[servent_responde]Invio a %lld\n", conn_servent->id);
 							
-							pthread_cond_signal(&conn_servent->cond); //FIXIT: probabile race condition
-						
-							
-							
+							//pthread_cond_signal(&conn_servent->cond); //FIXIT: probabile race condition
 						}
 					}
 					else if(h_packet->data->header->desc_id==PONG_ID) {
@@ -589,8 +593,8 @@ void *servent_responde(void *parm) {
 									LOCK(conn_servent->id);
 									conn_servent->ttl = GET_SEARCH(h_packet->data)->ttl-1;
 									conn_servent->hops = GET_SEARCH(h_packet->data)->hops+1;
-									conn_servent->title = h_packet->data_string;
-									conn_servent->title_len = h_packet->data_len;
+									conn_servent->title = tortella_get_data(h_packet->data_string);
+									conn_servent->title_len = h_packet->data->header->data_len;
 									conn_servent->packet_id = h_packet->data->header->id;
 									conn_servent->post_type = SEARCH_ID;
 									
@@ -607,14 +611,14 @@ void *servent_responde(void *parm) {
 					else if(h_packet->data->header->desc_id==SEARCHHITS_ID) {
 						printf("[servent_responde]SEARCHHITS ricevuto\n");
 						
-						GList *chat_list = char_to_chatlist(h_packet->data_string, h_packet->data_len);
+						GList *chat_list = char_to_chatlist(tortella_get_data(h_packet->data_string), h_packet->data->header->data_len);
 						int i;
 						chat *chat_elem;
 						for(i=0; i<g_list_length(chat_list); i++) {
 							chat_elem = (chat*)g_list_nth(chat_list, i);
 							add_chat(chat_elem->id, chat_elem->title, &chat_hashtable);
+							printf("[servent_responde]Chat added to list\n");
 						}
-						printf("[servent_responde]Chat added to list\n");
 						
 						route_entry *entry = get_route_entry(h_packet->data->header->id, route_hashtable);
 						if(entry!=NULL) {
@@ -725,12 +729,10 @@ void *servent_connect(void *parm) {
 	u_int1 status;
 	char *nick;
 	
+
 	//Ora si entra nel ciclio infinito che serve per inviare tutte le richieste
 	while(1) {
-		printf("[servent_connect]Waiting\n");
-		pthread_cond_wait(cond, mutex); //In attesa di un segnale che indichi la necessita di comunicare con il peer
-		printf("[servent_connect]Signal received in id_dest %lld\n", id_dest);
-		
+				
 		LOCK(id_dest);
 		post_type = servent_peer->post_type;
 		chat_id_req = servent_peer->chat_id_req;
@@ -742,7 +744,7 @@ void *servent_connect(void *parm) {
 		hops = servent_peer->hops;
 		packet_id = servent_peer->packet_id;
 		printf("[servent_connect]Sending to id_dest %lld the packet type %d\n", servent_peer->id, servent_peer->post_type);
-		UNLOCK(id_dest);
+//		UNLOCK(id_dest);
 		
 		LOCK(local_servent->id);
 		status = local_servent->status;
@@ -780,14 +782,15 @@ void *servent_connect(void *parm) {
 				servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id_dest));
 				
 				LOCK(local_servent->id);
-				LOCK(id_dest);
+				//LOCK(id_dest);
 				
 				printf("[servent_connect]Converting chatlist\n");
-				char *buf = chatlist_to_char(conn_servent->chat_res, &len);
+				int length;
+				char *buf = chatlist_to_char(conn_servent->chat_res, &length);
 				printf("[servent_connect]converted in buffer: %s\n", buf);
-				send_searchhits_packet(fd, packet_id, local_servent->id, id_dest, g_list_length(conn_servent->chat_res), len, buf);
+				send_searchhits_packet(fd, packet_id, local_servent->id, id_dest, g_list_length(conn_servent->chat_res), length, buf);
 				
-				UNLOCK(id_dest);
+				//UNLOCK(id_dest);
 				UNLOCK(local_servent->id);
 				
 			}
@@ -828,6 +831,11 @@ void *servent_connect(void *parm) {
 				}
 			}
 		}
+		UNLOCK(id_dest);
+		
+		printf("[servent_connect]Waiting\n");
+		pthread_cond_wait(cond, mutex); //In attesa di un segnale che indichi la necessita di comunicare con il peer
+		printf("[servent_connect]Signal received in id_dest %lld\n", id_dest);
 	}
 	pthread_exit(NULL);
 }
@@ -859,60 +867,4 @@ void *servent_timer(void *parm) {
 		printf("[servent_timer]Sleeping\n");
 		sleep(timer_interval);
 	}
-}
-
-/*
- * Aggiunge una regola di routing alla tabella di routing. Se la regola è già presente
- * incrementa il contatore associato alla regola.
- */
-int add_route_entry(u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, GHashTable *route_table) {
-	if(route_table==NULL)
-		return -1;
-	
-	/*char *key = to_string(recv_id);
-	route_entry *entry = (route_entry*)g_hash_table_lookup(route_table, (gconstpointer)key);
-	if(entry!=NULL) {
-		entry->counter++;
-		entry->sender_id = sender_id;
-		g_hash_table_replace(route_table, (gpointer)key, (gpointer)entry);
-	}*/
-
-	char *key = to_string(packet_id);
-	route_entry *entry = (route_entry*)calloc(sizeof(route_entry), 1);
-	entry->sender_id = sender_id;
-	entry->recv_id = recv_id;
-	g_hash_table_insert(route_table, (gpointer)key, (gpointer)entry);
-	
-	return 1;
-}
-
-int del_route_entry(u_int8 id, GHashTable *route_table) {
-	if(route_table==NULL)
-		return -1;
-	
-	char *key = to_string(id);
-	g_hash_table_remove(route_table, (gconstpointer)key);
-	/*route_entry *entry = (route_entry*)g_hash_table_lookup(route_table, (gconstpointer)key);
-	if(entry!=NULL) {
-		entry->counter--;
-		if(entry->counter==0)
-			
-		g_hash_table_replace(route_table, (gpointer)key, (gpointer)entry);
-	}*/
-	
-	return 1;
-}
-
-route_entry *get_route_entry(u_int8 packet_id, GHashTable *route_table) {
-	if(route_table==NULL)
-		return NULL;
-	
-	char *key = to_string(packet_id);
-	route_entry *entry = (route_entry*)g_hash_table_lookup(route_table, (gconstpointer)key);
-	return entry;
-}
-
-u_int8 get_iddest_route_entry(u_int8 id, GHashTable *route_table) {
-	
-	return ((route_entry*)get_route_entry(id, route_table))->sender_id;
 }

@@ -45,7 +45,12 @@ int main(void) {
 	int len;
 	
 	char *buffer = chatlist_to_char(g_hash_table_get_values(chat_hashtable), &len);
+	
+	GList *res = char_to_chatlist(buffer, len);
 	printf("chat: %s\n", dump_data(buffer, len));
+	
+	//printf("res: %s\n", ((chat*)g_list_nth_data(res, 0))->title);
+	printf("size: %d\n", g_list_length(res));
 	
 	return 0;
 }

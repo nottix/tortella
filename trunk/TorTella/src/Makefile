@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -g -Wall
-OBJECTS = tortellaprotocol.o httpmanager.o socketmanager.o packetmanager.o servent.o supernodedata.o logger.o utils.o init.o
+OBJECTS = tortellaprotocol.o httpmanager.o socketmanager.o packetmanager.o servent.o supernodedata.o logger.o utils.o init.o routemanager.o
 INCFLAGS = -I./ `pkg-config --cflags glib-2.0`
 LDFLAGS = -Wl,-rpath,/usr/local/lib
 LIBS = -lpthread `pkg-config --libs glib-2.0`
@@ -83,9 +83,12 @@ init.o: init.h init.c
 	@echo -e "\nBuilding init"
 	$(CC) $(CFLAGS) $(INCFLAGS) -o init.o -c init.c 
 
+routemanager.o: routemanager.h routemanager.c
+	@echo -e "\nBuilding routemanager"
+	$(CC) $(CFLAGS) $(INCFLAGS) -o routemanager.o -c routemanager.c
 
 count:
-	wc -l *.c *.h */*.c */*.h
+	wc -l *.c *.h */*.c
 
 clean:
 	rm -f *.o testing/*.o

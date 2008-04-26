@@ -359,6 +359,10 @@ chatclient *search_chatclient(const char *nick, GHashTable *chatclient_table) {
  * 33;simon;127.0.0.1;2110;
  */
 char *chatlist_to_char(GList *chat_list, int *len) {
+	if(chat_list==NULL) {
+		printf("[chatlist_to_char]chat_list NULL\n");
+		return NULL;
+	}
 	chat *chat_elem;
 	chatclient *chatclient_elem;
 	int cur_size = 512;
@@ -367,7 +371,7 @@ char *chatlist_to_char(GList *chat_list, int *len) {
 	char *line = (char*)calloc(1, 512);
 	int i, j;
 	GList *chatclient_list;
-	
+	printf("[chatlist_to_char]Init\n");
 	for(i=0; i<g_list_length(chat_list); i++) {
 		chat_elem = (chat*)g_list_nth_data(chat_list, i);
 		printf("[chatlist_to_char]chat: %lld, %s.\n", chat_elem->id, chat_elem->title);
@@ -405,7 +409,7 @@ char *chatlist_to_char(GList *chat_list, int *len) {
  * Converte una stringa in una lista di chat con i relativi utenti
  */
 GList *char_to_chatlist(const char *buffer,int len) {
-	//printf("[char_to_chatlist]buffer: %s\n", buffer);
+	printf("[char_to_chatlist]buffer: %s\n", buffer);
 	
 	char *saveptr;
 	GList *chat_list=NULL;
