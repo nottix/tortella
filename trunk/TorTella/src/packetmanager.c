@@ -154,6 +154,8 @@ u_int4 send_ping_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, char *nick,
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
 	
+	printf("[send_ping_packet]Send PING from %lld to %lld\n", sender_id, recv_id);
+	
 	header->id = generate_id();
 	header->desc_id = PING_ID;
 	header->sender_id = sender_id;

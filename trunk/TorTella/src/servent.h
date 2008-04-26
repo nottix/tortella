@@ -69,7 +69,7 @@ struct servent_data {
 };
 typedef struct servent_data servent_data;
 
-GHashTable *servent_hashtable;
+static GHashTable *servent_hashtable;
 
 static servent_data *local_servent;
 
@@ -80,12 +80,12 @@ struct route_entry {
 };
 typedef struct route_entry route_entry;
 
-GHashTable *route_hashtable;
+static GHashTable *route_hashtable;
 
 static u_int1 last_request_type = 0;
 static u_int4 server_connection_num = 0;
 
-static u_int8 new_connection_counter = 0;
+static u_int8 new_connection_counter = 10000;
 
 //static list *connection_list;
 
@@ -97,15 +97,15 @@ static list *client_thread;
 static list *server_thread;
 static list *server_connection_thread;*/
 
-pthread_t *timer_thread;
+static pthread_t *timer_thread;
 
-GSList *client_fd;
-GSList *server_fd;
-GSList *server_connection_fd;
+static GSList *client_fd;
+static GSList *server_fd;
+static GSList *server_connection_fd;
 
-GSList *client_thread;
-GSList *server_thread;
-GSList *server_connection_thread;
+static GSList *client_thread;
+static GSList *server_thread;
+static GSList *server_connection_thread;
 
 #define LOCK(servent)			pthread_mutex_lock( &((servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(servent)))->mutex_data )
 #define UNLOCK(servent)			pthread_mutex_unlock( &((servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(servent)))->mutex_data )
