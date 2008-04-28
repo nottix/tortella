@@ -626,6 +626,7 @@ void *servent_responde(void *parm) {
 							
 							servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(entry->sender_id));
 							conn_servent->packet_id = h_packet->data->header->id;
+							printf("[servent_responde]list size: %d, users: %d\n", g_list_length(chat_list), g_hash_table_size(((chat*)g_list_nth_data(chat_list, 0))->users));
 							conn_servent->chat_res = chat_list;
 							conn_servent->post_type = SEARCHHITS_ID;
 							
@@ -635,6 +636,8 @@ void *servent_responde(void *parm) {
 							del_route_entry(h_packet->data->header->id, route_hashtable);
 							printf("[servent_responde]Route entry %lld deleted\n", h_packet->data->header->id);
 						}
+						
+						status = HTTP_STATUS_OK;
 						
 					}
 					else if(h_packet->data->header->desc_id==CREATE_ID) {

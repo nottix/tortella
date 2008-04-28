@@ -47,10 +47,17 @@ int main(void) {
 	char *buffer = chatlist_to_char(g_hash_table_get_values(chat_hashtable), &len);
 	
 	GList *res = char_to_chatlist(buffer, len);
-	printf("chat: %s\n", dump_data(buffer, len));
+	printf("chat: \n%s", dump_data(buffer, len));
 	
-	//printf("res: %s\n", ((chat*)g_list_nth_data(res, 0))->title);
-	printf("size: %d\n", g_list_length(res));
+	printf("res: %s\n", ((chat*)g_list_nth_data(res, 0))->title);
+	printf("size: %d\n", g_hash_table_size(((chat*)g_list_nth_data(res, 0))->users));
+	
+	GList *clients = g_hash_table_get_values(((chat*)g_list_nth_data(res, 0))->users);
+	
+	int i;
+	for(i=0; i<g_list_length(clients); i++) {
+		printf("port: %d\n", ((chatclient*)g_list_nth_data(clients, i))->port);
+	}
 	
 	return 0;
 }
