@@ -414,25 +414,82 @@ char *chatlist_to_char(GList *chat_list, int *len) {
 
 /*
  * Converte una stringa in una lista di chat con i relativi utenti
+ * 111;test;
+ * 22;simone;127.0.0.1;2110;
+ * 33;simon;127.0.0.1;2110;
  */
 GList *char_to_chatlist(const char *buffer,int len) {
-	printf("[char_to_chatlist]buffer: %s\n", buffer);
+	/*printf("[char_to_chatlist]buffer: %s\n", buffer);
 	
 	char *saveptr, *saveptr2;
 	GList *chat_list=NULL;
 	chat *chat_elem=NULL;
 	
-	char *tmp=calloc(1,len);
+	char *tmp=calloc(len,1);
 	
 	char *token, *token2;
 	int i=0;
 	int r=0;	
 	int line=0;
-        int count = 0;
+    int count = 0;
 	
-	token=strtok_r(tmp,"\n\n",&saveptr);
+	for(i=0;i<len;i++){
 	
-	do {
+		if()
+		
+		else if(tmp[i]=='\n'){
+			count++;
+			chat_elem->id==atoll(tmp,";",&saveptr);
+			chat_elem->title=strdup(NULL,";",&saveptr);
+		}
+		
+		tmp[i]=buffer[i];
+	}*/
+	
+	
+
+ char *saveptr, *saveptr2;
+ char *token, *token2;
+ char *tmp = calloc(1,len);
+ int i=0;
+ int line=-1;
+ int count = 0;
+ //char * tmp=buffer;
+  
+
+ GList *chat_list=NULL;	
+ 
+	
+ while(token = strtok_r(buffer,"|",&saveptr)!=NULL)
+ {
+
+   for(i=0;i<strlen(token);i++)
+   {
+     if(token[i]=='\n')
+       line++;
+   } 
+   chat *chat_elem=(char *)calloc(1,sizeof(chat)); 		 
+   chat_elem->id= atoll(strtok_r(token,';',&saveptr2));
+   chat_elem->title=strdup(strtok_r(NULL;';',&saveptr2)); 
+   chat_elem->users=g_hash_table_new(g_str_hash, g_str_equal);
+   for(i=0;i<line;i++)
+   {
+	 chatclient *chat_client=(chatclient *)calloc(1,sizeof(chatclient));	
+	 chat_client->id=atoll(strtok_r(NULL,';'&saveptr2));
+     chat_client->nick=strdup(strtok_r(NULL,';'&saveptr2));
+     chat_client->ip=strdup(strtok_r(NULL,';'&saveptr2));
+     chat_client->port= strdup(strtok_r(NULL,';'&saveptr2));
+     g_hash	_table_insert(users,(gpointer)to_string(chat_client->id),(gpointer)chat_client);
+	   
+   }
+   chat_list=g_list_append(chat_list,(gpointer)chat_elem);	 
+   buffer = NULL;
+   line = 0;
+ }
+ 
+ 
+
+	/*do {
 		
 		chat_elem=(chat *)calloc(1, sizeof(chat));
 		chat_elem->users= g_hash_table_new(g_str_hash, g_str_equal);
@@ -445,7 +502,7 @@ GList *char_to_chatlist(const char *buffer,int len) {
 		
 		
 		//printf("[buffer[%d]: %c\n", i, buffer[i]);
-	/*	if (buffer[i]=='\0')
+		if (buffer[i]=='\0')
 			return chat_list;
 		if(buffer[i]=='\n' && count==1){
 			chat_list=g_list_append(chat_list, chat_elem);
@@ -489,10 +546,11 @@ GList *char_to_chatlist(const char *buffer,int len) {
 			memset(tmp,0,strlen(tmp));
 		}
 		tmp[r]=buffer[i];
-		r++;*/
+		r++;
 	}while(strtok_r(NULL,"\n\n",&saveptr));
 
 	return chat_list;
+ */
 }
 
 /*
