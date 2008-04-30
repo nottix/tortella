@@ -75,7 +75,7 @@ u_int4 servent_start_client(char *dest_ip, u_int4 dest_port) {
 	//servent->hops = 0;
 	
 	pthread_mutex_init(&servent->mutex, NULL);
-	pthread_mutex_init(&servent->mutex_data, NULL);
+	pthread_rwlock_init(&servent->rwlock_data, NULL);
 	pthread_cond_init(&servent->cond, NULL);
 
 	servent->post_type=PING_ID;
@@ -154,8 +154,8 @@ u_int4 servent_start(char *local_ip, u_int4 local_port, GList *init_servent) {
 	//if(getchar()=='s') {
 		//Avvia il client
 		
-		pthread_t *clithread = (pthread_t*)malloc(sizeof(pthread_t));
-		u_int8 cliid;
+	//	pthread_t *clithread = (pthread_t*)malloc(sizeof(pthread_t));
+		//u_int8 cliid;
 
 	  GList *clients = g_hash_table_get_values(servent_hashtable);
 	  GList *keys = g_hash_table_get_keys(servent_hashtable);
@@ -305,7 +305,7 @@ void servent_init(char *ip, u_int4 port, u_int1 status) {
 	local_servent->nick = "simone";
 	
 	pthread_mutex_init(&local_servent->mutex, NULL);
-	pthread_mutex_init(&local_servent->mutex_data, NULL);
+	pthread_rwlock_init(&local_servent->rwlock_data, NULL);
 	pthread_cond_init(&local_servent->cond, NULL);
 	
 	g_hash_table_insert(servent_hashtable, (gpointer)to_string(id), (gpointer)local_servent);
@@ -341,9 +341,9 @@ void servent_close_supernode() {
 void *servent_listen(void *parm) {
 	int connFd;
 	pthread_t *thread;
-	pthread_mutex_t *mutex;
-	pthread_mutex_t *mutex_data;
-	pthread_cond_t *cond;
+	/*pthread_mutex_t *mutex;
+	pthread_mutex_t *rwlock_data;
+	pthread_cond_t *cond;*/
 	
 	while(1) {
 		connFd = listen_http_packet((int)parm);
@@ -427,7 +427,7 @@ void *servent_responde(void *parm) {
 						
 						//Si inizializzano il mutex e il cond
 						pthread_mutex_init(&conn_servent->mutex, NULL);
-						pthread_mutex_init(&conn_servent->mutex_data, NULL);
+						pthread_rwlock_init(&conn_servent->rwlock_data, NULL);
 						pthread_cond_init(&conn_servent->cond, NULL);
 						
 						if(g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id))==NULL) {
@@ -436,7 +436,7 @@ void *servent_responde(void *parm) {
 						}
 						
 						conn_servent->post_type = PING_ID;
-						LOCK(local_servent->id);
+						WLOCK(local_servent->id);
 						conn_servent->status = local_servent->status;
 						UNLOCK(local_servent->id);
 						
@@ -452,7 +452,7 @@ void *servent_responde(void *parm) {
 						servent_data *conn_servent;
 						u_int8 id = h_packet->data->header->sender_id;
 						if((conn_servent=g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id)))!=NULL) {
-							LOCK(id);
+							WLOCK(id);
 							conn_servent->status = GET_PING(h_packet->data)->status;
 							conn_servent->timestamp = h_packet->data->header->timestamp;
 							conn_servent->nick = h_packet->data->data;
@@ -489,7 +489,7 @@ void *servent_responde(void *parm) {
 							
 							//Si inizializzano il mutex e il cond
 							pthread_mutex_init(&conn_servent->mutex, NULL);
-							pthread_mutex_init(&conn_servent->mutex_data, NULL);
+							pthread_rwlock_init(&conn_servent->rwlock_data, NULL);
 							pthread_cond_init(&conn_servent->cond, NULL);
 							
 							printf("[servent_responde]Lookup ID: %s\n", to_string(id));
@@ -499,7 +499,7 @@ void *servent_responde(void *parm) {
 							}
 							
 							conn_servent->post_type = PING_ID;
-							LOCK(local_servent->id);
+							WLOCK(local_servent->id);
 							conn_servent->status = local_servent->status;
 							UNLOCK(local_servent->id);
 							
@@ -515,7 +515,7 @@ void *servent_responde(void *parm) {
 					else if(h_packet->data->header->desc_id==PONG_ID) {
 						printf("[servent_responde]PONG ricevuto\n");
 						servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
-						LOCK(h_packet->data->header->sender_id);
+						WLOCK(h_packet->data->header->sender_id);
 						conn_servent->status = GET_PONG(h_packet->data)->status;
 						conn_servent->timestamp = h_packet->data->header->timestamp;
 						UNLOCK(h_packet->data->header->sender_id);
@@ -527,7 +527,7 @@ void *servent_responde(void *parm) {
 						u_int8 chat_id = GET_LEAVE(h_packet->data)->chat_id;
 						
 						servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
-						LOCK(h_packet->data->header->sender_id);
+						WLOCK(h_packet->data->header->sender_id);
 						conn_servent->chat_list = g_list_remove(conn_servent->chat_list, (gconstpointer)&chat_id);
 						conn_servent->timestamp = h_packet->data->header->timestamp;
 						UNLOCK(h_packet->data->header->sender_id);
@@ -540,7 +540,7 @@ void *servent_responde(void *parm) {
 						
 						servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
 
-						LOCK(h_packet->data->header->sender_id);
+						WLOCK(h_packet->data->header->sender_id);
 						conn_servent->msg = h_packet->data->data;
 						conn_servent->msg_len = h_packet->data->header->data_len;
 						conn_servent->timestamp = h_packet->data->header->timestamp;
@@ -560,8 +560,8 @@ void *servent_responde(void *parm) {
 							continue;
 						}
 						printf("[servent_responde]conn_servent entry found\n");
-						int len;
-						LOCK(conn_servent->id);
+						//int len;
+						WLOCK(conn_servent->id);
 						printf("[servent_respond]Locked\n");
 						
 						if(h_packet->data_len>0) {
@@ -584,13 +584,13 @@ void *servent_responde(void *parm) {
 						
 						if(GET_SEARCH(h_packet->data)->ttl>0) {
 							printf("[servent_responde]TTL > 0\n");
-							int i, j;
+							int i;
 							servent_list = g_hash_table_get_values(servent_hashtable);
 							for(i=0; i<g_list_length(servent_list); i++) {
 							
 								conn_servent = (servent_data*)g_list_nth_data(servent_list, i);
 								if(conn_servent->id!=h_packet->data->header->sender_id) {
-									LOCK(conn_servent->id);
+									WLOCK(conn_servent->id);
 									conn_servent->ttl = GET_SEARCH(h_packet->data)->ttl-1;
 									conn_servent->hops = GET_SEARCH(h_packet->data)->hops+1;
 									conn_servent->title = tortella_get_data(h_packet->data_string);
@@ -606,7 +606,7 @@ void *servent_responde(void *parm) {
 								}
 							}		   
 						}
-						
+						status = HTTP_STATUS_OK;
 					}
 					else if(h_packet->data->header->desc_id==SEARCHHITS_ID) {
 						printf("[servent_responde]SEARCHHITS ricevuto\n");
@@ -615,14 +615,14 @@ void *servent_responde(void *parm) {
 						int i;
 						chat *chat_elem;
 						for(i=0; i<g_list_length(chat_list); i++) {
-							chat_elem = (chat*)g_list_nth(chat_list, i);
+							chat_elem = (chat*)g_list_nth_data(chat_list, i);
 							add_chat(chat_elem->id, chat_elem->title, &chat_hashtable);
-							printf("[servent_responde]Chat added to list\n");
+							printf("[servent_responde]Chat %lld added to list\n", chat_elem->id);
 						}
 						
 						route_entry *entry = get_route_entry(h_packet->data->header->id, route_hashtable);
 						if(entry!=NULL) {
-							LOCK(entry->sender_id);
+							WLOCK(entry->sender_id);
 							
 							servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(entry->sender_id));
 							conn_servent->packet_id = h_packet->data->header->id;
@@ -646,7 +646,7 @@ void *servent_responde(void *parm) {
 						u_int4 title_len = h_packet->data->header->data_len;
 						char *title = h_packet->data->data;
 						
-						LOCK(local_servent->id);
+						WLOCK(local_servent->id);
 						//if(local_servent->is_supernode) {
 							add_chat(chat_id, title, &chat_hashtable);
 							//TODO: eventualmente aggiungere un servent_data ????
@@ -736,7 +736,7 @@ void *servent_connect(void *parm) {
 	//Ora si entra nel ciclio infinito che serve per inviare tutte le richieste
 	while(1) {
 				
-		LOCK(id_dest);
+		WLOCK(id_dest);
 		post_type = servent_peer->post_type;
 		chat_id_req = servent_peer->chat_id_req;
 		msg_len = servent_peer->msg_len;
@@ -749,7 +749,7 @@ void *servent_connect(void *parm) {
 		printf("[servent_connect]Sending to id_dest %lld the packet type %d\n", servent_peer->id, servent_peer->post_type);
 //		UNLOCK(id_dest);
 		
-		LOCK(local_servent->id);
+		RLOCK(local_servent->id);
 		status = local_servent->status;
 		nick = local_servent->nick;
 		UNLOCK(local_servent->id);
@@ -784,7 +784,7 @@ void *servent_connect(void *parm) {
 				
 				servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id_dest));
 				
-				LOCK(local_servent->id);
+				RLOCK(local_servent->id);
 				//LOCK(id_dest);
 				
 				printf("[servent_connect]Converting chatlist\n");
@@ -855,7 +855,7 @@ void *servent_timer(void *parm) {
 		for(i=0; i<g_list_length(list); i++) {
 			data = (servent_data*)g_list_nth_data(list, i);
 			if(data->id!=local_servent->id) {
-				LOCK(data->id);
+				WLOCK(data->id);
 				printf("[servent_timer]Locked\n");
 			
 				data->post_type = PING_ID;

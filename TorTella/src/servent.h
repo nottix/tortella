@@ -47,7 +47,7 @@ struct servent_data {
 	
 	pthread_cond_t cond;
 	pthread_mutex_t mutex;
-	pthread_mutex_t mutex_data;
+	pthread_rwlock_t rwlock_data;
 	
 	char *msg; 			//Messaggio da inviare o ricevuto
 	u_int4 msg_len;		//Lunghezza messaggio
@@ -99,8 +99,9 @@ static GSList *client_thread;
 static GSList *server_thread;
 static GSList *server_connection_thread;
 
-#define LOCK(servent)			pthread_mutex_lock( &((servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(servent)))->mutex_data )
-#define UNLOCK(servent)			pthread_mutex_unlock( &((servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(servent)))->mutex_data )
+#define WLOCK(servent)			pthread_rwlock_wrlock( &((servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(servent)))->rwlock_data)
+#define RLOCK(servent)			pthread_rwlock_rdlock( &((servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(servent)))->rwlock_data)
+#define UNLOCK(servent)			pthread_rwlock_unlock( &((servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(servent)))->rwlock_data)
 
 //Crea un server socket
 u_int4 servent_create_server(char *src_ip, u_int4 src_port);
