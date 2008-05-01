@@ -411,38 +411,22 @@ void *servent_responde(void *parm) {
 					else if(h_packet->data->header->desc_id==JOIN_ID) {
 						printf("[servent_responde]JOIN ricevuto\n");
 						u_int8 id = h_packet->data->header->sender_id;
-						servent_data *conn_servent = (servent_data*)malloc(sizeof(servent_data));
-						conn_servent->ip = get_dest_ip(fd);
-						conn_servent->port = get_dest_port(fd);
+						
+						WLOCK(id);
+						servent_data *conn_servent = g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id));
+
 						conn_servent->timestamp = h_packet->data->header->timestamp;
 						
 						//TODO: Aggiungere l'ID alla lista degli utenti della chat
 						u_int8 chat_id = GET_JOIN(h_packet->data)->chat_id;
-						conn_servent->chat_list = g_list_prepend(conn_servent->chat_list, (gpointer)&chat_id);
-						conn_servent->status = GET_JOIN(h_packet->data)->status;
-						conn_servent->nick = h_packet->data->data;
-						conn_servent->id = h_packet->data->header->sender_id;
-						
-						add_user_to_chat(chat_id, conn_servent->id, conn_servent->nick, conn_servent->ip, conn_servent->port, chat_hashtable, &chatclient_hashtable);
-						
-						//Si inizializzano il mutex e il cond
-						pthread_mutex_init(&conn_servent->mutex, NULL);
-						pthread_rwlock_init(&conn_servent->rwlock_data, NULL);
-						pthread_cond_init(&conn_servent->cond, NULL);
-						
-						if(g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id))==NULL) {
-							printf("[servent_responde]connection added to hashtable\n");
-							g_hash_table_insert(servent_hashtable, (gpointer)to_string(id), (gpointer)conn_servent);
-						}
-						
-						conn_servent->post_type = PING_ID;
-						WLOCK(local_servent->id);
-						conn_servent->status = local_servent->status;
-						UNLOCK(local_servent->id);
-						
-						pthread_t *cli_thread = (pthread_t*)malloc(sizeof(pthread_t));
-						pthread_create(cli_thread, NULL, servent_connect, (void*)&id); //FIXME: da aggiungere post_type
-						client_thread = g_slist_prepend(client_thread, (gpointer)(*cli_thread));
+						chat *chat_elem = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(chat_id));
+						chatclient *chatclient_elem = (chatclient*)g_hash_table_lookup(chatclient_hashtable, to_string(id));
+						g_hash_table_insert(chat_elem->users, (gpointer)to_string(chatclient_elem->id), (gpointer)chatclient_elem);
+
+						//FIXIT
+						//add_user_to_chat(chat_id, conn_servent->id, conn_servent->nick, conn_servent->ip, conn_servent->port, chat_hashtable, &chatclient_hashtable);
+
+						UNLOCK(id);					
 						
 						status = HTTP_STATUS_OK;
 					}
