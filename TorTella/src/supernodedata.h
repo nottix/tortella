@@ -81,6 +81,8 @@ u_int4 del_chat(u_int8 id, GHashTable *chat_table);
 
 u_int4 add_user(u_int8 id, const char *nick, const char *ip, u_int4 port, GHashTable **chatclient_table);
 
+u_int4 add_exist_user_to_chat(u_int8 chat_id, u_int8 id, GHashTable *chat_table, GHashTable **chatclient_table);
+
 u_int4 add_user_to_chat(u_int8 chat_id, u_int8 id, const char *nick, const char *ip, u_int4 port, GHashTable *chat_table, GHashTable **chatclient_table);
 
 u_int4 del_user(u_int8 id, GHashTable *chatclient_table);

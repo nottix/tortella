@@ -4,6 +4,7 @@ OBJECTS = tortellaprotocol.o httpmanager.o socketmanager.o packetmanager.o serve
 INCFLAGS = -I./ `pkg-config --cflags glib-2.0`
 LDFLAGS = -Wl,-rpath,/usr/local/lib
 LIBS = -lpthread `pkg-config --libs glib-2.0`
+BIN = ../bin
 
 TORTELLA_GUI_CFLAGS = -I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include -I/usr/include/atk-1.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/freetype2 -I/usr/include/libpng12 -I/usr/include/libglade-2.0 -I/usr/include/libxml2  
 TORTELLA_GUI_LIBS = -lglade-2.0 -lgtk-x11-2.0 -lxml2 -lgdk-x11-2.0 -latk-1.0 -lgdk_pixbuf-2.0 -lm -lpangocairo-1.0 -lpango-1.0 -lcairo -lgobject-2.0 -lgmodule-2.0 -ldl -lglib-2.0  
@@ -11,31 +12,31 @@ TORTELLA_GUI_LIBS = -lglade-2.0 -lgtk-x11-2.0 -lxml2 -lgdk-x11-2.0 -latk-1.0 -lg
 all: tortella
 
 tortella: $(OBJECTS) tortella.c
-	$(CC) -o tortella tortella.c $(OBJECTS) $(LDFLAGS) $(LIBS)
+	$(CC) -o $(BIN)/tortella tortella.c $(OBJECTS) $(LDFLAGS) $(LIBS)
 
 gui: $(OBJECTS) gui.c
-	$(CC) -o gui gui.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS) `pkg-config --cflags --libs gtk+-2.0`
+	$(CC) -o $(BIN)/gui gui.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS) `pkg-config --cflags --libs gtk+-2.0`
 
 tortellaprotocol_testing: $(OBJECTS) testing/tortellaprotocol_testing.c
-	$(CC) -o testing/tortellaprotocol_testing testing/tortellaprotocol_testing.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS)
+	$(CC) -o $(BIN)/tortellaprotocol_testing testing/tortellaprotocol_testing.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS)
 
 httpmanager_testing: $(OBJECTS) testing/httpmanager_testing.c
-	$(CC) -o testing/httpmanager_testing testing/httpmanager_testing.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS)
+	$(CC) -o $(BIN)/httpmanager_testing testing/httpmanager_testing.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS)
 
 socketmanager_testing: $(OBJECTS) testing/socketmanager_testing.c
-	$(CC) -o testing/socketmanager_testing testing/socketmanager_testing.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS)
+	$(CC) -o $(BIN)/socketmanager_testing testing/socketmanager_testing.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS)
 
 servent_testing: $(OBJECTS) testing/servent_testing.c
-	$(CC) -o testing/servent_testing testing/servent_testing.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS)
+	$(CC) -o $(BIN)/servent_testing testing/servent_testing.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS)
 
 supernodedata_testing: $(OBJECTS) testing/supernodedata_testing.c
-	$(CC) -o testing/supernodedata_testing testing/supernodedata_testing.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS)
+	$(CC) -o $(BIN)/supernodedata_testing testing/supernodedata_testing.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS)
 
 list_testing: $(OBJECTS) testing/list_testing.c
-	$(CC) -o testing/list_testing testing/list_testing.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS)
+	$(CC) -o $(BIN)/list_testing testing/list_testing.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS)
 
 init_testing: $(OBJECTS) testing/init_testing.c
-	$(CC) -o testing/init_testing testing/init_testing.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS)
+	$(CC) -o $(BIN)/init_testing testing/init_testing.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS)
 	
 .SUFFIXES:	.c .h .o
 

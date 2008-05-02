@@ -72,6 +72,7 @@ u_int4 write_all(GHashTable *chat_table, u_int4 mode) {
 	
 	if(mode==MODE_TRUNC) {
 		GList *list = g_hash_table_get_values(chat_table);
+		printf("[write_all]size list: %d\n", g_list_length(list));
 		chat *chat_str;
 		int i;
 		for(i=0; i<g_list_length(list); i++) {
@@ -167,6 +168,7 @@ u_int4 read_all(GHashTable **chat_table, GHashTable **chatclient_table) {
 		printf("[read_all]Opening %s\n",ent->d_name);
 		if(strcmp(ent->d_name, ".")!=0 && strcmp(ent->d_name, "..")!=0 && strcmp(ent->d_name, ".svn")!=0 && strstr(ent->d_name, "init_data")==NULL) {
 			sprintf(buf, "%s/%s", DATADIR, ent->d_name);
+			printf("[read_all]file appended: %s\n", buf);
 			dir_list = g_list_append(dir_list, (gpointer)strdup(buf));
 		}
 	}
@@ -208,6 +210,28 @@ u_int4 del_chat(u_int8 id, GHashTable *chat_table) {
 	g_hash_table_remove(chat_table, (gconstpointer)to_string(id));
 	
 	return 1;
+}
+
+u_int4 add_exist_user_to_chat(u_int8 chat_id, u_int8 id, GHashTable *chat_table, GHashTable **chatclient_table) {
+	printf("[add_exist_user_to_chat]Init\n");
+	if(chat_table==NULL)
+		return 0;
+	
+	if((*chatclient_table)==NULL)
+		return 0;
+	
+	printf("[add_exist_user_to_chat]Checked\n");
+	chat *chat_elem = (chat*)g_hash_table_lookup(chat_table, (gconstpointer)to_string(chat_id));
+	if(chat_elem!=NULL) {
+		chatclient *chatclient_elem = (chatclient*)g_hash_table_lookup(*chatclient_table, to_string(id));
+		printf("[add_exist_user_to_chat]After\n");
+		if(chatclient_elem!=NULL) {
+			g_hash_table_insert(chat_elem->users, (gpointer)to_string(chatclient_elem->id), (gpointer)chatclient_elem);
+			return 1;
+		}
+	}
+	printf("[add_exist_user_to_chat]End\n");
+	return 0;
 }
 
 //FIXIT: da togliere il doppio inserimento nella lista degli utenti
@@ -366,8 +390,10 @@ chatclient *search_chatclient(const char *nick, GHashTable *chatclient_table) {
 char *chatlist_to_char(GList *chat_list, int *len) {
 	if(chat_list==NULL) {
 		printf("[chatlist_to_char]chat_list NULL\n");
-		return NULL;
+		return NULL; //FIXIT
 	}
+	if(g_list_length(chat_list)==0)
+		return NULL;
 	chat *chat_elem;
 	chatclient *chatclient_elem;
 	int cur_size = 512;
@@ -429,10 +455,10 @@ GList *char_to_chatlist(const char *buffer,int len) {
 	char *saveptr, *saveptr2;
 	char *token, *token2;
 	char *buffer2 = strdup(buffer);
-	char *tmp = calloc(1,len);
+//	char *tmp = calloc(1,len);
 	int i=0;
 	int line=-1;
-	int count = 0;
+//	int count = 0;
 	
 	GList *chat_list=NULL;	
 	while((token = strtok_r(buffer2, "|", &saveptr))!=NULL) {
