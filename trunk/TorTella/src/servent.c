@@ -170,13 +170,13 @@ u_int4 servent_start(char *local_ip, u_int4 local_port, GList *init_servent) {
 			  break;
 	  }
 	  
-		servent->chat_id_req = 111;
+		servent->chat_id_req = 123;
 		
 		servent->msg_len = 5;
 		servent->msg = "Hello";
 		
-		servent->title_len =4;
-		servent->title = "test";
+		servent->title_len =5;
+		servent->title = "linux";
 	  
 	  servent->ttl=3;
 	  servent->hops=0;
@@ -192,16 +192,49 @@ u_int4 servent_start(char *local_ip, u_int4 local_port, GList *init_servent) {
 				servent->post_type=PING_ID;
 			else if(ch=='o')
 				servent->post_type=PONG_ID;
-			else if(ch=='m')
+			else if(ch=='m') {
+				char *text = calloc(1, 512);
+				scanf("%s", text);
+				printf("[servent_start]msg sent: %s\n", text);
+				servent->msg = text;
+				servent->msg_len = strlen(text);
 				servent->post_type=MESSAGE_ID;
+			}
 			else if(ch=='s') {
 				timer_thread = (pthread_t*)malloc(sizeof(pthread_t));
 				pthread_create(timer_thread, NULL, servent_timer, NULL);
 			}
-			else if(ch=='c')
-				servent->post_type=CREATE_ID;
-			else if(ch=='r')
+			else if(ch=='c') {
+//				servent->post_type=CREATE_ID;
+				u_int8 chat_id;
+				char *title = calloc(20, 1);
+				printf("Inserire ID chat da creare: ");
+				scanf("%lld", &chat_id);
+				printf("Inserire titolo chat da creare: ");
+				scanf("%s", title);
+				add_chat(chat_id, title, &chat_hashtable);
+				
+				chat *test = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(chat_id));
+				printf("chat created with ID: %lld\n", test->id);
+			}
+			else if(ch=='r') {
+				char *title = calloc(20, 1);
+				printf("Inserire titolo chat da ricercare: ");
+				scanf("%s", title);
+				servent->title = title;
+				servent->title_len = strlen(title);
 				servent->post_type=SEARCH_ID;
+			}
+			else if(ch=='e') {
+				GList *chats = g_hash_table_get_values(chat_hashtable);
+				int len = g_list_length(chats);
+				int i;
+				for(i=0; i<len; i++) {
+					chat *elem = (chat*)g_list_nth_data(chats, i);
+					printf("[servent_start]ID: %lld, title: %s\n", elem->id, elem->title);
+				}
+				continue;
+			}
 			else if(ch=='l') {
 				int i;
 				clients = g_hash_table_get_values(servent_hashtable);
@@ -211,14 +244,14 @@ u_int4 servent_start(char *local_ip, u_int4 local_port, GList *init_servent) {
 					printf("[servent_start]local_servent->id: %lld\n", local_servent->id);
 					if(ser->id!=local_servent->id) {
 						printf("[servent_start]client[%s]: %lld, ip: %s:%d\n", (char*)g_list_nth_data(keys, i), ser->id, ser->ip, ser->port);
-						servent = ser;
-						servent->chat_id_req = 111;
-		
-						servent->msg_len = 5;
-						servent->msg = "Hello";
-		
-						servent->title_len =4;
-						servent->title = "test";
+//						servent = ser;
+//						servent->chat_id_req = 111;
+//		
+//						servent->msg_len = 5;
+//						servent->msg = "Hello";
+//		
+//						servent->title_len =4;
+//						servent->title = "test";
 					}
 				}
 				continue;
@@ -266,6 +299,7 @@ void servent_close_all(void) {
 
 void kill_all_thread(int sig) {
 	printf("[kill_all_thread]Killing thread\n");
+	servent_close_supernode();
 	servent_close_all();
 
 	int i;
@@ -282,7 +316,6 @@ void kill_all_thread(int sig) {
 	if(timer_thread!=NULL)
 		pthread_kill(*timer_thread, SIGKILL);
 	
-	servent_close_supernode();
 	printf("[kill_all_thread]Closing supernode\n");
 
 }
@@ -329,6 +362,7 @@ void servent_init_supernode() {
 }
 
 void servent_close_supernode() {
+	printf("[servent_close_supernode]Init\n");
 	write_all(chat_hashtable, MODE_TRUNC);
 }
 
@@ -418,13 +452,11 @@ void *servent_responde(void *parm) {
 						conn_servent->timestamp = h_packet->data->header->timestamp;
 						
 						//TODO: Aggiungere l'ID alla lista degli utenti della chat
-						u_int8 chat_id = GET_JOIN(h_packet->data)->chat_id;
-						chat *chat_elem = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(chat_id));
-						chatclient *chatclient_elem = (chatclient*)g_hash_table_lookup(chatclient_hashtable, to_string(id));
-						g_hash_table_insert(chat_elem->users, (gpointer)to_string(chatclient_elem->id), (gpointer)chatclient_elem);
-
-						//FIXIT
-						//add_user_to_chat(chat_id, conn_servent->id, conn_servent->nick, conn_servent->ip, conn_servent->port, chat_hashtable, &chatclient_hashtable);
+//						u_int8 chat_id = GET_JOIN(h_packet->data)->chat_id;
+//						chat *chat_elem = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(chat_id));
+//						chatclient *chatclient_elem = (chatclient*)g_hash_table_lookup(chatclient_hashtable, to_string(id));
+//						g_hash_table_insert(chat_elem->users, (gpointer)to_string(chatclient_elem->id), (gpointer)chatclient_elem);
+						add_exist_user_to_chat(GET_JOIN(h_packet->data)->chat_id, id, chat_hashtable, &chatclient_hashtable);
 
 						UNLOCK(id);					
 						
@@ -552,12 +584,14 @@ void *servent_responde(void *parm) {
 							printf("[servent_responde]Searching %s\n", tortella_get_data(h_packet->data_string));
 							res = search_all_chat(tortella_get_data(h_packet->data_string), chat_hashtable);
 							printf("[servent_responde]Results number %d\n", g_list_length(res));
-							if(g_list_length(res)>0) {
+							//if(g_list_length(res)>0) {
 								conn_servent->chat_res = res;
-								conn_servent->packet_id = h_packet->data->header->id;
-								conn_servent->post_type = SEARCHHITS_ID;
-								
-							}
+							//}
+							//else {
+							//	conn_servent->chat_res = NULL;
+							//}
+							conn_servent->packet_id = h_packet->data->header->id;
+							conn_servent->post_type = SEARCHHITS_ID;
 						}
 				
 						//local_servent->title = tortella_get_data(h_packet->data_string);
@@ -624,27 +658,27 @@ void *servent_responde(void *parm) {
 						status = HTTP_STATUS_OK;
 						
 					}
-					else if(h_packet->data->header->desc_id==CREATE_ID) {
-						printf("[servent_responde]CREATE ricevuto\n");
-						u_int8 chat_id = GET_CREATE(h_packet->data)->chat_id;
-						u_int4 title_len = h_packet->data->header->data_len;
-						char *title = h_packet->data->data;
-						
-						WLOCK(local_servent->id);
-						//if(local_servent->is_supernode) {
-							add_chat(chat_id, title, &chat_hashtable);
-							//TODO: eventualmente aggiungere un servent_data ????
-							
-							chat *test = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(chat_id));
-	
-							printf("[servent_responde]chat created with ID: %lld\n", test->id);
-						//}
-						
-						UNLOCK(local_servent->id);
-						
-						status = HTTP_STATUS_OK;
-						//Crea chat
-					}
+//					else if(h_packet->data->header->desc_id==CREATE_ID) {
+//						printf("[servent_responde]CREATE ricevuto\n");
+//						u_int8 chat_id = GET_CREATE(h_packet->data)->chat_id;
+//						u_int4 title_len = h_packet->data->header->data_len;
+//						char *title = h_packet->data->data;
+//						
+//						WLOCK(local_servent->id);
+//						//if(local_servent->is_supernode) {
+//							add_chat(chat_id, title, &chat_hashtable);
+//							//TODO: eventualmente aggiungere un servent_data ????
+//							
+//							chat *test = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(chat_id));
+//	
+//							printf("[servent_responde]chat created with ID: %lld\n", test->id);
+//						//}
+//						
+//						UNLOCK(local_servent->id);
+//						
+//						status = HTTP_STATUS_OK;
+//						//Crea chat
+//					}
 					
 					//Invio la conferma di ricezione
 					if(status>0) {
@@ -758,9 +792,9 @@ void *servent_connect(void *parm) {
 			else if(post_type==MESSAGE_ID) {
 				send_message_packet(fd, local_servent->id, id_dest, chat_id_req, msg_len, msg);
 			}
-			else if(post_type==CREATE_ID) {
-				send_create_packet(fd, local_servent->id, id_dest, chat_id_req, title_len, title);
-			}
+//			else if(post_type==CREATE_ID) {
+//				send_create_packet(fd, local_servent->id, id_dest, chat_id_req, title_len, title);
+//			}
 			else if(post_type==SEARCH_ID) {
 				send_search_packet(fd, packet_id, local_servent->id, id_dest, ttl, hops, title_len, title);
 			}
@@ -774,7 +808,12 @@ void *servent_connect(void *parm) {
 				printf("[servent_connect]Converting chatlist\n");
 				int length;
 				char *buf = chatlist_to_char(conn_servent->chat_res, &length);
-				printf("[servent_connect]converted in buffer: %s\n", buf);
+				if(buf==NULL) {
+					length=0;
+				}
+				else {
+					printf("[servent_connect]converted in buffer: %s\n", buf);
+				}
 				send_searchhits_packet(fd, packet_id, local_servent->id, id_dest, g_list_length(conn_servent->chat_res), length, buf);
 				
 				//UNLOCK(id_dest);
