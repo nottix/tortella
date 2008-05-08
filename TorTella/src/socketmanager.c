@@ -211,7 +211,7 @@ int listen_http_packet(int listen_socket)
     return connFd;
 }
 
-int switch_http_packet(int connFd, char *buffer, unsigned int mode) {
+int switch_http_packet(int connFd, char **buffer, unsigned int mode) {
 	int len = 0;
     switch (mode) {
     	case LP_WRITE:
@@ -230,7 +230,9 @@ int switch_http_packet(int connFd, char *buffer, unsigned int mode) {
 			if ((len=recv_packet(connFd, buffer)) < 0) {
 	    		fprintf(stderr, "\nErrore in lettura!");
 			}
-			fprintf(stdout, "\n[listen_packet]Dati ricevuti buffer: %s\n", dump_data(buffer, len));
+			if(*buffer==NULL)
+				printf("[listen_packet]buffer null\n");
+			fprintf(stdout, "\n[listen_packet]Dati ricevuti buffer: %s\n", dump_data(*buffer, len));
 			break;
     	case LP_NONE:
 			break;
@@ -261,55 +263,67 @@ int send_packet(int sock_descriptor, char *buffer, int len)
 }
 
 // Buffer e' gia allocato?
-int recv_packet(int sock_descriptor, char *buffer)
+int recv_packet(int sock_descriptor, char **buffer)
 {
     return recv_sized_packet(sock_descriptor, buffer, BUFFER_LEN);
 }
 
-int recv_sized_packet(int sock_descriptor, char *buffer, int max_len)
+int recv_sized_packet(int sock_descriptor, char **buf, int max_len)
 {
-    unsigned int char_read = 0;
-    unsigned int counter = 0;
+    u_int4 char_read = 0;
+    u_int4 counter = 0;
+    int loop = 1;
+    int len = max_len;
     if (max_len < 0)
 		return -1;
-    if (buffer == 0)
+    if (buf == 0)
 		return -1;
 
-    memset(buffer, 0, max_len);
-#ifdef SOCKET_DEBUG
+    //memset(buffer, 0, max_len);
+    /*char **tmp = &buf;
+    *tmp = calloc(max_len, 1);
+    char *buffer = calloc(max_len, 1);*/
+    char *tmp = calloc(max_len, 1);
+    *buf = calloc(max_len, 1);
+    char *buffer = *buf;
+
     fprintf(stdout, "\n[recv_packet]buffer_ptr %x\n", buffer);
-#endif
+
     if (sock_descriptor < 0) {
 		fprintf(stderr, "[recv_packet]Socket descriptor not valid, sock_descriptor = %d", sock_descriptor);
 		return -1;
     }
 	
-    //while ((char_read = read(sock_descriptor, buffer, max_len)) > 0) {
-	if((char_read = read(sock_descriptor, buffer, max_len)) < 0) {
-#ifdef SOCKET_DEBUG
-		fprintf(stdout, "\n[recv_packet]char_read = %d\n", char_read);
-#endif
+    printf("[recv_packet]before\n");
+    while (loop && ((char_read = read(sock_descriptor, tmp, max_len)) > 0)) {
+	//if((char_read = read(sock_descriptor, buffer, max_len)) < 0) {
+		printf("\n[recv_packet]char_read = %d\n", char_read);
+		//FIXIT: riprogettare
 		counter += char_read;
-		if ((counter >= max_len)) {
-	    	// questo vuol dire che sono ancora presenti caratteri sul
-	    	// socket ( read > 0 )
-		    // ma il buffer allocato non ha piu' spazio a disposizione
-		    // si potrebbe creare una struttura buffer dinamica.
-		    // Un buffer a due dimensioni [n][BUFFER_LEN].
-#ifdef SOCKET_DEBUG
-	    	fprintf(stderr, "\n[recv_packet]Buffer overflow!, perdita dati\n");
-#endif
+		if ((counter >= len)) {
+			printf("[recv_packet]over\n");
+			len += max_len;
+			memcpy(buffer, tmp, char_read);
+			memset(tmp, 0, max_len);
+			buffer = realloc(buffer, len);
+			loop=1;
+			
+			buffer += max_len;
 		}
-		// fine carattere
-		buffer[char_read] = 0;
+		else {
+			memcpy(buffer, tmp, char_read);
+			loop=0;
+		}
     }
-	fprintf(stdout, "\n[recv_packet]char_read = %d\n", char_read);
-	printf("[recv_packet]buffer: %s\n", buffer);
-    if (char_read < 0) {
+    // fine carattere
+    buffer[counter] = 0;
+    
+	printf("[recv_packet]counter: %d, buffer: %s\n", counter, buffer);
+    if (counter < 0) {
 		fprintf(stderr, "\n[recv_packet]read error");
 		return -1;
     }
-    return char_read;
+    return counter;
 }
 
 /*

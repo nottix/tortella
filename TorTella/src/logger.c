@@ -16,15 +16,22 @@
  
 #include "logger.h"
 
-int logger_init(const char *filename) {
+int logger_init(int verbose_level, const char *filename) {
 	int fd;
 	char *pathname = (char*)malloc(strlen(PATH)+strlen(filename));
 	strcpy(pathname, PATH);
 	strcat(pathname, filename);
 	printf("[logger_init]init\n");
 	fd = open(pathname, O_CREAT|O_APPEND|O_WRONLY, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
-	close(fd);
+	//close(fd);
+	logger_fd = fd;
+	pthread_mutex_init(&logger_mutex, NULL);
+	verbose = verbose_level;
 	return fd;
+}
+
+int logger_close() {
+	return close(logger_fd);
 }
 
 char *get_timestamp() {
@@ -37,14 +44,42 @@ char *get_timestamp() {
 	return ret;
 }
 
-int logger_add(const char* filename, const char *text, ...) {
+int logger(int type, const char* text, ...) {
+	
+	char *timestamp = get_timestamp();
+	char *buffer = (char*)malloc(2000); //FIXIT
+	char *temp = (char*)malloc(1000);
+
+	sprintf(buffer, "%s",timestamp);
+	va_list ap;
+	va_start(ap, text);
+	vsprintf(temp, text, ap);
+	va_end(ap);
+	
+	strcat(buffer, temp);
+	int len = strlen(buffer);
+	
+	pthread_mutex_lock(&logger_mutex);
+	if(write(logger_fd, buffer, len)<0) {
+		fprintf(stderr, "Errore nella scrittura nel file\n");
+		return -1;
+	}
+	pthread_mutex_unlock(&logger_mutex);
+	
+	if(type<=verbose)
+		printf(buffer);
+
+	return 0;
+}
+
+int logger_to(const char* filename, const char *text, ...) {
 	int fd;
 	char *pathname = (char*)malloc(strlen(PATH)+strlen(filename));
 	strcpy(pathname, PATH);
 	strcat(pathname, filename);
 	
 	if((fd=open(pathname, O_RDONLY|O_EXCL))<0) {
-		logger_init(filename);
+		logger_init(8, filename);
 	}
 	close(fd);
 	

@@ -26,11 +26,34 @@
 #include <time.h>
 #include <string.h>
 #include <stdarg.h>
+#include <pthread.h>
+#include "logger.h"
 
 #define PATH "/tmp/"
 
-int logger_init(const char *filename);
+#define ALARM_INFO		0
+#define SYS_INFO		3
+#define PAC_INFO		4
+#define HTTP_INFO		5
+#define TORTELLA_INFO	6
+#define SOCK_INFO		7
+#define INFO			8
 
-int logger_add(const char *filename, const char *text, ...);
+
+static int logger_fd;
+
+static pthread_mutex_t logger_mutex;
+
+static int verbose = 0;
+
+int logger_init(int verbose_level, const char *filename);
+
+int logger_close();
+
+char *get_timestamp();
+
+int logger(int type, const char* text, ...);
+
+int logger_to(const char *filename, const char *text, ...);
 
 #endif //LOGGER_H
