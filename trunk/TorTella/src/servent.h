@@ -28,6 +28,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <glib.h>
+#include "logger.h"
 
 #define RECV_MAX_LEN 4000;
 #define THREAD_MAX 20
