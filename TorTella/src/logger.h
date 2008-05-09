@@ -39,8 +39,7 @@
 #define SOCK_INFO		7
 #define INFO			8
 
-
-static int logger_fd;
+static FILE *fd_file;
 
 static pthread_mutex_t logger_mutex;
 
