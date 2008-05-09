@@ -47,8 +47,8 @@ char *get_timestamp() {
 int logger(int type, const char* text, ...) {
 	
 	char *timestamp = get_timestamp();
-	char *buffer = (char*)malloc(2000); //FIXIT
-	char *temp = (char*)malloc(1000);
+	char *buffer = (char*)malloc(6000); //FIXIT
+	char *temp = (char*)malloc(4000);
 
 	sprintf(buffer, "%s",timestamp);
 	va_list ap;

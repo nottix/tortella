@@ -271,21 +271,16 @@ int recv_packet(int sock_descriptor, char **buffer)
 int recv_sized_packet(int sock_descriptor, char **buf, int max_len)
 {
     u_int4 char_read = 0;
-    u_int4 counter = 0;
-    int loop = 1;
-    int len = max_len;
+    int flag = 0;
+    int len = 0;
     if (max_len < 0)
 		return -1;
-    if (buf == 0)
-		return -1;
 
-    //memset(buffer, 0, max_len);
-    /*char **tmp = &buf;
-    *tmp = calloc(max_len, 1);
-    char *buffer = calloc(max_len, 1);*/
     char *tmp = calloc(max_len, 1);
     *buf = calloc(max_len, 1);
     char *buffer = *buf;
+    char *iter = buffer;
+    char *buf2;
 
     fprintf(stdout, "\n[recv_packet]buffer_ptr %x\n", buffer);
 
@@ -294,36 +289,58 @@ int recv_sized_packet(int sock_descriptor, char **buf, int max_len)
 		return -1;
     }
 	
-    printf("[recv_packet]before\n");
-    while (loop && ((char_read = read(sock_descriptor, tmp, max_len)) > 0)) {
-	//if((char_read = read(sock_descriptor, buffer, max_len)) < 0) {
-		printf("\n[recv_packet]char_read = %d\n", char_read);
-		//FIXIT: riprogettare
-		counter += char_read;
-		if ((counter >= len)) {
-			printf("[recv_packet]over\n");
-			len += max_len;
-			memcpy(buffer, tmp, char_read);
-			memset(tmp, 0, max_len);
-			buffer = realloc(buffer, len);
-			loop=1;
-			
-			buffer += max_len;
-		}
-		else {
-			memcpy(buffer, tmp, char_read);
-			loop=0;
-		}
+    while(!flag) {
+    	char_read = read(sock_descriptor, tmp, max_len);
+    	printf("char_read: %d, tmp: %s\n", char_read, dump_data(tmp, char_read));
+
+    	len += char_read;
+
+    	buf2 = calloc(len-char_read, 1);
+    	memcpy(buf2, buffer, len-char_read);
+    	buffer = calloc(len, 1);
+    	memcpy(buffer, buf2, len-char_read);
+    	
+    	//buffer = realloc(buffer, len);
+
+    	memcpy(iter, tmp, char_read);
+    	iter += char_read;
+    	memset(tmp, 0, max_len);
+
+    	if(char_read < max_len){
+    		flag = 1;
+    	}
     }
-    // fine carattere
-    buffer[counter] = 0;
     
-	printf("[recv_packet]counter: %d, buffer: %s\n", counter, buffer);
-    if (counter < 0) {
+//    printf("[recv_packet]before\n");
+//    while (loop && ((char_read = read(sock_descriptor, tmp, max_len)) > 0)) {
+//	//if((char_read = read(sock_descriptor, buffer, max_len)) < 0) {
+//		printf("\n[recv_packet]char_read = %d\n", char_read);
+//		//FIXIT: riprogettare
+//		counter += char_read;
+//		if ((counter >= len)) {
+//			printf("[recv_packet]over\n");
+//			len += max_len;
+//			memcpy(buffer, tmp, char_read);
+//			memset(tmp, 0, max_len);
+//			buffer = realloc(buffer, len);
+//			loop=1;
+//			
+//			buffer += max_len;
+//		}
+//		else {
+//			memcpy(buffer, tmp, char_read);
+//			loop=0;
+//		}
+//    }
+//    // fine carattere
+//    buffer[counter] = 0;
+    
+	printf("[recv_packet]counter: %d, buffer: %s\n", len, dump_data(buffer, len));
+    if (len < 0) {
 		fprintf(stderr, "\n[recv_packet]read error");
 		return -1;
     }
-    return counter;
+    return len;
 }
 
 /*
