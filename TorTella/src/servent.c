@@ -655,11 +655,11 @@ void *servent_connect(void *parm) {
 		WLOCK(id_dest);
 		post_type = servent_peer->post_type;
 		chat_id_req = servent_peer->chat_id_req;
-//		msg_len = servent_peer->msg_len;
-//		msg = servent_peer->msg;
-		msg = calloc(2000, 1);
-		memset(msg, 55, 2000);
-		msg_len = 2000;
+		msg_len = servent_peer->msg_len;
+		msg = servent_peer->msg;
+//		msg = calloc(2000, 1);
+//		memset(msg, 55, 2000);
+//		msg_len = 2000;
 		title = servent_peer->title;
 		title_len = servent_peer->title_len;
 		ttl = servent_peer->ttl;
