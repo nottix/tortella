@@ -78,8 +78,8 @@ u_int4 write_all(GHashTable *chat_table, u_int4 mode) {
 		for(i=0; i<g_list_length(list); i++) {
 			chat_str = (chat*)g_list_nth_data(list, i);
 			printf("[write_all]Writing file: %lld\n", chat_str->id);
-			char *path = calloc(strlen(to_string(chat_str->id))+strlen(DATADIR)+2, 1);
-			strcpy(path, DATADIR);
+			char *path = calloc(strlen(to_string(chat_str->id))+strlen(datadir)+2, 1);
+			strcpy(path, datadir);
 			strcat(path, "/");
 			strcat(path, to_string(chat_str->id));
 			write_to_file(path, chat_str, mode);
@@ -160,14 +160,14 @@ u_int4 read_from_file(const char *filename, GHashTable **chat_table, GHashTable 
 }
 
 u_int4 read_all(GHashTable **chat_table, GHashTable **chatclient_table) {
-	DIR *dir=opendir(DATADIR);
+	DIR *dir=opendir(datadir);
 	struct dirent *ent;
 	char buf[100];
 	GList *dir_list = NULL;
 	while (0!=(ent=readdir(dir))) {
 		printf("[read_all]Opening %s\n",ent->d_name);
 		if(strcmp(ent->d_name, ".")!=0 && strcmp(ent->d_name, "..")!=0 && strcmp(ent->d_name, ".svn")!=0 && strstr(ent->d_name, "init_data")==NULL) {
-			sprintf(buf, "%s/%s", DATADIR, ent->d_name);
+			sprintf(buf, "%s/%s", datadir, ent->d_name);
 			printf("[read_all]file appended: %s\n", buf);
 			dir_list = g_list_append(dir_list, (gpointer)strdup(buf));
 		}

@@ -11,9 +11,9 @@
 #include "httpmanager.h"
 
 /*Coda di servizio per ricezione SYNC*/
-#define QLEN 5
-/*Lunghezza buffer ricevzione/trasmissione*/
-#define BUFFER_LEN 1024
+//#define QLEN 5
+///*Lunghezza buffer ricevzione/trasmissione*/
+//#define BUFFER_LEN 1024
 
 /*Definizione operazioni per listen_packet*/
 #define LP_NONE     100

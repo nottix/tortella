@@ -1,8 +1,6 @@
 #ifndef TORTELLA_PROTOCOL_H
 #define TORTELLA_PROTOCOL_H
 
-#define DEBUG_TORTELLA
-
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
