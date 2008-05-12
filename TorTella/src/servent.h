@@ -29,6 +29,8 @@
 #include <unistd.h>
 #include <glib.h>
 #include "logger.h"
+#include "confmanager.h"
+//#include "confvars.h"
 
 //#define RECV_MAX_LEN 4000;
 //#define THREAD_MAX 20
@@ -75,6 +77,10 @@ static GHashTable *servent_hashtable;
 
 static servent_data *local_servent;
 
+//extern char *local_ip;
+//extern u_int4 local_port;
+//extern u_int8 gen_start;
+
 static u_int1 last_request_type = 0;
 static u_int4 server_connection_num = 0;
 
@@ -110,7 +116,7 @@ u_int4 servent_create_server(char *src_ip, u_int4 src_port);
 //Crea un client socket
 u_int4 servent_create_client(char *dst_ip, u_int4 dst_port);
 
-u_int4 servent_start(char *local_ip, u_int4 local_port, GList *init_servent);
+u_int4 servent_start(GList *init_servent);
 
 int servent_init_connection(GList *init_servent);
 

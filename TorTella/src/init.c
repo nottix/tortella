@@ -28,7 +28,7 @@ GList *init_read_file(const char *filename) {
 	char *tmp=(char *)calloc(22,1);
 	int i=0;	
 
-	if(strlen(filename)==0 || filename==NULL) {
+	if(filename==NULL || strlen(filename)==0) {
 		printf("Il nome del file non è corretto\n");
 		return NULL;
 	}
