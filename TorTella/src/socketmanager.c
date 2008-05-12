@@ -204,7 +204,7 @@ int recv_sized_packet(int sock_descriptor, char **buf, int max_len)
 	
     while(!flag) {
     	char_read = read(sock_descriptor, tmp, max_len);
-    	logger(SOCK_INFO, "[recv_sized_packet]char_read: %d, tmp: %s\n", char_read, dump_data(tmp, char_read));
+    	//logger(SOCK_INFO, "[recv_sized_packet]char_read: %d, tmp: %s\n", char_read, dump_data(tmp, char_read));
 
     	len += char_read;
 

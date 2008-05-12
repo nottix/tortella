@@ -124,6 +124,14 @@ void servent_init_supernode();
 
 void servent_close_supernode();
 
+servent_data *servent_get(u_int8 id);
+
+GList *servent_get_values(void);
+
+GList *servent_get_keys(void);
+
+servent_data *servent_get_local(void);
+
 //-----THREAD--------------
 
 //Thread che riceve i pacchetti e risponde adeguatamente
