@@ -32,12 +32,13 @@
 #define PATH "/tmp/"
 
 #define ALARM_INFO		0
+#define INFO			1
 #define SYS_INFO		3
 #define PAC_INFO		4
 #define HTTP_INFO		5
 #define TORTELLA_INFO	6
 #define SOCK_INFO		7
-#define INFO			8
+
 
 static FILE *fd_file;
 
@@ -52,7 +53,5 @@ int logger_close();
 char *get_timestamp();
 
 int logger(int type, const char* text, ...);
-
-int logger_to(const char *filename, const char *text, ...);
 
 #endif //LOGGER_H

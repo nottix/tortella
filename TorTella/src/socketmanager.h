@@ -5,8 +5,6 @@
 #ifndef SOCKETMANAGER_H
 #define SOCKETMANAGER_H
 
-//#define SOCKET_DEBUG
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include "common.h"
@@ -38,8 +36,8 @@ int delete_socket(int sock_descriptor);
         - LP_READ, aperta la connessione attende dati, inserendoli poi nel buffer
         - LP_NONE, crea solo la nuova connessione con il client.
 */
-int listen_packet(int listen_socket, char* buffer, unsigned int mode);
-
+//int listen_packet(int listen_socket, char* buffer, unsigned int mode);
+//
 int listen_http_packet(int listen_socket);
 
 /*Legge il pacchetto in ingresso e ritorna il numero di caratteri*/
@@ -54,7 +52,7 @@ int recv_packet(int sock_descriptor,char** buffer);
 /*Attende la ricezione di un pacchetto con max_len byte*/
 int recv_sized_packet(int sock_descriptor,char** buf, int max_len);
 
-char *recv_http_packet(int sock_descriptor,char* buffer, int *len);
+//char *recv_http_packet(int sock_descriptor,char* buffer, int *len);
 
 char *get_dest_ip(int socket);
 
