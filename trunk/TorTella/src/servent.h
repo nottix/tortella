@@ -116,6 +116,10 @@ u_int4 servent_create_server(char *src_ip, u_int4 src_port);
 //Crea un client socket
 u_int4 servent_create_client(char *dst_ip, u_int4 dst_port);
 
+u_int4 servent_start_server(char *local_ip, u_int4 local_port);
+
+u_int4 servent_start_client(char *dest_ip, u_int4 dest_port);
+
 u_int4 servent_start(GList *init_servent);
 
 int servent_init_connection(GList *init_servent);
