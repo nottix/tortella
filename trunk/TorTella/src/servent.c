@@ -685,7 +685,7 @@ void *servent_connect(void *parm) {
 				send_ping_packet(fd, local_servent->id, id_dest, nick, local_servent->port, status);
 			}
 			else if(post_type==PONG_ID) {
-				send_pong_packet(fd, local_servent->id, id_dest, status);
+//				send_pong_packet(fd, local_servent->id, id_dest, status);
 			}
 			else if(post_type==LEAVE_ID) {
 				send_leave_packet(fd, local_servent->id, id_dest, chat_id_req);

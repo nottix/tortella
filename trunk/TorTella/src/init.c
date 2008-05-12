@@ -67,7 +67,7 @@ init_data *init_char_to_initdata(char *buffer){
 	ip=strtok_r(buffer,";",&saveptr);
 	data->ip=strdup(ip);
 	printf("data->ip:%s\n",data->ip);
-	port=strtok_r(NULL,"\n",&saveptr);
+	port=strtok_r(NULL,"\n",&saveptr); //FIXIT da mettere ;
 	data->port=atoi(port);
 	printf("data->port:%d\n",data->port);
 		

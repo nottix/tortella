@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -g -Wall
-OBJECTS = tortellaprotocol.o httpmanager.o socketmanager.o packetmanager.o servent.o supernodedata.o logger.o utils.o init.o routemanager.o
+OBJECTS = tortellaprotocol.o httpmanager.o socketmanager.o packetmanager.o servent.o supernodedata.o logger.o utils.o init.o routemanager.o confmanager.o
 INCFLAGS = -I./ `pkg-config --cflags glib-2.0`
 LDFLAGS = -Wl,-rpath,/usr/local/lib
 LIBS = -lpthread `pkg-config --libs glib-2.0`
@@ -37,6 +37,9 @@ list_testing: $(OBJECTS) testing/list_testing.c
 
 init_testing: $(OBJECTS) testing/init_testing.c
 	$(CC) -o $(BIN)/init_testing testing/init_testing.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS)
+	
+confmanager_testing: $(OBJECTS) testing/confmanager_testing.c
+	$(CC) -o $(BIN)/confmanager_testing testing/confmanager_testing.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS)
 	
 .SUFFIXES:	.c .h .o
 
@@ -87,6 +90,10 @@ init.o: init.h init.c
 routemanager.o: routemanager.h routemanager.c
 	@echo -e "\nBuilding routemanager"
 	$(CC) $(CFLAGS) $(INCFLAGS) -o routemanager.o -c routemanager.c
+	
+confmanager.o: confmanager.h confmanager.c
+	@echo -e "\nBuilding confmanager"
+	$(CC) $(CFLAGS) $(INCFLAGS) -o confmanager.o -c confmanager.c
 
 count:
 	wc -l *.c *.h */*.c

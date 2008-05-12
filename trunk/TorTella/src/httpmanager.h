@@ -5,9 +5,7 @@
 #include "tortellaprotocol.h"
 #include "socketmanager.h"
 #include "utils.h"
-#include <alloca.h>
-
-#define HTTP_DEBUG
+#include "logger.h"
 
 #define HTTP_REQ_GET		0x40
 #define	HTTP_RES_GET		0x41

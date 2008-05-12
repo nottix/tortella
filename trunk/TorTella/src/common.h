@@ -21,6 +21,23 @@ typedef unsigned char u_int1;
 typedef unsigned short u_int2;
 typedef unsigned int u_int4;
 typedef unsigned long long u_int8;
-//typedef int u_int8;
+
+//SOCKET
+static int qlen = 5; //Coda di servizio per ricezione SYNC
+static int buffer_len = 1024; //Lunghezza buffer ricevzione/trasmissione
+
+//PACKET
+static char *path = "/tmp/";
+
+//UTILS
+static u_int8 gen_start = 100000; //fake IDs range
+
+//SERVENT
+static int max_len = 4000;
+static int max_thread = 20;
+static int max_fd = 100;
+
+//SUPERNODE
+static char *datadir = "./data";
 
 #endif
