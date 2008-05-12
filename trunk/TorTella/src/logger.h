@@ -28,8 +28,9 @@
 #include <stdarg.h>
 #include <pthread.h>
 #include "logger.h"
+#include "common.h"
 
-#define PATH "/tmp/"
+//#define PATH "/tmp/"
 
 #define ALARM_INFO		0
 #define INFO			1

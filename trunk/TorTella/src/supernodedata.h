@@ -32,7 +32,7 @@
 #define MODE_TRUNC 0x900
 #define MODE_APPEND 0x901
 
-#define DATADIR	"./data"
+//#define DATADIR	"./data"
 
 struct chatclient {
 	u_int8 id;

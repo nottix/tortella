@@ -25,6 +25,7 @@
 #include <sched.h>
 #include <time.h>
 #include <signal.h>
+#include "confmanager.h"
 
 int main(int argc, char **argv) {
 
@@ -38,6 +39,8 @@ int main(int argc, char **argv) {
 		printf("[main]Init read file\n");
 		init_list = init_read_file(argv[3]);
 	}
+	
+	conf_read("./conf/tortella.conf");
 	
 	servent_start(argv[1], atoi(argv[2]), init_list);
 

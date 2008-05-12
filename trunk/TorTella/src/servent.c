@@ -340,7 +340,7 @@ void *servent_responde(void *parm) {
 						
 						status = HTTP_STATUS_CERROR;
 					}
-					else if(h_packet->data->header->recv_id!=local_servent->id && h_packet->data->header->recv_id>=GEN_START) {
+					else if(h_packet->data->header->recv_id!=local_servent->id && h_packet->data->header->recv_id>=gen_start) {
 						status = HTTP_STATUS_CERROR;
 					}
 					else if(h_packet->data->header->desc_id==JOIN_ID) {
@@ -376,7 +376,7 @@ void *servent_responde(void *parm) {
 						else {
 							printf("[servent_responde]New ping\n");
 							
-							if(h_packet->data->header->recv_id < GEN_START) {
+							if(h_packet->data->header->recv_id < gen_start) {
 								status = HTTP_STATUS_OK;
 								char *new_id = to_string(local_servent->id);
 								printf("[servent_responde]sending new ID: %s with len %d\n", new_id, strlen(new_id));
@@ -732,7 +732,7 @@ void *servent_connect(void *parm) {
 				if(h_packet!=NULL && h_packet->type==HTTP_RES_POST) {
 					if(strcmp(h_packet->header_response->response, HTTP_OK)==0) {
 						printf("[servent_connect]OK POST received\n");
-						if(post_type==PING_ID && id_dest<GEN_START) {
+						if(post_type==PING_ID && id_dest<gen_start) {
 							printf("[servent_connect]Responding to PING\n");
 							//servent_data *data = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id_dest));
 							if(servent_peer!=NULL) {

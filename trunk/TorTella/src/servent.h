@@ -30,9 +30,9 @@
 #include <glib.h>
 #include "logger.h"
 
-#define RECV_MAX_LEN 4000;
-#define THREAD_MAX 20
-#define FD_MAX 100
+//#define RECV_MAX_LEN 4000;
+//#define THREAD_MAX 20
+//#define FD_MAX 100
 
 static u_int4 timer_interval = 5;
 

@@ -9,7 +9,7 @@
 
 #include "common.h"
 
-#define GEN_START 100000
+//#define GEN_START 100000
 
 u_int8 generate_id(void);
 
