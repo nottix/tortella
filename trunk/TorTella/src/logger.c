@@ -18,7 +18,7 @@
 
 int logger_init(int verbose_level, const char *filename) {
 	char *pathname = (char*)malloc(strlen(path)+strlen(filename));
-	strcpy(pathname, path);
+	strcpy(pathname, conf_get_path());
 	strcat(pathname, filename);
 	printf("[logger_init]init\n");
 

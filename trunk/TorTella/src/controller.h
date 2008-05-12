@@ -5,6 +5,7 @@
 #include "socketmanager.h"
 #include "supernodedata.h"
 #include "servent.h"
+#include "confmanager.h"
 #include <glib.h>
 
 //EXTERN
@@ -25,6 +26,8 @@ int controller_join_chat(u_int8 chat_id);
 int controller_leave_chat(u_int8 chat_id);
 
 int controller_connect_users(GList *users);
+
+int controller_init(const char *filename, const char *cache);
 
 int controller_menu(void);
 

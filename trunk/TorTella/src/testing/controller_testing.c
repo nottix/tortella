@@ -14,20 +14,17 @@
 
 int main(int argc, char **argv) {
 
-	if(argc<3) {
-		printf("Usage: <local_ip> <local_port> [cache_path]\n");
+	if(argc<2) {
+		printf("Usage: <conf_path> [cache_path]\n");
 		return 0;
 	}	
 	
-	GList *init_list = NULL;
-	if(argc==4) {
-		printf("[main]Init read file\n");
-		init_list = init_read_file(argv[3]);
+	if(argc==2) {
+		controller_init(argv[1], NULL);
 	}
-	
-	conf_read("./conf/tortella.conf");
-	
-	servent_start(argv[1], atoi(argv[2]), init_list);
+	else {
+		controller_init(argv[1], argv[2]);
+	}
 	
 	controller_menu();
 	

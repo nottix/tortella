@@ -10,7 +10,7 @@ int conf_read(const char *filename) {
 	
 	printf("opening %s\n", filename);
 	if((fd=open(filename, O_RDONLY|O_EXCL))<0) {
-		logger(ALARM_INFO, "Unable to open configuration file\n");
+		//logger(ALARM_INFO, "Unable to open configuration file\n");
 		return -1;
 	}
 	
@@ -40,7 +40,7 @@ int conf_read(const char *filename) {
 
 int conf_save_value(const char *line) {
 	if(line==NULL) {
-		logger(ALARM_INFO, "Unable to read line\n");
+		//logger(ALARM_INFO, "Unable to read line\n");
 		return -1;
 	}
 	
@@ -76,12 +76,44 @@ int conf_save_value(const char *line) {
 	else if(strcmp(left, "max_len")==0)
 		max_len = atoi(right);
 	else if(strcmp(left, "max_thread")==0)
-			max_thread = atoi(right);
+		max_thread = atoi(right);
 	else if(strcmp(left, "max_fd")==0)
-			max_fd = atoi(right);
+		max_fd = atoi(right);
 	else if(strcmp(left, "datadir")==0)
-			datadir = right;
+		datadir = right;
+	else if(strcmp(left, "local_ip")==0)
+		local_ip = right;
+	else if(strcmp(left, "local_port")==0)
+		local_port = atoi(right);
 	
 	return 1;
 	
+}
+
+int conf_get_qlen(void) {
+	return qlen;
+}
+
+int conf_get_buffer_len(void) {
+	return buffer_len;
+}
+
+char *conf_get_path(void) {
+	return path;
+}
+
+u_int8 conf_get_gen_start(void) {
+	return gen_start;
+}
+
+char *conf_get_datadir(void) {
+	return datadir;
+}
+
+char *conf_get_local_ip(void) {
+	return local_ip;
+}
+
+u_int4 conf_get_local_port(void) {
+	return local_port;
 }

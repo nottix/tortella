@@ -72,6 +72,33 @@ int controller_send_pm(u_int4 msg_len, char *msg, u_int8 recv_id) {
 	return 0;
 }
 
+int controller_join_chat(u_int8 chat_id) {
+	return 0;
+}
+
+int controller_leave_chat(u_int8 chat_id) {
+	return 0;
+}
+
+int controller_connect_users(GList *users) {
+	return 0;
+}
+
+int controller_init(const char *filename, const char *cache) {
+	
+	logger_init(8, "tortella");
+	
+	GList *init_list = NULL;
+	logger(INFO, "[controller_init]Init\n");
+	init_list = init_read_file(cache);
+	
+	conf_read(filename);
+
+	servent_start(init_list);
+	
+	return 0;
+}
+
 int controller_menu() {
 	servent_data *servent;
 	GList *clients;

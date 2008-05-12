@@ -99,7 +99,7 @@ int create_listen_tcp_socket(const char *src_ip, int src_port)
 		return (-1);
     }
     // Listen
-    if (listen(listenfd, qlen) < 0) {
+    if (listen(listenfd, conf_get_qlen()) < 0) {
     	logger(SOCK_INFO, "[create_listen_tcp_socket]Listen error\n");
 		return (-1);
     }
@@ -180,7 +180,7 @@ int send_packet(int sock_descriptor, char *buffer, int len)
 
 int recv_packet(int sock_descriptor, char **buffer)
 {
-    return recv_sized_packet(sock_descriptor, buffer, buffer_len);
+    return recv_sized_packet(sock_descriptor, buffer, conf_get_buffer_len());
 }
 
 int recv_sized_packet(int sock_descriptor, char **buf, int max_len)

@@ -68,12 +68,12 @@ u_int4 servent_start_client(char *dest_ip, u_int4 dest_port) {
 	return 1;
 }
 
-u_int4 servent_start(char *local_ip, u_int4 local_port, GList *init_servent) {
+u_int4 servent_start(GList *init_servent) {
 	//Inizializzazione servent locale
-	servent_init(local_ip, local_port, ONLINE_ID);
+	servent_init(conf_get_local_ip(), conf_get_local_port(), ONLINE_ID);
 	
 	//Avvio server di ascolto richieste
-	servent_start_server(local_ip, local_port);
+	servent_start_server(conf_get_local_ip(), conf_get_local_port());
 	
 	//Fase iniziale di reperimento degli utenti iniziali
 	if(init_servent!=NULL)
@@ -139,11 +139,9 @@ void kill_all_thread(int sig) {
 
 void servent_init(char *ip, u_int4 port, u_int1 status) {
 	
-	logger_init(8, "tortella");
-	
 	//Inizializza la lista delle chat conosciute leggendo da un file predefinito
 	servent_init_supernode();
-	logger(SYS_INFO, "[servent_init]Supernode initialized\n");
+	logger(SYS_INFO, "[servent_init]Supernode initialized on %s:%d\n", conf_get_local_ip(), conf_get_local_port());
 	
 	servent_hashtable = g_hash_table_new_full(g_str_hash, g_str_equal, free, NULL);
 	route_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
@@ -257,7 +255,7 @@ void *servent_responde(void *parm) {
 						
 						status = HTTP_STATUS_CERROR;
 					}
-					else if(h_packet->data->header->recv_id!=local_servent->id && h_packet->data->header->recv_id>=gen_start) {
+					else if(h_packet->data->header->recv_id!=local_servent->id && h_packet->data->header->recv_id>=conf_get_gen_start()) {
 						status = HTTP_STATUS_CERROR;
 					}
 					else if(h_packet->data->header->desc_id==JOIN_ID) {
@@ -293,7 +291,7 @@ void *servent_responde(void *parm) {
 						else {
 							printf("[servent_responde]New ping\n");
 							
-							if(h_packet->data->header->recv_id < gen_start) {
+							if(h_packet->data->header->recv_id < conf_get_gen_start()) {
 								status = HTTP_STATUS_OK;
 								char *new_id = to_string(local_servent->id);
 								printf("[servent_responde]sending new ID: %s with len %d\n", new_id, strlen(new_id));
@@ -649,7 +647,7 @@ void *servent_connect(void *parm) {
 				if(h_packet!=NULL && h_packet->type==HTTP_RES_POST) {
 					if(strcmp(h_packet->header_response->response, HTTP_OK)==0) {
 						printf("[servent_connect]OK POST received\n");
-						if(post_type==PING_ID && id_dest<gen_start) {
+						if(post_type==PING_ID && id_dest<conf_get_gen_start()) {
 							printf("[servent_connect]Responding to PING\n");
 							//servent_data *data = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id_dest));
 							if(servent_peer!=NULL) {

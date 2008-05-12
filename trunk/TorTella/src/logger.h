@@ -27,8 +27,9 @@
 #include <string.h>
 #include <stdarg.h>
 #include <pthread.h>
-#include "logger.h"
 #include "common.h"
+#include "confmanager.h"
+//#include "confvars.h"
 
 //#define PATH "/tmp/"
 
