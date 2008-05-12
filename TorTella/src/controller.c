@@ -30,7 +30,6 @@ int controller_send_chat_users(u_int8 chat_id, u_int4 msg_len, char *msg) {
 
 int controller_send_subset_users(u_int8 chat_id, u_int4 msg_len, char *msg, GList *users) { 
 	if(chat_id != 0) {
-		//chat *chat_elem = (chat*)g_hash_table_lookup(chat_hashtable,(gconstpointer)to_string(chat_id));
 		int i= 0;
 		for(; i<g_list_length(users); i++) {
 
@@ -55,8 +54,6 @@ int controller_send_subset_users(u_int8 chat_id, u_int4 msg_len, char *msg, GLis
 }
 
 int controller_send_pm(u_int4 msg_len, char *msg, u_int8 recv_id) {
-	   
-	//chatclient *user = (chatclient*)g_hash_table_lookup(chatclient_hashtable,(gconstpointer)redv_id);
 	servent_data *data = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(recv_id));
 
 	WLOCK(data->id);
@@ -73,15 +70,71 @@ int controller_send_pm(u_int4 msg_len, char *msg, u_int8 recv_id) {
 }
 
 int controller_join_chat(u_int8 chat_id) {
-	return 0;
+	if(chat_id>0) {
+		chat *chat_elem = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(chat_id));
+		if(chat_elem!=NULL) {
+			GList *clients = g_hash_table_get_values(chat_elem->users);
+			chatclient *client;
+			servent_data *peer;
+			int i;
+			for(i=0; i<g_list_length(clients); i++) {
+				client = (chatclient*)g_list_nth_data(clients, i);
+				if(client!=NULL) {
+					peer = servent_get(client->id);
+					if(peer!=NULL) {
+						WLOCK(peer->id);
+						peer->chat_id_req = chat_id;
+						peer->post_type = JOIN_ID;
+						UNLOCK(peer->id);
+						pthread_cond_signal(&peer->cond);
+					}
+				}
+			}
+			return 0;
+		}
+	}
+	return -1;
 }
 
 int controller_leave_chat(u_int8 chat_id) {
-	return 0;
+	if(chat_id>0) {
+		chat *chat_elem = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(chat_id));
+		if(chat_elem!=NULL) {
+			GList *clients = g_hash_table_get_values(chat_elem->users);
+			chatclient *client;
+			servent_data *peer;
+			int i;
+			for(i=0; i<g_list_length(clients); i++) {
+				client = (chatclient*)g_list_nth_data(clients, i);
+				if(client!=NULL) {
+					peer = servent_get(client->id);
+					if(peer!=NULL) {
+						WLOCK(peer->id);
+						peer->chat_id_req = chat_id;
+						peer->post_type = LEAVE_ID;
+						UNLOCK(peer->id);
+						pthread_cond_signal(&peer->cond);
+					}
+				}
+			}
+			return 0;
+		}
+	}
+	return -1;
 }
 
 int controller_connect_users(GList *users) {
-	return 0;
+	if(users!=NULL) {
+		int i;
+		chatclient *client;
+		for(i=0; i<g_list_length(users); i++) {
+			client = (chatclient*)g_list_nth_data(users, i);
+			servent_start_client(client->ip, client->port);
+		}
+		return 0;
+	}
+	
+	return -1;
 }
 
 int controller_init(const char *filename, const char *cache) {
