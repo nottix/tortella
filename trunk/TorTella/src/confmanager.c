@@ -35,6 +35,7 @@ int conf_read(const char *filename) {
 		else
 			i++;
 	}
+	return 0;
 }
 
 int conf_save_value(const char *line) {
