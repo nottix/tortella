@@ -122,6 +122,8 @@ u_int4 servent_start_client(char *dest_ip, u_int4 dest_port);
 
 u_int4 servent_start(GList *init_servent);
 
+int servent_start_timer(void);
+
 int servent_init_connection(GList *init_servent);
 
 void servent_close_all(void);

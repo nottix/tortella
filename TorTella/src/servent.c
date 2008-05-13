@@ -82,6 +82,12 @@ u_int4 servent_start(GList *init_servent) {
 	return 0;
 }
 
+int servent_start_timer(void) {
+	timer_thread = (pthread_t*)malloc(sizeof(pthread_t));
+	pthread_create(timer_thread, NULL, servent_timer, NULL);
+	return 0;
+}
+
 int servent_init_connection(GList *init_servent) {
 	int i;
 	init_data *peer;

@@ -148,6 +148,8 @@ int controller_init(const char *filename, const char *cache) {
 	conf_read(filename);
 
 	servent_start(init_list);
+
+	servent_start_timer();
 	
 	return 0;
 }
