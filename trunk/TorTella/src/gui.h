@@ -17,7 +17,33 @@
 #ifndef GUI_H
 #define GUI_H
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <gtk/gtk.h>
+#include <glib.h>
 
+//FUNZIONI PER LA CREAZIONE DELLE GUI
+int open_chatroom_gui(void);
+int open_pm_gui(void);
+
+gint destroyapp (GtkWidget *widget, gpointer gdata);
+
+gint ClosingAppWindow (GtkWidget *widget, gpointer gdata);
+
+gint open_chat(GtkWidget *widget, GdkEventButton *event, gpointer func_data);
+
+gint open_conversation(GtkWidget *widget, GdkEventButton *event, gpointer func_data);
+
+GtkWidget *create_list(int index );
+
+GtkWidget *create_menu(void);
+
+GtkWidget *create_text(int i );
+
+GtkWidget *create_searchbar(void);
+
+int open_chatroom_gui(void);
+
+int open_pm_gui(void);
 
 #endif //GUI_H

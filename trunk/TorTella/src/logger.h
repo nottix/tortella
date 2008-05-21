@@ -35,6 +35,7 @@
 
 #define ALARM_INFO		0
 #define INFO			1
+#define CTRL_INFO		2
 #define SYS_INFO		3
 #define PAC_INFO		4
 #define HTTP_INFO		5

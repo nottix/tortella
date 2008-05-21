@@ -265,3 +265,25 @@ int controller_menu() {
 	
 	return 0;
 }
+
+int controller_search(const char *query) {
+	if(query==NULL || strcmp(query, "")==0) {
+		logger(CTRL_INFO, "[controller_init]Stringa di query inaccettabile\n");
+		return -1;
+	}
+	
+	GList *servents = servent_get_values();
+	servent_data *servent;
+	int i=0;
+	for(; i<g_list_length(servents); i++) {
+		servent = g_list_nth_data(servents, i);
+		WLOCK(servent->id);
+		servent->post_type=SEARCH_ID;
+		servent->title = strdup(query);
+		servent->title_len = strlen(query);
+		pthread_cond_signal(&servent->cond);
+		UNLOCK(servent->id);
+	}
+	
+	return 0;
+}
