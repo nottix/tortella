@@ -1,10 +1,10 @@
 #ifndef CONTROLLER_H_
 #define CONTROLLER_H_
 
+#include "servent.h"
 #include "common.h"
 #include "socketmanager.h"
 #include "supernodedata.h"
-#include "servent.h"
 #include "confmanager.h"
 #include <glib.h>
 
@@ -30,5 +30,7 @@ int controller_connect_users(GList *users);
 int controller_init(const char *filename, const char *cache);
 
 int controller_menu(void);
+
+int controller_search(const char *query);
 
 #endif /*CONTROLLER_H_*/
