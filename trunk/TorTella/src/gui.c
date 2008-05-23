@@ -17,10 +17,18 @@
 #include "gui.h"
 
 /*-- This function allows the program to exit properly when the window is closed --*/
-gint destroyapp (GtkWidget *widget, gpointer gdata) {
-	g_print ("Quitting...\n");
-	gtk_main_quit();
-	return (FALSE);
+void destroyapp (GtkWidget *widget, gpointer gdata)
+{
+  g_print ("Quitting...\n");
+  gtk_main_quit();
+  exit(0);
+}
+
+gint destroywindow(GtkWidget *widget, gpointer gdata)
+{
+  g_print("Closing window\n");
+  gtk_main_quit();
+  return(FALSE);
 }
 
 /*-- This function allows the program to exit properly when the window is closed --*/
@@ -53,6 +61,60 @@ gint open_conversation(GtkWidget *widget, GdkEventButton *event, gpointer func_d
 	}
 
 	return FALSE;
+}
+
+gint open_about(GtkWidget *widget, gpointer gdata)
+{
+    GtkWidget *window;
+    GtkWidget *label1;
+
+	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    g_signal_connect (G_OBJECT (window), "delete_event",
+		      G_CALLBACK (destroywindow), NULL);
+    
+    gtk_container_set_border_width (GTK_CONTAINER (window), 25);
+    
+    label1 = gtk_label_new("\tTorTella Chat\nCreated by TorTella Team\nAll rights reserved 2007/2008");
+    gtk_container_add (GTK_CONTAINER (window), label1);
+    gtk_widget_show(label1); 
+    gtk_widget_show(window);
+    gtk_main();
+    return 0;
+}
+
+gint set_to_online(GtkWidget *widget, gpointer gdata)
+{
+	g_print("Online...\n");
+	return(FALSE);
+}
+
+gint set_to_busy(GtkWidget *widget, gpointer gdata)
+{
+	g_print("Busy...\n");
+	return (FALSE);
+}
+
+gint set_to_away(GtkWidget *widget, gpointer gdata)
+{
+	g_print("Away...\n");
+	return (FALSE);
+}
+
+gint search_chat_button(GtkWidget *widget, gpointer gdata)
+{
+	g_print("Search Chat...\n");
+	return(FALSE);
+}
+
+gint send_text_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata)
+{
+  
+  if(event->type == GDK_KEY_PRESS && event->keyval == GDK_Return)
+  {   g_print("Enter pressed...\n");
+      //Si dovrebbe risettare a null il text view
+      return 1;
+  }
+     return (FALSE);
 }
 
 GtkWidget *create_list(int index) {
@@ -92,12 +154,17 @@ GtkWidget *create_list(int index) {
 	}
 
 	cell = gtk_cell_renderer_text_new ();
-
-	column = gtk_tree_view_column_new_with_attributes ("Messages",
+    char *title;
+	if(index == 0)
+		title = "Lista chat";
+	else 
+		title = "Lista utenti";
+	
+	column = gtk_tree_view_column_new_with_attributes (title,
 			cell,
 			"text", 0,
 			NULL);
-
+	
 	GtkTreeSelection *select;
 	select = gtk_tree_view_get_selection(GTK_TREE_VIEW(tree_view));
 	gtk_tree_selection_set_mode(select, GTK_SELECTION_MULTIPLE);
@@ -168,16 +235,19 @@ GtkWidget *create_menu(void) {
 	/*-- Create Undo menu item under Edit submenu --*/
 	menuitem = gtk_menu_item_new_with_label ("Online");
 	gtk_menu_append(GTK_MENU(menu), menuitem);
+	gtk_signal_connect(GTK_OBJECT (menuitem), "activate", GTK_SIGNAL_FUNC (set_to_online), NULL);
 	gtk_widget_show (menuitem);
 
 	/*-- Create Copy menu item under File submenu --*/
 	menuitem = gtk_menu_item_new_with_label ("Busy");
 	gtk_menu_append(GTK_MENU(menu), menuitem);
+	gtk_signal_connect(GTK_OBJECT (menuitem), "activate", GTK_SIGNAL_FUNC (set_to_busy), NULL);
 	gtk_widget_show (menuitem);
 
 	/*-- Create Cut menu item under File submenu --*/
 	menuitem = gtk_menu_item_new_with_label ("Away");
 	gtk_menu_append(GTK_MENU(menu), menuitem);
+	gtk_signal_connect(GTK_OBJECT (menuitem), "activate", GTK_SIGNAL_FUNC (set_to_away), NULL);
 	gtk_widget_show (menuitem);
 	/*---------------- End Edit menu declarations ----------------*/
 
@@ -193,6 +263,7 @@ GtkWidget *create_menu(void) {
 	/*-- Create About menu item under Help submenu --*/
 	menuitem = gtk_menu_item_new_with_label ("About");
 	gtk_menu_append(GTK_MENU(menu), menuitem);
+	gtk_signal_connect(GTK_OBJECT (menuitem), "activate", GTK_SIGNAL_FUNC (open_about), NULL);
 	gtk_widget_show (menuitem);
 	/*---------------- End Help menu declarations ----------------*/
 	return menubar;
@@ -216,7 +287,8 @@ GtkWidget *create_text(int i )
 		gtk_text_view_set_editable(GTK_TEXT_VIEW(view),FALSE); 
 	gtk_container_add (GTK_CONTAINER (scrolled_window), view);
 	//insert_text (buffer);
-
+    if(i==0)
+        gtk_signal_connect(GTK_OBJECT(view),"key_press_event",GTK_SIGNAL_FUNC(send_text_message),NULL);
 	gtk_widget_show_all (scrolled_window);
 
 	return scrolled_window;
@@ -253,7 +325,7 @@ int open_chatroom_gui() {
 
 
 	/*-- Connect the window to the destroyapp function  --*/
-	gtk_signal_connect(GTK_OBJECT(window), "delete_event", GTK_SIGNAL_FUNC(destroyapp), NULL);
+	gtk_signal_connect(GTK_OBJECT(window), "delete_event", GTK_SIGNAL_FUNC(destroywindow), NULL);
 
 
 	/*-- Add the menubar to the handlebox --*/
@@ -343,7 +415,7 @@ int open_pm_gui() {
 	menu = create_menu();
 
 	/*-- Connect the window to the destroyapp function  --*/
-	gtk_signal_connect(GTK_OBJECT(window), "delete_event", GTK_SIGNAL_FUNC(destroyapp), NULL);
+	gtk_signal_connect(GTK_OBJECT(window), "delete_event", GTK_SIGNAL_FUNC(destroywindow), NULL);
 
 
 	/*-- Add the menubar to the handlebox --*/
@@ -400,7 +472,8 @@ GtkWidget *create_searchbar(void) {
 
 	gtk_entry_set_width_chars(GTK_ENTRY(bar_textfield), (gint)40);
 	gtk_button_set_label(GTK_BUTTON(bar_button), (const gchar*)"Search");
-
+     g_signal_connect (G_OBJECT (bar_button), "clicked",
+		      G_CALLBACK (search_chat_button), NULL);
 	gtk_container_add(GTK_CONTAINER(bar_container), bar_textfield);
 	gtk_box_pack_start(GTK_BOX(bar_container), bar_textfield, FALSE, TRUE, 5);
 	gtk_box_pack_start(GTK_BOX(bar_container), bar_button, FALSE, TRUE, 5);

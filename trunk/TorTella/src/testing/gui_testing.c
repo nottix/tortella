@@ -56,7 +56,7 @@
 	
 	searchbar = create_searchbar();
 	
-	  gtk_box_pack_start(GTK_BOX(vbox), handlebox, FALSE, TRUE, 5);
+	gtk_box_pack_start(GTK_BOX(vbox), handlebox, FALSE, TRUE, 5);
 	gtk_box_pack_start(GTK_BOX(vbox), searchbar, FALSE, TRUE, 5);
 	
     gtk_container_add(GTK_CONTAINER(vbox),list);
