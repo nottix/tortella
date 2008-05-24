@@ -22,9 +22,12 @@
 #include <gtk/gtk.h>
 #include <glib.h>
 #include <gdk/gdkkeysyms.h>
+#include "utils.h"
 
 GtkListStore *chat_model;
 GtkTreeIter   chat_iter;
+static GHashTable *tree_model_hashtable = NULL;
+
 
 struct tree_model
 {
@@ -44,9 +47,13 @@ gint destroywindow(GtkWidget *widget, gpointer gdata);
 
 gint ClosingAppWindow (GtkWidget *widget, gpointer gdata);
 
-gint add_to_list(char *chat_name);
+gint add_chat_to_list(char *chat_name);
 
 gint clear_chat_list();
+
+gint add_user_to_chat_list(int index, char *user);
+
+gint remove_user_from_chat_list(int index, int user_id);
 
 gint open_chat(GtkWidget *widget, GdkEventButton *event, gpointer func_data);
 
