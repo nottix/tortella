@@ -38,7 +38,7 @@ gint ClosingAppWindow (GtkWidget *widget, gpointer gdata) {
 	return (FALSE);
 }
 
-gint add_to_list(char *chat_name)
+gint add_chat_to_list(char *chat_name)
 {
   gchar *msg = g_strdup_printf (chat_name);
         gtk_list_store_append (GTK_LIST_STORE (chat_model), &chat_iter);
@@ -48,6 +48,24 @@ gint add_to_list(char *chat_name)
 	                    -1);
 	g_free (msg);
 	return 0;
+}
+
+gint add_user_to_chat_list(int index, char *user)
+{
+	gchar *msg = g_strdup_printf(user);
+	tree_model *mod = (tree_model*)g_hash_table_lookup(tree_model_hashtable,(gconstpointer)to_string(index));
+	gtk_list_store_append(GTK_LIST_STORE(mod->user_model), &(mod->user_iter));
+	gtk_list_store_set(GTK_LIST_STORE(mod->user_model), &(mod->user_iter), 0, msg, -1);
+	g_free(msg);
+	return 0;
+}
+
+gint remove_user_from_chat_list(int index, int user_id)
+{
+  tree_model *mod = (tree_model*)g_hash_table_lookup(tree_model_hashtable,(gconstpointer)to_string(index));
+  gtk_tree_model_iter_nth_child(GTK_TREE_MODEL(mod->user_model),&(mod->user_iter),NULL,(gint)user_id);
+  gtk_list_store_remove(GTK_LIST_STORE(mod->user_model), &(mod->user_iter));
+  return (FALSE);
 }
 
 gint clear_chat_list()
@@ -137,6 +155,7 @@ gint send_text_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata)
      return (FALSE);
 }
 
+
 GtkWidget *create_users_list(int index )
 {
 
@@ -185,12 +204,16 @@ GtkWidget *create_users_list(int index )
     gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view),
 	  		         GTK_TREE_VIEW_COLUMN (column));
    
-   if(index==1)
-   {  g_signal_connect(G_OBJECT(tree_view),
+   
+     g_signal_connect(G_OBJECT(tree_view),
                      "button_press_event",
                      G_CALLBACK(open_conversation),
                      NULL);  //EVENTO CHE AL DOPPIO CLICK SU UNA CHAT DOVREBBE APRIRE LA GUI DELLA CHAT SELEZIONATA
-   }
+   if(tree_model_hashtable == NULL)
+			tree_model_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
+
+   g_hash_table_insert(tree_model_hashtable, (gpointer)to_string(index), (gpointer)model_str);
+
    return scrolled_window;
 }
 
@@ -238,12 +261,12 @@ GtkWidget *create_chat_list(int index )
   
     gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view),
 	  		         GTK_TREE_VIEW_COLUMN (column));
-   if(index==0)
-   {   g_signal_connect(G_OBJECT(tree_view),
+     g_signal_connect(G_OBJECT(tree_view),
                      "button_press_event",
                      G_CALLBACK(open_chat),
                      NULL);  //EVENTO CHE AL DOPPIO CLICK SU UNA CHAT DOVREBBE APRIRE LA GUI DELLA CHAT SELEZIONATA
-   }
+   
+
    return scrolled_window;
 }
 
