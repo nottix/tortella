@@ -38,6 +38,26 @@ gint ClosingAppWindow (GtkWidget *widget, gpointer gdata) {
 	return (FALSE);
 }
 
+gint add_to_list(char *chat_name)
+{
+  gchar *msg = g_strdup_printf (chat_name);
+        gtk_list_store_append (GTK_LIST_STORE (chat_model), &chat_iter);
+        gtk_list_store_set (GTK_LIST_STORE (chat_model), 
+	                    &chat_iter,
+                            0, msg,
+	                    -1);
+	g_free (msg);
+	return 0;
+}
+
+gint clear_chat_list()
+{
+   gtk_list_store_clear(chat_model);
+	return (FALSE);
+}
+
+
+
 //EVENTO CHE SI SCATENA ALLA SELEZIONE DELLA CHAT, PER ORA FA SOLO UN PRINTF, in seguito dovrà aprire la gui della chat
 gint open_chat(GtkWidget *widget, GdkEventButton *event, gpointer func_data) {
 	if (event->type==GDK_2BUTTON_PRESS ||
@@ -117,73 +137,114 @@ gint send_text_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata)
      return (FALSE);
 }
 
-GtkWidget *create_list(int index) {
+GtkWidget *create_users_list(int index )
+{
 
-	GtkWidget *scrolled_window;
-	GtkWidget *tree_view;
-	GtkListStore *model;
-	GtkTreeIter iter;
-	GtkCellRenderer *cell;
-	GtkTreeViewColumn *column;
+    GtkWidget *scrolled_window;
+    GtkWidget *tree_view;
+    GtkListStore *model = gtk_list_store_new(1, G_TYPE_STRING);
+   // GtkTreeIter iter;
+    GtkCellRenderer *cell;
+    GtkTreeViewColumn *column;
+    tree_model *model_str = calloc(sizeof(tree_model),1);
+    model_str->user_model = model;
+    int i;
+   
+    /* Create a new scrolled window, with scrollbars only if needed */
+    scrolled_window = gtk_scrolled_window_new (NULL, NULL);
+    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
+				    GTK_POLICY_AUTOMATIC, 
+				    GTK_POLICY_AUTOMATIC);
+   
+   // model = gtk_list_store_new (1, G_TYPE_STRING);
+    tree_view = gtk_tree_view_new ();
+    gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (scrolled_window), 
+                                           tree_view);
+    gtk_tree_view_set_model (GTK_TREE_VIEW (tree_view), GTK_TREE_MODEL (model));
+    gtk_widget_show (tree_view);
+   
+    /* Add some messages to the window */
+    for (i = 0; i < 10; i++) {
+        
+        gchar *msg = g_strdup_printf ("User #%d", i);
+        gtk_list_store_append (GTK_LIST_STORE (model_str->user_model), &(model_str->user_iter));
+        gtk_list_store_set (GTK_LIST_STORE (model_str->user_model), 
+	                    &(model_str->user_iter),
+                            0, msg,
+	                    -1);
+	g_free (msg);
+    }
+   
+    cell = gtk_cell_renderer_text_new ();
 
-	int i;
+    column = gtk_tree_view_column_new_with_attributes ("Messages",
+                                                       cell,
+                                                       "text", 0,
+                                                       NULL);
+  
+    gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view),
+	  		         GTK_TREE_VIEW_COLUMN (column));
+   
+   if(index==1)
+   {  g_signal_connect(G_OBJECT(tree_view),
+                     "button_press_event",
+                     G_CALLBACK(open_conversation),
+                     NULL);  //EVENTO CHE AL DOPPIO CLICK SU UNA CHAT DOVREBBE APRIRE LA GUI DELLA CHAT SELEZIONATA
+   }
+   return scrolled_window;
+}
 
-	/* Create a new scrolled window, with scrollbars only if needed */
-	scrolled_window = gtk_scrolled_window_new (NULL, NULL);
-	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
-			GTK_POLICY_AUTOMATIC, 
-			GTK_POLICY_AUTOMATIC);
+GtkWidget *create_chat_list(int index )
+{
 
-	model = gtk_list_store_new (1, G_TYPE_STRING);
-	tree_view = gtk_tree_view_new ();
-	gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (scrolled_window), 
-			tree_view);
-	gtk_tree_view_set_model (GTK_TREE_VIEW (tree_view), GTK_TREE_MODEL (model));
-	gtk_widget_show (tree_view);
+    GtkWidget *scrolled_window;
+    GtkWidget *tree_view;
+    GtkCellRenderer *cell;
+    GtkTreeViewColumn *column;
 
-	/* Add some messages to the window */
-	for (i = 0; i < 10; i++) {
+    int i;
+   
+    /* Create a new scrolled window, with scrollbars only if needed */
+    scrolled_window = gtk_scrolled_window_new (NULL, NULL);
+    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
+				    GTK_POLICY_AUTOMATIC, 
+				    GTK_POLICY_AUTOMATIC);
+   
+    chat_model = gtk_list_store_new (1, G_TYPE_STRING);
+    tree_view = gtk_tree_view_new ();
+    gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (scrolled_window), 
+                                           tree_view);
+    gtk_tree_view_set_model (GTK_TREE_VIEW (tree_view), GTK_TREE_MODEL (chat_model));
+    gtk_widget_show (tree_view);
+   
+    /* Add some messages to the window */
+    for (i = 0; i < 10; i++) {
+        
+        gchar *msg = g_strdup_printf ("Chat #%d", i);
+        gtk_list_store_append (GTK_LIST_STORE (chat_model), &chat_iter);
+        gtk_list_store_set (GTK_LIST_STORE (chat_model), 
+	                    &chat_iter,
+                            0, msg,
+	                    -1);
+	g_free (msg);
+    }
+   
+    cell = gtk_cell_renderer_text_new ();
 
-		gchar *msg = g_strdup_printf ("Chat #%d", i);
-		gtk_list_store_append (GTK_LIST_STORE (model), &iter);
-		gtk_list_store_set (GTK_LIST_STORE (model), 
-				&iter,
-				0, msg,
-				-1);
-		g_free (msg);
-	}
-
-	cell = gtk_cell_renderer_text_new ();
-    char *title;
-	if(index == 0)
-		title = "Lista chat";
-	else 
-		title = "Lista utenti";
-	
-	column = gtk_tree_view_column_new_with_attributes (title,
-			cell,
-			"text", 0,
-			NULL);
-	
-	GtkTreeSelection *select;
-	select = gtk_tree_view_get_selection(GTK_TREE_VIEW(tree_view));
-	gtk_tree_selection_set_mode(select, GTK_SELECTION_MULTIPLE);
-
-	gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view),
-			GTK_TREE_VIEW_COLUMN (column));
-	if(index==0)
-	{   g_signal_connect(G_OBJECT(tree_view),
-			"button_press_event",
-			G_CALLBACK(open_chat),
-			NULL);  //EVENTO CHE AL DOPPIO CLICK SU UNA CHAT DOVREBBE APRIRE LA GUI DELLA CHAT SELEZIONATA
-	}
-	if(index==1)
-	{  g_signal_connect(G_OBJECT(tree_view),
-			"button_press_event",
-			G_CALLBACK(open_conversation),
-			NULL);  //EVENTO CHE AL DOPPIO CLICK SU UNA CHAT DOVREBBE APRIRE LA GUI DELLA CHAT SELEZIONATA
-	}
-	return scrolled_window;
+    column = gtk_tree_view_column_new_with_attributes ("Messages",
+                                                       cell,
+                                                       "text", 0,
+                                                       NULL);
+  
+    gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view),
+	  		         GTK_TREE_VIEW_COLUMN (column));
+   if(index==0)
+   {   g_signal_connect(G_OBJECT(tree_view),
+                     "button_press_event",
+                     G_CALLBACK(open_chat),
+                     NULL);  //EVENTO CHE AL DOPPIO CLICK SU UNA CHAT DOVREBBE APRIRE LA GUI DELLA CHAT SELEZIONATA
+   }
+   return scrolled_window;
 }
 
 GtkWidget *create_menu(void) {
@@ -341,7 +402,7 @@ int open_chatroom_gui() {
 	gtk_box_pack_start(GTK_BOX(vbox), handlebox, FALSE, TRUE, 0);    
 
 	gtk_container_add(GTK_CONTAINER(vbox),hbox);
-	list = create_list (1);
+	list = create_users_list (1);
 	gtk_container_add(GTK_CONTAINER(hbox),vbox2);
 	gtk_container_add (GTK_CONTAINER (hbox), list);
 	// gtk_container_add(GTK_CONTAINER(vbox),sep);  

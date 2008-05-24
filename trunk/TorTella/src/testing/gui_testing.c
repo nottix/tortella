@@ -34,7 +34,7 @@
 
   /*-- Create the vbox --*/
   vbox = gtk_vbox_new(FALSE, 5);
-  list = create_list(0);
+  list = create_chat_list(0);
   /*-- Create the handlebox --*/
   handlebox = gtk_handle_box_new();
 
