@@ -23,6 +23,17 @@
 #include <glib.h>
 #include <gdk/gdkkeysyms.h>
 
+GtkListStore *chat_model;
+GtkTreeIter   chat_iter;
+
+struct tree_model
+{
+  GtkListStore *user_model;
+  GtkTreeIter   user_iter;
+};
+typedef struct tree_model tree_model;
+
+
 //FUNZIONI PER LA CREAZIONE DELLE GUI
 int open_chatroom_gui(void);
 int open_pm_gui(void);
@@ -32,6 +43,10 @@ void destroyapp (GtkWidget *widget, gpointer gdata);
 gint destroywindow(GtkWidget *widget, gpointer gdata);
 
 gint ClosingAppWindow (GtkWidget *widget, gpointer gdata);
+
+gint add_to_list(char *chat_name);
+
+gint clear_chat_list();
 
 gint open_chat(GtkWidget *widget, GdkEventButton *event, gpointer func_data);
 
@@ -49,7 +64,9 @@ gint search_chat_button(GtkWidget *widget, gpointer gdata);
 
 gint send_text_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata);
 
-GtkWidget *create_list(int index );
+GtkWidget *create_users_list(int index);
+
+GtkWidget *create_chat_list(int index);
 
 GtkWidget *create_menu(void);
 
