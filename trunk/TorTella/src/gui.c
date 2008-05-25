@@ -74,6 +74,14 @@ gint clear_chat_list()
 	return (FALSE);
 }
 
+gint clear_buffer(GtkTextView *widget)
+{
+ GtkTextBuffer *text;
+ text = gtk_text_buffer_new(NULL);
+ gtk_text_view_set_buffer(GTK_TEXT_VIEW(widget),text);
+ return (FALSE);
+}
+
 
 
 //EVENTO CHE SI SCATENA ALLA SELEZIONE DELLA CHAT, PER ORA FA SOLO UN PRINTF, in seguito dovrà aprire la gui della chat
@@ -149,7 +157,7 @@ gint send_text_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata)
   
   if(event->type == GDK_KEY_PRESS && event->keyval == GDK_Return)
   {   g_print("Enter pressed...\n");
-      //Si dovrebbe risettare a null il text view
+      clear_buffer(GTK_TEXT_VIEW(widget));
       return 1;
   }
      return (FALSE);
