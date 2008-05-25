@@ -1,18 +1,18 @@
 CC = gcc
 CFLAGS = -g -Wall
 OBJECTS = tortellaprotocol.o httpmanager.o socketmanager.o packetmanager.o servent.o supernodedata.o logger.o utils.o init.o routemanager.o confmanager.o controller.o gui.o
-INCFLAGS = -I./ `pkg-config --cflags glib-2.0`
+INCFLAGS = -I./ `pkg-config --cflags glib-2.0` `pkg-config --cflags gtk+-2.0`
 LDFLAGS = -Wl,-rpath,/usr/local/lib
-LIBS = -lpthread `pkg-config --libs glib-2.0`
+LIBS = -lpthread `pkg-config --libs glib-2.0` `pkg-config --libs gtk+-2.0`
 BIN = ../bin
 
 all: tortella
 
 tortella: $(OBJECTS) tortella.c
-	$(CC) -o $(BIN)/tortella tortella.c $(OBJECTS) $(LDFLAGS) $(LIBS)
+	$(CC) -o $(BIN)/tortella tortella.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS)
 
 gui_testing: $(OBJECTS) testing/gui_testing.c
-	$(CC) -o $(BIN)/gui_testing testing/gui_testing.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS) `pkg-config --cflags --libs gtk+-2.0`
+	$(CC) -o $(BIN)/gui_testing testing/gui_testing.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS)
 
 tortellaprotocol_testing: $(OBJECTS) testing/tortellaprotocol_testing.c
 	$(CC) -o $(BIN)/tortellaprotocol_testing testing/tortellaprotocol_testing.c $(OBJECTS) $(LDFLAGS) $(LIBS) $(INCFLAGS)
@@ -81,7 +81,7 @@ utils.o: utils.h utils.c
 
 gui.o: gui.h gui.c
 	@echo -e "\nBuilding gui"
-	$(CC) $(CFLAGS) $(INCFLAGS) -o gui.o -c gui.c `pkg-config --cflags gtk+-2.0`
+	$(CC) $(CFLAGS) $(INCFLAGS) -o gui.o -c gui.c 
 
 init.o: init.h init.c
 	@echo -e "\nBuilding init"

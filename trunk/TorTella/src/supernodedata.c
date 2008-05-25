@@ -364,6 +364,10 @@ GList *search_all_chat(const char *title, GHashTable *chat_table) {
 	return listallchat;
 }
 
+GList *search_all_local_chat(const char *title) {
+	return search_all_chat(title, chat_hashtable);
+}
+
 chatclient *search_chatclient(const char *nick, GHashTable *chatclient_table) {
 	if(nick==NULL || chatclient_table==NULL) {
 		return NULL;

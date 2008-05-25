@@ -7,6 +7,9 @@
 #include "supernodedata.h"
 #include "confmanager.h"
 #include <glib.h>
+#include "gui.h"
+
+pthread_t gtk_main_thread;
 
 //EXTERN
 //extern GHashTable *servent_hashtable;
@@ -28,6 +31,10 @@ int controller_leave_chat(u_int8 chat_id);
 int controller_connect_users(GList *users);
 
 int controller_init(const char *filename, const char *cache);
+
+void *controller_start_main_thread(void *unused);
+
+int controller_init_gui(void);
 
 int controller_menu(void);
 
