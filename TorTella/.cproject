@@ -130,6 +130,7 @@
 
 
 
+
 <storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
 <buildTargets>
 <target name="supernodedata_testing" path="src" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
@@ -184,6 +185,14 @@
 <buildCommand>make</buildCommand>
 <buildArguments/>
 <buildTarget>gui_testing</buildTarget>
+<stopOnError>true</stopOnError>
+<useDefaultCommand>true</useDefaultCommand>
+<runAllBuilders>false</runAllBuilders>
+</target>
+<target name="tortella" path="src" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+<buildCommand>make</buildCommand>
+<buildArguments/>
+<buildTarget>tortella</buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>true</useDefaultCommand>
 <runAllBuilders>false</runAllBuilders>

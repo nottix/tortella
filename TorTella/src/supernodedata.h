@@ -101,6 +101,8 @@ chat *search_chat(const char *title, GHashTable *chat_table);
  */
 GList *search_all_chat(const char *title, GHashTable *chat_table);
 
+GList *search_all_local_chat(const char *title);
+
 chatclient *search_chatclient(const char *nick, GHashTable *chatclient_table);
 
 /*

@@ -23,10 +23,15 @@
 #include <glib.h>
 #include <gdk/gdkkeysyms.h>
 #include "utils.h"
+#include "controller.h"
+#include "supernodedata.h"
 
 GtkListStore *chat_model;
 GtkTreeIter   chat_iter;
 static GHashTable *tree_model_hashtable = NULL;
+
+
+GtkWidget *bar_textfield;
 
 
 struct tree_model

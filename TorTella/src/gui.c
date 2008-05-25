@@ -156,7 +156,22 @@ gint set_to_away(GtkWidget *widget, gpointer gdata)
 
 gint search_chat_button(GtkWidget *widget, gpointer gdata)
 {
-	g_print("Search Chat...\n");
+	g_print("Search Chat: %s\n", gtk_entry_get_text(GTK_ENTRY(bar_textfield)));
+	controller_search(gtk_entry_get_text(GTK_ENTRY(bar_textfield)));
+	clear_chat_list();
+	GList *chats;
+	int i=0, counter=3;
+	chat *chat_val;
+	while(counter--) { //TODO: trovare metodo migliore di stampa risultati
+		chats = search_all_local_chat(gtk_entry_get_text(GTK_ENTRY(bar_textfield)));
+		for(; i<g_list_length(chats); i++) {
+			chat_val = (chat*)g_list_nth_data(chats, i);
+			add_chat_to_list(chat_val->title);
+			
+		}
+		//sleep(1);
+	}
+	printf("ok");
 	return(FALSE);
 }
 
@@ -574,7 +589,7 @@ int open_pm_gui() {
 GtkWidget *create_searchbar(void) {
 	GtkWidget *bar_container = gtk_hbox_new(FALSE, 5);
 
-	GtkWidget *bar_textfield = gtk_entry_new();
+	bar_textfield = gtk_entry_new();
 	GtkWidget *bar_button = gtk_button_new();
 
 	gtk_entry_set_width_chars(GTK_ENTRY(bar_textfield), (gint)40);
