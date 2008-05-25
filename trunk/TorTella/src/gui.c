@@ -82,6 +82,14 @@ gint clear_buffer(GtkTextView *widget)
  return (FALSE);
 }
 
+gint add_to_buffer_new_message(GtkTextView *widget, gchar *msg)
+{
+  GtkTextBuffer *text = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget));
+  GtkTextIter iter;
+  gtk_text_buffer_get_end_iter(text,&iter),
+  gtk_text_buffer_insert(text,&iter,msg,-1); 
+  return (FALSE);
+}
 
 
 //EVENTO CHE SI SCATENA ALLA SELEZIONE DELLA CHAT, PER ORA FA SOLO UN PRINTF, in seguito dovrà aprire la gui della chat
