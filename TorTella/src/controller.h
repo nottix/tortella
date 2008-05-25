@@ -8,6 +8,7 @@
 #include "confmanager.h"
 #include <glib.h>
 #include "gui.h"
+#include "utils.h"
 
 pthread_t gtk_main_thread;
 
@@ -32,6 +33,8 @@ int controller_connect_users(GList *users);
 
 int controller_init(const char *filename, const char *cache);
 
+int controller_exit();
+
 void *controller_start_main_thread(void *unused);
 
 int controller_init_gui(void);
@@ -39,5 +42,7 @@ int controller_init_gui(void);
 int controller_menu(void);
 
 int controller_search(const char *query);
+
+int controller_create(const char *title);
 
 #endif /*CONTROLLER_H_*/

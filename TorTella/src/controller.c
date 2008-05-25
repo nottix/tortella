@@ -71,14 +71,17 @@ int controller_send_pm(u_int4 msg_len, char *msg, u_int8 recv_id) {
 
 int controller_join_chat(u_int8 chat_id) {
 	if(chat_id>0) {
+		printf("eeee2\n");
 		chat *chat_elem = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(chat_id));
 		if(chat_elem!=NULL) {
+			printf("eeee1\n");
 			GList *clients = g_hash_table_get_values(chat_elem->users);
 			chatclient *client;
 			servent_data *peer;
 			int i;
 			for(i=0; i<g_list_length(clients); i++) {
 				client = (chatclient*)g_list_nth_data(clients, i);
+				printf("eeee\n");
 				if(client!=NULL) {
 					peer = servent_get(client->id);
 					if(peer!=NULL) {
@@ -139,18 +142,25 @@ int controller_connect_users(GList *users) {
 
 int controller_init(const char *filename, const char *cache) {
 	
-	logger_init(8, "tortella");
+	conf_read(filename);
+	
+	logger_init(8);
 	
 	GList *init_list = NULL;
 	logger(INFO, "[controller_init]Init\n");
 	init_list = init_read_file(cache);
 	
-	conf_read(filename);
-
 	servent_start(init_list);
 
-	servent_start_timer();
+	//servent_start_timer();
 	
+	return 0;
+}
+
+int controller_exit() {
+	kill_all_thread(0);
+	
+	logger_close();
 	return 0;
 }
 
@@ -348,12 +358,12 @@ int controller_menu() {
 
 int controller_search(const char *query) {
 	if(query==NULL || strcmp(query, "")==0) {
-		logger(CTRL_INFO, "[controller_init]Stringa di query inaccettabile\n");
+		logger(CTRL_INFO, "[controller_search]Stringa di query inaccettabile\n");
 		return -1;
 	}
 	
 	GList *servents = servent_get_values();
-	logger(CTRL_INFO, "[controller_init]Get values\n");
+	logger(CTRL_INFO, "[controller_search]Get values\n");
 	if(servents==NULL)
 		return -2;
 	servent_data *servent;
@@ -368,5 +378,22 @@ int controller_search(const char *query) {
 		UNLOCK(servent->id);
 	}
 	
+	return 0;
+}
+
+int controller_create(const char *title) {
+	if(title==NULL || strcmp(title, "")==0) {
+		logger(CTRL_INFO, "[controller_create]Titolo non valido\n");
+		return -1;
+	}
+	
+	u_int8 chat_id = generate_id();
+	add_chat(chat_id, title, &chat_hashtable);
+	
+	servent_data *local = servent_get_local();
+	add_user_to_chat(chat_id, local->id, local->nick, local->ip, local->port, chat_hashtable, &chatclient_hashtable);
+
+	chat *test = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(chat_id));
+	printf("chat created with ID: %lld\n", test->id);
 	return 0;
 }

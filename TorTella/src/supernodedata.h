@@ -89,6 +89,8 @@ u_int4 del_user(u_int8 id, GHashTable *chatclient_table);
 
 u_int4 del_user_from_chat(u_int8 chat_id, u_int8 id, GHashTable *chat_table, GHashTable *chatclient_table);
 
+chat *search_chat_local(const char *title);
+
 /*
  * Cerca nella hashtable chat_table l'occorrenza della chat title
  * Ritorna la struttura dati della chat

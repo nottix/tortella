@@ -154,7 +154,7 @@ u_int4 send_ping_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, char *nick,
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
 	
 	logger(PAC_INFO, "[send_ping_packet]Send PING from %lld to %lld\n", sender_id, recv_id);
-	
+
 	header->id = generate_id();
 	header->desc_id = PING_ID;
 	header->sender_id = sender_id;
@@ -162,7 +162,7 @@ u_int4 send_ping_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, char *nick,
 	header->timestamp = time(NULL);
 	header->data_len = strlen(nick);
 	
-	ping_desc *ping = (ping_desc*)malloc(sizeof(ping_desc));
+	ping_desc *ping = (ping_desc*)calloc(sizeof(ping_desc), 1);
 	ping->status = status;
 	ping->port = port;
 	packet->desc = (char*)ping;
@@ -170,7 +170,7 @@ u_int4 send_ping_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, char *nick,
 	header->desc_len = sizeof(ping_desc);
 		
 	packet->header = header;
-	packet->data = nick;
+	packet->data = strdup(nick);
 	
 	char *buffer;
 	int len;

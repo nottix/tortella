@@ -302,7 +302,7 @@ http_packet *http_char_to_bin(const char *buffer) {
 			tortella_header *t_header = (tortella_header*)packet->data_string;
 			char *t_desc = tortella_get_desc(packet->data_string);
 			char *t_data = tortella_get_data(packet->data_string);
-//			printf("[http_char_to_bin]data_string: %s, data: %s\n", packet->data_string, t_data);
+			printf("[http_char_to_bin]data_string: %s, data: %s\n", packet->data_string, t_data);
 			t_packet->header = t_header;
 			t_packet->desc = t_desc;
 			t_packet->data = t_data;

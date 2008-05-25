@@ -322,6 +322,10 @@ u_int4 del_user_from_chat(u_int8 chat_id, u_int8 id, GHashTable *chat_table, GHa
 	return 1;
 }
 
+chat *search_chat_local(const char *title) {
+	return search_chat(title, chat_hashtable);
+}
+
 chat *search_chat(const char *title, GHashTable *chat_table) {
 	if(title==NULL || chat_table==NULL)
 		return NULL;
@@ -472,24 +476,26 @@ GList *char_to_chatlist(const char *buffer,int len) {
 			if(token[i]=='\n')
 				line++;
 		}
-		chat *chat_elem=(chat *)calloc(1, sizeof(chat));
-		chat_elem->id= atoll(strtok_r(strdup(token), ";", &saveptr2));
-		chat_elem->title=strdup(strtok_r(NULL, ";", &saveptr2)); 
-		chat_elem->users=g_hash_table_new(g_str_hash, g_str_equal);
-		printf("[char_to_chatlist]chat ID: %lld\n", chat_elem->id);
-		// printf("chat ID: %lld\n", chat_elem->id);
-		for(i=0;i<line;i++) {
-			chatclient *chat_client=(chatclient *)calloc(1,sizeof(chatclient));	
-			chat_client->id=atoll(strtok_r(NULL, ";", &saveptr2));
-			chat_client->nick=strdup(strtok_r(NULL, ";", &saveptr2));
-			chat_client->ip=strdup(strtok_r(NULL, ";", &saveptr2));
-			chat_client->port= atoi(strtok_r(NULL, ";", &saveptr2));
-			printf("[char_to_chatlist] ID: %lld, nick: %s, ip: %s, port: %d\n", chat_client->id, chat_client->nick, chat_client->ip, chat_client->port);
-			g_hash_table_insert(chat_elem->users,(gpointer)to_string(chat_client->id),(gpointer)chat_client);
+		if(line>-1) {
+			chat *chat_elem=(chat *)calloc(1, sizeof(chat));
+			chat_elem->id= atoll(strtok_r(strdup(token), ";", &saveptr2));
+			chat_elem->title=strdup(strtok_r(NULL, ";", &saveptr2)); 
+			chat_elem->users=g_hash_table_new(g_str_hash, g_str_equal);
+			printf("[char_to_chatlist]chat ID: %lld\n", chat_elem->id);
+			// printf("chat ID: %lld\n", chat_elem->id);
+			for(i=0;i<line;i++) {
+				chatclient *chat_client=(chatclient *)calloc(1,sizeof(chatclient));	
+				chat_client->id=atoll(strtok_r(NULL, ";", &saveptr2));
+				chat_client->nick=strdup(strtok_r(NULL, ";", &saveptr2));
+				chat_client->ip=strdup(strtok_r(NULL, ";", &saveptr2));
+				chat_client->port= atoi(strtok_r(NULL, ";", &saveptr2));
+				printf("[char_to_chatlist] ID: %lld, nick: %s, ip: %s, port: %d\n", chat_client->id, chat_client->nick, chat_client->ip, chat_client->port);
+				g_hash_table_insert(chat_elem->users,(gpointer)to_string(chat_client->id),(gpointer)chat_client);
+			}
+			chat_list=g_list_append(chat_list,(gpointer)chat_elem);	 
+			buffer2 = NULL;
+			line = 0;
 		}
-		chat_list=g_list_append(chat_list,(gpointer)chat_elem);	 
-		buffer2 = NULL;
-		line = 0;
 	}
 	return chat_list;
 }

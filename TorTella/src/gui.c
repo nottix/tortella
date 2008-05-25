@@ -20,6 +20,7 @@
 void destroyapp (GtkWidget *widget, gpointer gdata)
 {
   g_print ("Quitting...\n");
+  controller_exit();
   gtk_main_quit();
   exit(0);
 }
@@ -99,10 +100,50 @@ gint open_chat(GtkWidget *widget, GdkEventButton *event, gpointer func_data) {
 		printf("I feel %s clicked with button %d\n",
 				event->type==GDK_2BUTTON_PRESS ? "double" : "triple",
 						event->button);
-		open_chatroom_gui();  
+		
+		GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(widget));
+		GList *lis = gtk_tree_selection_get_selected_rows(selection, &chat_model);
+		int i=0;
+		for(; i<g_list_length(lis); i++) {
+			printf("selected row: %s\n", (gchar*)g_list_nth_data(lis, i));
+		}
+		//printf("size: %d\n", g_list_length(lis));
+		//gpointer data = gtk_tree_selection_get_user_data(selection);
+		//printf("data: %s\n", (char*)data);
+		
+		//if(search_chat_local())
+		/* prende l'ID della chat e richiede la connessione al controller */
+		open_chatroom_gui(); 
 	}
 
 	return FALSE;
+}
+
+void view_onRowActivated (GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn  *col, gpointer userdata) {
+  GtkTreeModel *model;
+  GtkTreeIter   iter;
+
+  g_print ("A row has been double-clicked!\n");
+
+  model = gtk_tree_view_get_model(treeview);
+
+  if (gtk_tree_model_get_iter(model, &iter, path))
+  {
+     gchar *name;
+
+     gtk_tree_model_get(model, &iter, 0, &name, -1);
+
+     g_print ("Double-clicked row contains name %s\n", name);
+
+     chat *elem;
+     if((elem=search_chat_local(name))!=NULL) {
+    	 controller_connect_users(g_hash_table_get_values(elem->users));
+    	 sleep(1);
+    	 controller_join_chat(elem->id);
+    	 open_chatroom_gui();
+     }
+     g_free(name);
+  }
 }
 
 gint open_conversation(GtkWidget *widget, GdkEventButton *event, gpointer func_data) {
@@ -173,6 +214,11 @@ gint search_chat_button(GtkWidget *widget, gpointer gdata)
 	}
 	printf("ok");
 	return(FALSE);
+}
+
+gint create_chat_button(GtkWidget *widget, gpointer gdata) {
+	g_print("Create Chat: %s\n", gtk_entry_get_text(GTK_ENTRY(bar_textfield)));
+	return controller_create(gtk_entry_get_text(GTK_ENTRY(bar_textfield)));
 }
 
 gint send_text_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata)
@@ -299,11 +345,12 @@ GtkWidget *create_chat_list(int index )
 
     gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view),
 	  		         GTK_TREE_VIEW_COLUMN (column));
-    g_signal_connect(G_OBJECT(tree_view),
-                     "button_press_event",
-                     G_CALLBACK(open_chat),
-                     NULL);  //EVENTO CHE AL DOPPIO CLICK SU UNA CHAT DOVREBBE APRIRE LA GUI DELLA CHAT SELEZIONATA
-   
+//    g_signal_connect(G_OBJECT(tree_view),
+//                     "button_press_event",
+//                     G_CALLBACK(open_chat),
+//                     NULL);  //EVENTO CHE AL DOPPIO CLICK SU UNA CHAT DOVREBBE APRIRE LA GUI DELLA CHAT SELEZIONATA
+//
+    g_signal_connect(tree_view, "row-activated", (GCallback) view_onRowActivated, NULL);
 
    return scrolled_window;
 }
@@ -591,17 +638,25 @@ GtkWidget *create_searchbar(void) {
 
 	bar_textfield = gtk_entry_new();
 	GtkWidget *bar_button = gtk_button_new();
+	GtkWidget *bar_create_button = gtk_button_new();
 
 	gtk_entry_set_width_chars(GTK_ENTRY(bar_textfield), (gint)40);
 	gtk_button_set_label(GTK_BUTTON(bar_button), (const gchar*)"Search");
      g_signal_connect (G_OBJECT (bar_button), "clicked",
 		      G_CALLBACK (search_chat_button), NULL);
+     
+     gtk_button_set_label(GTK_BUTTON(bar_create_button), (const gchar*)"Create");
+     g_signal_connect(G_OBJECT(bar_create_button), "clicked", G_CALLBACK(create_chat_button), NULL);
+     
 	gtk_container_add(GTK_CONTAINER(bar_container), bar_textfield);
 	gtk_box_pack_start(GTK_BOX(bar_container), bar_textfield, FALSE, TRUE, 5);
 	gtk_box_pack_start(GTK_BOX(bar_container), bar_button, FALSE, TRUE, 5);
+	gtk_box_pack_start(GTK_BOX(bar_container), bar_create_button, FALSE, TRUE, 5);
 
+	gtk_widget_show(bar_create_button);
 	gtk_widget_show(bar_textfield);
 	gtk_widget_show(bar_button);
 
 	return bar_container;
 }
+

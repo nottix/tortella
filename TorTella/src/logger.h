@@ -42,6 +42,7 @@
 #define TORTELLA_INFO	6
 #define SOCK_INFO		7
 
+static char *pathname;
 
 static FILE *fd_file;
 
@@ -49,7 +50,7 @@ static pthread_mutex_t logger_mutex;
 
 static int verbose = 0;
 
-int logger_init(int verbose_level, const char *filename);
+int logger_init(int verbose_level);
 
 int logger_close();
 

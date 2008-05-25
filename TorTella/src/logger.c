@@ -16,11 +16,10 @@
  
 #include "logger.h"
 
-int logger_init(int verbose_level, const char *filename) {
-	char *pathname = (char*)malloc(strlen(path)+strlen(filename));
+int logger_init(int verbose_level) {
+	pathname = (char*)malloc(128);
 	strcpy(pathname, conf_get_path());
-	strcat(pathname, filename);
-	printf("[logger_init]init\n");
+	printf("[logger_init]init log file: %s\n", pathname);
 
 	fd_file = fopen(pathname, "a");
 	pthread_mutex_init(&logger_mutex, NULL);
@@ -34,11 +33,11 @@ int logger_close() {
 
 char *get_timestamp() {
 	time_t t = time(NULL);
-	char *ret = (char*)malloc(25);
+	char *ret = (char*)malloc(128);
 	sprintf(ret, "%s", asctime(localtime(&t)));
-	ret[strlen(ret)-1]=':';
-	ret[strlen(ret)]=' ';
-	ret[strlen(ret)+1]='\0';
+	ret[strlen(ret)-2]=':';
+	ret[strlen(ret)-1]=' ';
+	ret[strlen(ret)]='\0';
 	return ret;
 }
 
@@ -46,8 +45,10 @@ int logger(int type, const char* text, ...) {
 	va_list ap;
 	va_start(ap, text);
 	pthread_mutex_lock(&logger_mutex);
+	//fd_file = fopen(pathname, "a");
 	fprintf(fd_file, "%s", get_timestamp());
 	vfprintf(fd_file, text, ap);
+	//fclose(fd_file);
 	pthread_mutex_unlock(&logger_mutex);
 	
 	if(type<=verbose)
