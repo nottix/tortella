@@ -137,8 +137,6 @@ void kill_all_thread(int sig) {
 	if(timer_thread!=NULL)
 		pthread_kill(*timer_thread, SIGKILL);
 	
-	logger_close();
-	
 	logger(SYS_INFO, "[kill_all_thread]Closing supernode\n");
 
 }
@@ -643,7 +641,7 @@ void *servent_connect(void *parm) {
 				
 			}
 		
-			memset(buffer, 0, 2000);
+			//memset(buffer, 0, 2000);
 			printf("[servent_connect]Listening response\n");
 			len = switch_http_packet(fd, &buffer, LP_READ);
 			printf("[sevente_connect]Received response\n");
@@ -706,8 +704,9 @@ void *servent_timer(void *parm) {
 				data->post_type = PING_ID;
 				
 				printf("[servent_timer]Signaling %lld\n", data->id);
-				pthread_cond_signal(&data->cond);
+				
 				UNLOCK(data->id);
+				pthread_cond_signal(&data->cond);
 				printf("[servent_timer]Unlocked\n");
 			}
 		}

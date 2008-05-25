@@ -48,6 +48,8 @@ int open_pm_gui(void);
 
 void destroyapp (GtkWidget *widget, gpointer gdata);
 
+void view_onRowActivated (GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn  *col, gpointer userdata);
+
 gint destroywindow(GtkWidget *widget, gpointer gdata);
 
 gint ClosingAppWindow (GtkWidget *widget, gpointer gdata);
@@ -89,6 +91,8 @@ GtkWidget *create_menu(void);
 GtkWidget *create_text(int i );
 
 GtkWidget *create_searchbar(void);
+
+gint create_chat_button(GtkWidget *widget, gpointer gdata);
 
 int open_chatroom_gui(void);
 

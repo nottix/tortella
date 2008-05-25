@@ -5,7 +5,7 @@ int main(int argc, char *argv[])
 {
 	
 	if(argc<2) {
-		printf("Usage: <conf_path> [cache_path]\n");
+		printf("Usage: <conf_path> [cache_path] [filename]\n");
 		return 0;
 	}	
 	
