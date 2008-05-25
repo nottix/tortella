@@ -216,7 +216,11 @@ GtkWidget *create_users_list(int index )
                                                        cell,
                                                        "text", 0,
                                                        NULL);
-  
+    
+	GtkTreeSelection *select;
+    select = gtk_tree_view_get_selection(GTK_TREE_VIEW(tree_view));
+    gtk_tree_selection_set_mode(select, GTK_SELECTION_MULTIPLE);
+
     gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view),
 	  		         GTK_TREE_VIEW_COLUMN (column));
    
@@ -274,10 +278,13 @@ GtkWidget *create_chat_list(int index )
                                                        cell,
                                                        "text", 0,
                                                        NULL);
-  
+    GtkTreeSelection *select;
+    select = gtk_tree_view_get_selection(GTK_TREE_VIEW(tree_view));
+    gtk_tree_selection_set_mode(select, GTK_SELECTION_MULTIPLE);
+
     gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view),
 	  		         GTK_TREE_VIEW_COLUMN (column));
-     g_signal_connect(G_OBJECT(tree_view),
+    g_signal_connect(G_OBJECT(tree_view),
                      "button_press_event",
                      G_CALLBACK(open_chat),
                      NULL);  //EVENTO CHE AL DOPPIO CLICK SU UNA CHAT DOVREBBE APRIRE LA GUI DELLA CHAT SELEZIONATA
