@@ -51,6 +51,8 @@ gint add_chat_to_list(char *chat_name);
 
 gint clear_chat_list();
 
+gint clear_buffer(GtkTextView *widget);
+
 gint add_user_to_chat_list(int index, char *user);
 
 gint remove_user_from_chat_list(int index, int user_id);
