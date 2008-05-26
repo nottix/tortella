@@ -209,6 +209,7 @@ servent_data *servent_get_local(void) {
 
 int servent_send_packet(servent_data *sd) {
 	key_t servent_id = sd->queue_key;
+	logger(SYS_INFO, "[servent_send_packet] queue_key %d\n", sd->queue_key);
 	int queue_id;
 	if((queue_id = msgget(servent_id, 0666))<0) {
 		logger(SYS_INFO,"[servent_send_packet] coda non trovata\n");
@@ -229,7 +230,7 @@ servent_data *servent_pop_queue(key_t key) {
 	   logger(SYS_INFO,"[servent_pop_queue] coda non trovata\n");
 	   return NULL;
 	}
-	if(msgrcv(key,res,sizeof(servent_data),0,0)>0) {
+	if(msgrcv(queue_id,res,sizeof(servent_data),0,0)<0) {
 	  logger(SYS_INFO, "[servent_pop_queue] impossibile eliminare dalla coda\n");
 	  return NULL;
 	}
@@ -256,7 +257,7 @@ char *servent_pop_response(key_t key) {
 	   logger(SYS_INFO,"[servent_pop_response] coda non trovata\n");
 	   return NULL;
 	}
-	if(msgrcv(key,res,128,0,0)>0) {
+	if(msgrcv(queue_id,res,128,0,0)<0) {
 	  logger(SYS_INFO, "[servent_pop_response] impossibile eliminare dalla coda\n");
 	  return NULL;
 	}
@@ -371,6 +372,8 @@ void *servent_responde(void *parm) {
 							conn_servent->ip = get_dest_ip(fd);
 							conn_servent->port = GET_PING(h_packet->data)->port;
 							conn_servent->timestamp = h_packet->data->header->timestamp;
+							conn_servent->queue_key = generate_id4();
+							conn_servent->queue_res_key = generate_id4();
 							
 							conn_servent->status = GET_PING(h_packet->data)->status;
 							//conn_servent->timestamp = h_packet->data->header->timestamp;
@@ -401,6 +404,9 @@ void *servent_responde(void *parm) {
 							//sleep(1);
 							printf("[servent_responde]Invio a %lld\n", conn_servent->id);
 							
+							//servent_data *tmp;
+							//COPY_SERVENT(conn_servent, tmp);
+							//servent_send_packet(tmp);
 							//pthread_cond_signal(&conn_servent->cond); //FIXIT: probabile race condition
 						}
 					}
@@ -627,19 +633,26 @@ void *servent_connect(void *parm) {
 
 	key_t servent_id = servent_peer->queue_key;
 	int queue_id;
-			logger(SYS_INFO, "[servent_connect] creazione client4\n");
+	logger(SYS_INFO, "[servent_connect] creazione client %d\n", servent_id);
 
 	if((queue_id = msgget(servent_id, IPC_CREAT | 0666))<0) {
+		perror("error\n");
 		logger(SYS_INFO,"[servent_connect] errore istanziazione coda\n");
 		return NULL;
 	}
 	
 	key_t queue_res_key = servent_peer->queue_res_key;
+	logger(SYS_INFO, "[servent_connect] queue_res_key %d\n", queue_res_key);
 	int queue_res_id;
 	if((queue_res_id = msgget(queue_res_key, IPC_CREAT | 0666))<0) {
 		logger(SYS_INFO,"[servent_connect] errore istanziazione coda\n");
 		return NULL;
 	}
+	
+	servent_data *tmp;
+	COPY_SERVENT(servent_peer, tmp);
+	tmp->post_type = PING_ID;
+	servent_send_packet(tmp);
 	
 	printf("[servent_connect]Init %lld\n", id_dest);
 	
@@ -664,6 +677,7 @@ void *servent_connect(void *parm) {
 		printf("[servent_connect]Signal received in id_dest %lld\n", id_dest);
 		
 		WLOCK(id_dest);
+		logger(SYS_INFO, "[servent_connect] post_type %d\n", servent_queue->post_type);
 		servent_peer->post_type = servent_queue->post_type;
 		servent_peer->chat_id_req = servent_queue->chat_id_req;
 		servent_peer->msg_len = servent_queue->msg_len;
