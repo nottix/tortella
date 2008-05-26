@@ -28,6 +28,7 @@
 #include <sys/stat.h>
 #include <pthread.h>
 #include <dirent.h>
+#include "logger.h"
 
 #define MODE_TRUNC 0x900
 #define MODE_APPEND 0x901
@@ -76,6 +77,8 @@ u_int4 read_from_file(const char *filename, GHashTable **chat_table, GHashTable 
 u_int4 read_all(GHashTable **chat_table, GHashTable **chatclient_table);
 
 u_int4 add_chat(u_int8 id, const char *title, GHashTable **chat_table);
+
+int add_all_to_chat(GList *chats);
 
 u_int4 del_chat(u_int8 id, GHashTable *chat_table);
 

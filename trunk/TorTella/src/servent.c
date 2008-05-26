@@ -159,8 +159,12 @@ void servent_init(char *ip, u_int4 port, u_int1 status) {
 	local_servent->port = port;
 	//local_servent->queue_key = generate_id4();
 	//local_servent->queue_res_key = generate_id4();
+	local_servent->queue = g_queue_new();
+	local_servent->res_queue = g_queue_new();
 	local_servent->status = status;
 	local_servent->nick = "simone";
+	
+	add_user(local_servent->id, local_servent->nick, local_servent->ip, local_servent->port, &chatclient_hashtable);
 	
 	pthread_mutex_init(&local_servent->mutex, NULL);
 	pthread_rwlock_init(&local_servent->rwlock_data, NULL);
@@ -228,13 +232,22 @@ servent_data *servent_pop_queue(servent_data *sd) {
 }
 
 void servent_append_response(servent_data *sd, const char *response) {
-	g_queue_push_tail(sd->res_queue,(gpointer)response);
+	g_queue_push_tail(sd->res_queue,(gpointer)strdup(response));
 }
 
 char *servent_pop_response(servent_data *sd) {
 	char *buf;
+	if(sd->res_queue==NULL) {
+		logger(SYS_INFO, "[servent_append_responde]Response queue NULL\n");
+		return NULL;
+	}
+	
+	int counter = 0;
 	while((buf = (char*)g_queue_pop_head(sd->res_queue))==NULL) {
+		if(counter>10)
+			break;
 		usleep(200);
+		counter++;
 	}
 	return buf;
 }
@@ -322,6 +335,7 @@ void *servent_responde(void *parm) {
 							conn_servent->status = GET_PING(h_packet->data)->status;
 							conn_servent->timestamp = h_packet->data->header->timestamp;
 							conn_servent->nick = h_packet->data->data;
+							add_user(conn_servent->id, conn_servent->nick, conn_servent->ip, conn_servent->port, &chatclient_hashtable);
 							UNLOCK(id);
 							printf("[servent_responde]PING old\n");
 							
@@ -445,6 +459,7 @@ void *servent_responde(void *parm) {
 							res = search_all_chat(tortella_get_data(h_packet->data_string), chat_hashtable);
 							printf("[servent_responde]Results number %d\n", g_list_length(res));
 				
+							logger(SYS_INFO, "[servent_responde]Sending to ID: %lld\n", sd->id);
 							sd->chat_res = res;
 							sd->packet_id = h_packet->data->header->id;
 							sd->post_type = SEARCHHITS_ID;
@@ -489,13 +504,15 @@ void *servent_responde(void *parm) {
 						printf("[servent_responde]SEARCHHITS ricevuto\n");
 						
 						GList *chat_list = char_to_chatlist(tortella_get_data(h_packet->data_string), h_packet->data->header->data_len);
-						int i;
-						chat *chat_elem;
-						for(i=0; i<g_list_length(chat_list); i++) {
-							chat_elem = (chat*)g_list_nth_data(chat_list, i);
-							add_chat(chat_elem->id, chat_elem->title, &chat_hashtable);
-							printf("[servent_responde]Chat %lld added to list\n", chat_elem->id);
-						}
+						//printf("initing\n");
+						add_all_to_chat(chat_list);
+//						int i;
+//						chat *chat_elem;
+//						for(i=0; i<g_list_length(chat_list); i++) {
+//							chat_elem = (chat*)g_list_nth_data(chat_list, i);
+//							add_chat(chat_elem->id, chat_elem->title, &chat_hashtable);
+//							printf("[servent_responde]Chat %lld added to list\n", chat_elem->id);
+//						}
 						
 						route_entry *entry = get_route_entry(h_packet->data->header->id, route_hashtable);
 						if(entry!=NULL) {
@@ -637,7 +654,7 @@ void *servent_connect(void *parm) {
 		}
 		printf("[servent_connect]Signal received in id_dest %lld\n", id_dest);
 		
-		WLOCK(id_dest);
+		//WLOCK(id_dest);
 		logger(SYS_INFO, "[servent_connect] post_type %d\n", servent_queue->post_type);
 		servent_peer->post_type = servent_queue->post_type;
 		servent_peer->chat_id_req = servent_queue->chat_id_req;
@@ -751,13 +768,15 @@ void *servent_connect(void *parm) {
 				}
 			}
 			if(h_packet != NULL) {
+				logger(SYS_INFO, "[servent_connect]Appending response\n");
 				servent_append_response(servent_peer, h_packet->header_response->response);
 			}
 			else {
+				logger(SYS_INFO, "[servent_connect]Appending response TIMEOUT\n");
 				servent_append_response(servent_peer, TIMEOUT);
 			}
 		}
-		UNLOCK(id_dest);
+		//UNLOCK(id_dest);
 		
 		
 	}

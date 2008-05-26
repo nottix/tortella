@@ -103,7 +103,7 @@ count:
 	wc -l *.c *.h */*.c
 
 clean:
-	rm -f *.o testing/*.o
+	rm -f *.o testing/*.o $(BIN)/*.o
 
 .PHONY: all
 .PHONY: count
