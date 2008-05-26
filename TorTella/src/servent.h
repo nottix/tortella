@@ -52,8 +52,8 @@ static u_int4 timer_interval = 5;
 
 struct servent_data {
 	u_int8 id;
-	key_t queue_key;
-	key_t queue_res_key;
+	GAsyncQueue *queue;
+	GAsyncQueue *res_queue;
 	char *ip;
 	u_int4 port;
 	u_int1 status;
@@ -161,13 +161,13 @@ GList *servent_get_keys(void);
 
 servent_data *servent_get_local(void);
 
-int servent_send_packet(servent_data *sd);
+void servent_send_packet(servent_data *sd);
 
-servent_data *servent_pop_queue(key_t key);
+servent_data *servent_pop_queue(servent_data *sd);
 
-int servent_append_response(key_t queue_res_key, const char *response);
+void servent_append_response(servent_data *sd, const char *response);
 
-char *servent_pop_response(key_t queue_resk_key);
+char *servent_pop_response(servent_data *sd);
 
 //-----THREAD--------------
 
