@@ -40,8 +40,6 @@
 
 #define TIMEOUT "timeout error"
 
-#define COPY_SERVENT(servent, copy)			copy=calloc(1, sizeof(servent_data)); \
-											memcpy(copy, servent, sizeof(servent_data))
 //#include "confvars.h"
 
 //#define RECV_MAX_LEN 4000;
@@ -122,10 +120,15 @@ static GSList *server_connection_thread;
 
 #define WLOCK(servent)			if(servent_get(servent)!=NULL) \
 									pthread_rwlock_wrlock( &(servent_get(servent)->rwlock_data))
+
 #define RLOCK(servent)			if(servent_get(servent)!=NULL) \
 									pthread_rwlock_rdlock( &(servent_get(servent)->rwlock_data))
+
 #define UNLOCK(servent)			if(servent_get(servent)!=NULL) \
 									pthread_rwlock_unlock( &(servent_get(servent)->rwlock_data))
+
+#define COPY_SERVENT(servent, copy)			copy=calloc(1, sizeof(servent_data)); \
+											memcpy(copy, servent, sizeof(servent_data))
 
 //Crea un server socket
 u_int4 servent_create_server(char *src_ip, u_int4 src_port);

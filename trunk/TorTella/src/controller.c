@@ -132,7 +132,10 @@ int controller_connect_users(GList *users) {
 		chatclient *client;
 		for(i=0; i<g_list_length(users); i++) {
 			client = (chatclient*)g_list_nth_data(users, i);
-			servent_start_client(client->ip, client->port);
+			if(servent_get(client->id)==NULL)
+				servent_start_client(client->ip, client->port);
+			else
+				logger(CTRL_INFO, "[controller_connect_users]Già connesso\n");
 		}
 		return 0;
 	}
@@ -241,7 +244,7 @@ int controller_init_gui(void) {
 void *controller_start_main_thread(void *unused) {
 	gtk_main();
 	printf("ok");
-	return;
+	return NULL;
 }
 
 int controller_menu() {
@@ -363,20 +366,30 @@ int controller_search(const char *query) {
 	}
 	
 	GList *servents = servent_get_values();
-	logger(CTRL_INFO, "[controller_search]Get values\n");
-	if(servents==NULL)
+	logger(CTRL_INFO, "[controller_search]Query: %s\n", query);
+	if(servents==NULL) {
+		logger(CTRL_INFO, "[controller_search]Servents null\n");
 		return -2;
-	servent_data *servent;
+	}
+	servent_data *servent, *tmp;
 	int i=0;
 	for(; i<g_list_length(servents); i++) {
 		servent = g_list_nth_data(servents, i);
-		WLOCK(servent->id);
-		servent->post_type=SEARCH_ID;
-		servent->title = strdup(query);
-		servent->title_len = strlen(query);
-		pthread_cond_signal(&servent->cond);
-		UNLOCK(servent->id);
-		
+		if(servent->queue==NULL) {
+			logger(CTRL_INFO, "[controller_search]Coda Servent NULL\n");
+			continue;
+		}
+		//RLOCK(servent->id);
+		COPY_SERVENT(servent, tmp);
+		//UNLOCK(servent->id);
+		if(tmp->queue==NULL) {
+			logger(CTRL_INFO, "[controller_search]Coda NULL\n");
+			continue;
+		}
+		tmp->post_type = SEARCH_ID;
+		tmp->title = strdup(query);
+		tmp->title_len = strlen(query);
+		servent_send_packet(tmp);
 	}
 	
 	return 0;

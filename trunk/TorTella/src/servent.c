@@ -194,6 +194,16 @@ servent_data *servent_get(u_int8 id) {
 }
 
 GList *servent_get_values(void) {
+	GList *lst = g_hash_table_get_values(servent_hashtable);
+	int i;
+	printf("swkdsjkjkwjhdkdhdh\n");
+	for(; i<g_list_length(lst); i++) {
+		servent_data *data = (servent_data*)g_list_nth_data(lst, i);
+		if(data->queue==NULL)
+			printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
+		else
+			printf("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\n");
+	}
 	return g_hash_table_get_values(servent_hashtable);
 }
 
@@ -337,6 +347,8 @@ void *servent_responde(void *parm) {
 							conn_servent->timestamp = h_packet->data->header->timestamp;
 							//conn_servent->queue_key = generate_id4();
 							//conn_servent->queue_res_key = generate_id4();
+							conn_servent->queue = g_queue_new();
+							conn_servent->res_queue = g_queue_new();
 							
 							conn_servent->status = GET_PING(h_packet->data)->status;
 							//conn_servent->timestamp = h_packet->data->header->timestamp;
@@ -426,17 +438,14 @@ void *servent_responde(void *parm) {
 						//printf("[servent_respond]Locked\n");
 						
 						if(h_packet->data_len>0) {
-							servent_data *sd = calloc(1,sizeof(servent_data));
+							servent_data *sd;
+							COPY_SERVENT(conn_servent, sd);
 							
 							printf("[servent_responde]Searching %s\n", tortella_get_data(h_packet->data_string));
 							res = search_all_chat(tortella_get_data(h_packet->data_string), chat_hashtable);
 							printf("[servent_responde]Results number %d\n", g_list_length(res));
-							//if(g_list_length(res)>0) {
-								sd->chat_res = res;
-							//}
-							//else {
-							//	conn_servent->chat_res = NULL;
-							//}
+				
+							sd->chat_res = res;
 							sd->packet_id = h_packet->data->header->id;
 							sd->post_type = SEARCHHITS_ID;
 							servent_send_packet(sd);
@@ -457,7 +466,8 @@ void *servent_responde(void *parm) {
 								conn_servent = (servent_data*)g_list_nth_data(servent_list, i);
 								if(conn_servent->id!=h_packet->data->header->sender_id) {
 									//WLOCK(conn_servent->id);
-									servent_data *sd = calloc(1,sizeof(servent_data));
+									servent_data *sd;
+									COPY_SERVENT(conn_servent, sd);
 									sd->ttl = GET_SEARCH(h_packet->data)->ttl-1;
 									sd->hops = GET_SEARCH(h_packet->data)->hops+1;
 									sd->title = tortella_get_data(h_packet->data_string);
@@ -490,8 +500,9 @@ void *servent_responde(void *parm) {
 						route_entry *entry = get_route_entry(h_packet->data->header->id, route_hashtable);
 						if(entry!=NULL) {
 							//WLOCK(entry->sender_id);
-							servent_data *sd = calloc(1,sizeof(servent_data));
+							servent_data *sd;
 							servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(entry->sender_id));
+							COPY_SERVENT(conn_servent, sd);
 							sd->packet_id = h_packet->data->header->id;
 							printf("[servent_responde]list size: %d, users: %d\n", g_list_length(chat_list), g_hash_table_size(((chat*)g_list_nth_data(chat_list, 0))->users));
 							sd->chat_res = chat_list;
@@ -507,27 +518,6 @@ void *servent_responde(void *parm) {
 						status = HTTP_STATUS_OK;
 						
 					}
-//					else if(h_packet->data->header->desc_id==CREATE_ID) {
-//						printf("[servent_responde]CREATE ricevuto\n");
-//						u_int8 chat_id = GET_CREATE(h_packet->data)->chat_id;
-//						u_int4 title_len = h_packet->data->header->data_len;
-//						char *title = h_packet->data->data;
-//						
-//						WLOCK(local_servent->id);
-//						//if(local_servent->is_supernode) {
-//							add_chat(chat_id, title, &chat_hashtable);
-//							//TODO: eventualmente aggiungere un servent_data ????
-//							
-//							chat *test = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(chat_id));
-//	
-//							printf("[servent_responde]chat created with ID: %lld\n", test->id);
-//						//}
-//						
-//						UNLOCK(local_servent->id);
-//						
-//						status = HTTP_STATUS_OK;
-//						//Crea chat
-//					}
 					
 					//Invio la conferma di ricezione
 					if(status>0) {
@@ -704,28 +694,27 @@ void *servent_connect(void *parm) {
 			}
 			else if(post_type==SEARCHHITS_ID) {
 				
-				servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id_dest));
+				//servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id_dest));
 				
-				RLOCK(local_servent->id);
+				//RLOCK(local_servent->id);
 				//LOCK(id_dest);
 				
 				printf("[servent_connect]Converting chatlist\n");
 				int length;
-				char *buf = chatlist_to_char(conn_servent->chat_res, &length);
+				char *buf = chatlist_to_char(servent_queue->chat_res, &length);
 				if(buf==NULL) {
 					length=0;
 				}
 				else {
 					printf("[servent_connect]converted in buffer: %s\n", buf);
 				}
-				send_searchhits_packet(fd, packet_id, local_servent->id, id_dest, g_list_length(conn_servent->chat_res), length, buf);
+				send_searchhits_packet(fd, packet_id, local_servent->id, id_dest, g_list_length(servent_queue->chat_res), length, buf);
 				
 				//UNLOCK(id_dest);
-				UNLOCK(local_servent->id);
+				//UNLOCK(local_servent->id);
 				
 			}
 		
-			//memset(buffer, 0, 2000);
 			printf("[servent_connect]Listening response\n");
 			len = switch_http_packet(fd, &buffer, LP_READ);
 			printf("[sevente_connect]Received response\n");
@@ -777,7 +766,7 @@ void *servent_connect(void *parm) {
 
 void *servent_timer(void *parm) {
 	GList *list;
-	servent_data *data;
+	servent_data *data, *tmp;
 	int i;
 	
 	while(1) {
@@ -787,16 +776,11 @@ void *servent_timer(void *parm) {
 		for(i=0; i<g_list_length(list); i++) {
 			data = (servent_data*)g_list_nth_data(list, i);
 			if(data->id!=local_servent->id) {
-				WLOCK(data->id);
-				printf("[servent_timer]Locked\n");
 			
-				data->post_type = PING_ID;
-				
+				COPY_SERVENT(data, tmp);
+				tmp->post_type = PING_ID;
+				servent_send_packet(tmp);
 				printf("[servent_timer]Signaling %lld\n", data->id);
-				
-				UNLOCK(data->id);
-				pthread_cond_signal(&data->cond);
-				printf("[servent_timer]Unlocked\n");
 			}
 		}
 		
