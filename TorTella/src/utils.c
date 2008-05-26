@@ -21,6 +21,11 @@ u_int8 generate_id(void) {
 	return (conf_get_gen_start()+random())^time(NULL);
 }
 
+int generate_id4(void) {
+	srandom(time(0));
+	return (random())^time(NULL);
+}
+
 char *to_string(u_int8 num) {
 	char *ret = (char*)malloc(60);
 	sprintf(ret, "%lld", num);

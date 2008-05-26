@@ -30,6 +30,13 @@
 #include <glib.h>
 #include "logger.h"
 #include "confmanager.h"
+#include <time.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <sys/stat.h>
+#include <string.h>
+
+#define TIMEOUT "timeout error"
 //#include "confvars.h"
 
 //#define RECV_MAX_LEN 4000;
@@ -40,6 +47,8 @@ static u_int4 timer_interval = 5;
 
 struct servent_data {
 	u_int8 id;
+	key_t queue_key;
+	key_t queue_res_key;
 	char *ip;
 	u_int4 port;
 	u_int1 status;
@@ -146,6 +155,14 @@ GList *servent_get_values(void);
 GList *servent_get_keys(void);
 
 servent_data *servent_get_local(void);
+
+int servent_send_packet(servent_data *sd);
+
+servent_data *servent_pop_queue(key_t key);
+
+int servent_append_response(key_t queue_res_key, const char *response);
+
+char *servent_pop_response(key_t queue_resk_key);
 
 //-----THREAD--------------
 

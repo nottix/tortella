@@ -13,6 +13,8 @@
 
 u_int8 generate_id(void);
 
+int generate_id4(void);
+
 char *to_string(u_int8 num);
 
 //char *to_string(u_int8 num1, u_int8 num2);
