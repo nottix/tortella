@@ -54,16 +54,20 @@ u_int4 servent_start_client(char *dest_ip, u_int4 dest_port) {
 	logger(SOCK_INFO, "[servent_start_client]cliid: %lld\n", cliid);
 	servent->ip = dest_ip;
 	servent->port = dest_port;
+	servent->queue_key = generate_id4();
+	servent->queue_res_key = generate_id4();
 	
 	pthread_mutex_init(&servent->mutex, NULL);
 	pthread_rwlock_init(&servent->rwlock_data, NULL);
 	pthread_cond_init(&servent->cond, NULL);
 
 	servent->post_type=PING_ID;
-
+    logger(SOCK_INFO, "[servent_start_client]prima pthread_create\n");
 	g_hash_table_insert(servent_hashtable, (gpointer)to_string(cliid), (gpointer)servent);
 	pthread_create(clithread, NULL, servent_connect, (void*)&cliid);
 	client_thread = g_slist_prepend(client_thread, (gpointer)(*clithread));
+	logger(SOCK_INFO, "[servent_start_client]dopo pthread_create\n");
+	
 	
 	return 1;
 }
@@ -155,6 +159,8 @@ void servent_init(char *ip, u_int4 port, u_int1 status) {
 	logger(SYS_INFO, "[servent_init]ID: %lld\n", local_servent->id);
 	local_servent->ip = ip;
 	local_servent->port = port;
+	local_servent->queue_key = generate_id4();
+	local_servent->queue_res_key = generate_id4();
 	local_servent->status = status;
 	local_servent->nick = "simone";
 	
@@ -201,6 +207,61 @@ servent_data *servent_get_local(void) {
 	return local_servent;
 }
 
+int servent_send_packet(servent_data *sd) {
+	key_t servent_id = sd->queue_key;
+	int queue_id;
+	if((queue_id = msgget(servent_id, 0666))<0) {
+		logger(SYS_INFO,"[servent_send_packet] coda non trovata\n");
+		return -1;
+	}
+	if(msgsnd(queue_id,sd,sizeof(servent_data),IPC_NOWAIT)<0) {
+	  logger(SYS_INFO, "[servent_send_packet] impossibile aggiungere alla coda\n");
+	  return -2;
+	}
+	return 0;
+}
+
+servent_data *servent_pop_queue(key_t key) {
+	
+	int queue_id;
+	servent_data *res = calloc(1, sizeof(servent_data));
+	if((queue_id = msgget(key, 0666)) <0) {
+	   logger(SYS_INFO,"[servent_pop_queue] coda non trovata\n");
+	   return NULL;
+	}
+	if(msgrcv(key,res,sizeof(servent_data),0,0)>0) {
+	  logger(SYS_INFO, "[servent_pop_queue] impossibile eliminare dalla coda\n");
+	  return NULL;
+	}
+	return res;
+}
+
+int servent_append_response(key_t queue_res_key, const char *response) {
+	int queue_id;
+	if((queue_id = msgget(queue_res_key, 0666)) <0) {
+		logger(SYS_INFO,"[servent_append_response] coda non trovata\n");
+		return -1;
+	}
+	if(msgsnd(queue_id,response,strlen(response),IPC_NOWAIT)<0) {
+	  logger(SYS_INFO, "[servent_append_response] impossibile aggiungere alla coda\n");
+	  return -2;
+	}
+	return 0;
+}
+
+char *servent_pop_response(key_t key) {
+	int queue_id;
+	char *res = calloc(1, 128);
+	if((queue_id = msgget(key, 0666)) <0) {
+	   logger(SYS_INFO,"[servent_pop_response] coda non trovata\n");
+	   return NULL;
+	}
+	if(msgrcv(key,res,128,0,0)>0) {
+	  logger(SYS_INFO, "[servent_pop_response] impossibile eliminare dalla coda\n");
+	  return NULL;
+	}
+	return res;  
+}
 //---------THREAD---------------
 
 //Thread che riceve le richieste di connessione e avvia nuovi thread
@@ -392,10 +453,12 @@ void *servent_responde(void *parm) {
 						}
 						printf("[servent_responde]conn_servent entry found\n");
 						//int len;
-						WLOCK(conn_servent->id);
-						printf("[servent_respond]Locked\n");
+					//	WLOCK(conn_servent->id);
+						//printf("[servent_respond]Locked\n");
 						
 						if(h_packet->data_len>0) {
+							servent_data *sd = calloc(1,sizeof(servent_data));
+							
 							printf("[servent_responde]Searching %s\n", tortella_get_data(h_packet->data_string));
 							res = search_all_chat(tortella_get_data(h_packet->data_string), chat_hashtable);
 							printf("[servent_responde]Results number %d\n", g_list_length(res));
@@ -405,14 +468,15 @@ void *servent_responde(void *parm) {
 							//else {
 							//	conn_servent->chat_res = NULL;
 							//}
-							conn_servent->packet_id = h_packet->data->header->id;
-							conn_servent->post_type = SEARCHHITS_ID;
+							sd->packet_id = h_packet->data->header->id;
+							sd->post_type = SEARCHHITS_ID;
+							servent_send_packet(sd);
 						}
 				
 						//local_servent->title = tortella_get_data(h_packet->data_string);
 						//local_servent->title_len = h_packet->data_len;
-						UNLOCK(conn_servent->id);
-						pthread_cond_signal(&conn_servent->cond);
+						//UNLOCK(conn_servent->id);
+						//pthread_cond_signal(&conn_servent->cond);
 						printf("[servent_responde]Sending SEARCHHITS packet to searching peer\n");
 						
 						if(GET_SEARCH(h_packet->data)->ttl>0) {
@@ -423,18 +487,19 @@ void *servent_responde(void *parm) {
 							
 								conn_servent = (servent_data*)g_list_nth_data(servent_list, i);
 								if(conn_servent->id!=h_packet->data->header->sender_id) {
-									WLOCK(conn_servent->id);
-									conn_servent->ttl = GET_SEARCH(h_packet->data)->ttl-1;
-									conn_servent->hops = GET_SEARCH(h_packet->data)->hops+1;
-									conn_servent->title = tortella_get_data(h_packet->data_string);
-									conn_servent->title_len = h_packet->data->header->data_len;
-									conn_servent->packet_id = h_packet->data->header->id;
-									conn_servent->post_type = SEARCH_ID;
-									
+									//WLOCK(conn_servent->id);
+									servent_data *sd = calloc(1,sizeof(servent_data));
+									sd->ttl = GET_SEARCH(h_packet->data)->ttl-1;
+									sd->hops = GET_SEARCH(h_packet->data)->hops+1;
+									sd->title = tortella_get_data(h_packet->data_string);
+									sd->title_len = h_packet->data->header->data_len;
+									sd->packet_id = h_packet->data->header->id;
+									sd->post_type = SEARCH_ID;
+									servent_send_packet(sd);
 									//Aggiunta regola di routing alla tabella
 									add_route_entry(h_packet->data->header->id, h_packet->data->header->sender_id, conn_servent->id, route_hashtable);
-									UNLOCK(conn_servent->id);
-									pthread_cond_signal(&conn_servent->cond);
+									//UNLOCK(conn_servent->id);
+									//pthread_cond_signal(&conn_servent->cond);
 									printf("[servent_responde]Retrasmitting SEARCH packet to other peers\n");
 								}
 							}		   
@@ -455,16 +520,16 @@ void *servent_responde(void *parm) {
 						
 						route_entry *entry = get_route_entry(h_packet->data->header->id, route_hashtable);
 						if(entry!=NULL) {
-							WLOCK(entry->sender_id);
-							
+							//WLOCK(entry->sender_id);
+							servent_data *sd = calloc(1,sizeof(servent_data));
 							servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(entry->sender_id));
-							conn_servent->packet_id = h_packet->data->header->id;
+							sd->packet_id = h_packet->data->header->id;
 							printf("[servent_responde]list size: %d, users: %d\n", g_list_length(chat_list), g_hash_table_size(((chat*)g_list_nth_data(chat_list, 0))->users));
-							conn_servent->chat_res = chat_list;
-							conn_servent->post_type = SEARCHHITS_ID;
-							
-							UNLOCK(entry->sender_id);
-							pthread_cond_signal(&conn_servent->cond);
+							sd->chat_res = chat_list;
+							sd->post_type = SEARCHHITS_ID;
+							servent_send_packet(sd);
+							//UNLOCK(entry->sender_id);
+							//pthread_cond_signal(&conn_servent->cond);
 							printf("[servent_responde]Routing packet from %lld to %lld\n", h_packet->data->header->sender_id, entry->sender_id);
 							del_route_entry(h_packet->data->header->id, route_hashtable);
 							printf("[servent_responde]Route entry %lld deleted\n", h_packet->data->header->id);
@@ -539,19 +604,42 @@ void *servent_connect(void *parm) {
 	int len;
 	char *buffer = (char*)malloc(2000);
 	http_packet *h_packet;
-	
 	u_int8 id_dest = *((u_int8*)(parm));
+	
 	//Si prendono l'ip e la porta dalla lista degli id
 	servent_data *servent_peer = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id_dest));
+	servent_data *servent_queue;
+	if(servent_peer == NULL) {
+		logger(SYS_INFO, "[servent_connect] servent_peer nullo\n");
+		return NULL;
+	}
 	char *ip_dest = servent_peer->ip;
 	u_int4 port_dest = servent_peer->port;
 	
 	int fd = servent_create_client(ip_dest, port_dest);
-	
+	logger(SYS_INFO, "[servent_connect] creazione client\n");
 	pthread_mutex_t *mutex = &servent_peer->mutex;
 	pthread_cond_t *cond = &servent_peer->cond;
-	
+		logger(SYS_INFO, "[servent_connect] creazione client2\n");
+
 	client_fd = g_slist_prepend(client_fd, (gpointer)fd);
+			logger(SYS_INFO, "[servent_connect] creazione client3\n");
+
+	key_t servent_id = servent_peer->queue_key;
+	int queue_id;
+			logger(SYS_INFO, "[servent_connect] creazione client4\n");
+
+	if((queue_id = msgget(servent_id, IPC_CREAT | 0666))<0) {
+		logger(SYS_INFO,"[servent_connect] errore istanziazione coda\n");
+		return NULL;
+	}
+	
+	key_t queue_res_key = servent_peer->queue_res_key;
+	int queue_res_id;
+	if((queue_res_id = msgget(queue_res_key, IPC_CREAT | 0666))<0) {
+		logger(SYS_INFO,"[servent_connect] errore istanziazione coda\n");
+		return NULL;
+	}
 	
 	printf("[servent_connect]Init %lld\n", id_dest);
 	
@@ -570,15 +658,26 @@ void *servent_connect(void *parm) {
 
 	//Ora si entra nel ciclio infinito che serve per inviare tutte le richieste
 	while(1) {
-		printf("[servent_connect]connect while\n");
+		printf("[servent_connect]Waiting\n");
+		//pthread_cond_wait(cond, mutex); //In attesa di un segnale che indichi la necessita di comunicare con il peer
+		servent_queue = servent_pop_queue(servent_id);
+		printf("[servent_connect]Signal received in id_dest %lld\n", id_dest);
+		
 		WLOCK(id_dest);
+		servent_peer->post_type = servent_queue->post_type;
+		servent_peer->chat_id_req = servent_queue->chat_id_req;
+		servent_peer->msg_len = servent_queue->msg_len;
+		servent_peer->msg = servent_queue->msg;
+		servent_peer->title = servent_queue->title;
+		servent_peer->title_len = servent_queue->title_len;
+		servent_peer->ttl = servent_queue->ttl;
+		servent_peer->hops = servent_queue->hops;
+		servent_peer->packet_id = servent_queue->packet_id;
+		
 		post_type = servent_peer->post_type;
 		chat_id_req = servent_peer->chat_id_req;
 		msg_len = servent_peer->msg_len;
 		msg = servent_peer->msg;
-//		msg = calloc(2000, 1);
-//		memset(msg, 55, 2000);
-//		msg_len = 2000;
 		title = servent_peer->title;
 		title_len = servent_peer->title_len;
 		ttl = servent_peer->ttl;
@@ -670,18 +769,23 @@ void *servent_connect(void *parm) {
 							else
 								printf("[servent_connect]Data isn't present\n");
 						}
+						
 					}
 					else {
 						printf("[servent_connect]Error\n");
 					}
 				}
 			}
+			if(h_packet != NULL) {
+				servent_append_response(queue_res_key, h_packet->header_response->response);
+			}
+			else {
+				servent_append_response(queue_res_key, TIMEOUT);
+			}
 		}
 		UNLOCK(id_dest);
 		
-		printf("[servent_connect]Waiting\n");
-		pthread_cond_wait(cond, mutex); //In attesa di un segnale che indichi la necessita di comunicare con il peer
-		printf("[servent_connect]Signal received in id_dest %lld\n", id_dest);
+		
 	}
 	pthread_exit(NULL);
 }

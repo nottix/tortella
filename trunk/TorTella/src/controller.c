@@ -376,6 +376,7 @@ int controller_search(const char *query) {
 		servent->title_len = strlen(query);
 		pthread_cond_signal(&servent->cond);
 		UNLOCK(servent->id);
+		
 	}
 	
 	return 0;
