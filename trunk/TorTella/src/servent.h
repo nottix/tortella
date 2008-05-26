@@ -52,8 +52,8 @@ static u_int4 timer_interval = 5;
 
 struct servent_data {
 	u_int8 id;
-	GAsyncQueue *queue;
-	GAsyncQueue *res_queue;
+	GQueue *queue;
+	GQueue *res_queue;
 	char *ip;
 	u_int4 port;
 	u_int1 status;
