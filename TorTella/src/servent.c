@@ -54,8 +54,6 @@ u_int4 servent_start_client(char *dest_ip, u_int4 dest_port) {
 	logger(SOCK_INFO, "[servent_start_client]cliid: %lld\n", cliid);
 	servent->ip = dest_ip;
 	servent->port = dest_port;
-	//servent->queue_key = generate_id4();
-	//servent->queue_res_key = generate_id4();
 	
 	pthread_mutex_init(&servent->mutex, NULL);
 	pthread_rwlock_init(&servent->rwlock_data, NULL);
@@ -208,65 +206,27 @@ servent_data *servent_get_local(void) {
 }
 
 void servent_send_packet(servent_data *sd) {
-	g_async_queue_push(sd->queue, (gpointer) sd);
-	/*key_t servent_id = sd->queue_key;
-	logger(SYS_INFO, "[servent_send_packet] queue_key %d\n", sd->queue_key);
-	int queue_id;
-	if((queue_id = msgget(servent_id, 0666))<0) {
-		logger(SYS_INFO,"[servent_send_packet] coda non trovata\n");
-		return -1;
-	}
-	if(msgsnd(queue_id,sd,sizeof(servent_data),IPC_NOWAIT)<0) {
-	  logger(SYS_INFO, "[servent_send_packet] impossibile aggiungere alla coda\n");
-	  return -2;
-	}
-	return 0;*/
+	g_queue_push_tail(sd->queue, (gpointer)sd);
 }
 
 servent_data *servent_pop_queue(servent_data *sd) {
-	return (servent_data*)g_async_queue_pop(sd->queue);
-	/*int queue_id;
-	servent_data *res = calloc(1, sizeof(servent_data));
-	if((queue_id = msgget(key, 0666)) <0) {
-	   logger(SYS_INFO,"[servent_pop_queue] coda non trovata\n");
-	   return NULL;
+	servent_data *servent;
+	while((servent = (servent_data*)g_queue_pop_head(sd->queue))==NULL) {
+		usleep(200);
 	}
-	if(msgrcv(queue_id,res,sizeof(servent_data),0,0)<0) {
-	  logger(SYS_INFO, "[servent_pop_queue] impossibile eliminare dalla coda\n");
-	  return NULL;
-	}
-	logger(SYS_INFO,"[servent_pop_queue] %"
-	return res;*/
+	return servent;
 }
 
 void servent_append_response(servent_data *sd, const char *response) {
-	g_async_queue_push(sd->res_queue,(gpointer)response);
-	/*int queue_id;
-	if((queue_id = msgget(queue_res_key, 0666)) <0) {
-		logger(SYS_INFO,"[servent_append_response] coda non trovata\n");
-		return -1;
-	}
-	if(msgsnd(queue_id,response,strlen(response),IPC_NOWAIT)<0) {
-	  logger(SYS_INFO, "[servent_append_response] impossibile aggiungere alla coda\n");
-	  return -2;
-	}
-	return 0;*/
+	g_queue_push_tail(sd->res_queue,(gpointer)response);
 }
 
 char *servent_pop_response(servent_data *sd) {
-	return (char*)g_async_queue_pop(sd->res_queue);
-	
-	/*int queue_id;
-	char *res = calloc(1, 128);
-	if((queue_id = msgget(key, 0666)) <0) {
-	   logger(SYS_INFO,"[servent_pop_response] coda non trovata\n");
-	   return NULL;
+	char *buf;
+	while((buf = (char*)g_queue_pop_head(sd->res_queue))==NULL) {
+		usleep(200);
 	}
-	if(msgrcv(queue_id,res,128,0,0)<0) {
-	  logger(SYS_INFO, "[servent_pop_response] impossibile eliminare dalla coda\n");
-	  return NULL;
-	}*/
-	//return res;  
+	return buf;
 }
 //---------THREAD---------------
 
@@ -298,15 +258,13 @@ void *servent_listen(void *parm) {
 //parm: socket
 void *servent_responde(void *parm) {
 	printf("[servent_responde]Server initialized\n");
-	char *buffer/* = (char*)malloc(2000)*/;
+	char *buffer;
 	http_packet *h_packet;
 	int len;
 	int fd = (int)parm;
 	u_int4 status = 0;
 	
 	while(1) {
-		//sleep(1);
-		//memset(buffer, 0, 2000);
 		len = switch_http_packet(fd, &buffer, LP_READ);
 		printf("[servent_responde]Data received, buffer: %s, len: %d\n", buffer, len);
 		
@@ -616,6 +574,7 @@ void *servent_connect(void *parm) {
 	char *buffer = (char*)malloc(2000);
 	http_packet *h_packet;
 	u_int8 id_dest = *((u_int8*)(parm));
+	logger(SYS_INFO, "[servent_connect]ID: %lld\n", id_dest);
 	
 	//Si prendono l'ip e la porta dalla lista degli id
 	servent_data *servent_peer = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id_dest));
@@ -646,8 +605,8 @@ void *servent_connect(void *parm) {
 		return NULL;
 	}*/
 	
-	servent_peer->queue = g_async_queue_new();
-	servent_peer->res_queue = g_async_queue_new();
+	servent_peer->queue = g_queue_new();
+	servent_peer->res_queue = g_queue_new();
 	
 	/*key_t queue_res_key = servent_peer->queue_res_key;
 	logger(SYS_INFO, "[servent_connect] queue_res_key %d\n", queue_res_key);
@@ -682,6 +641,10 @@ void *servent_connect(void *parm) {
 		printf("[servent_connect]Waiting\n");
 		//pthread_cond_wait(cond, mutex); //In attesa di un segnale che indichi la necessita di comunicare con il peer
 		servent_queue = servent_pop_queue(servent_peer);
+		if(servent_queue==NULL) {
+			logger(SYS_INFO, "[servent_connect] Queue NULL\n");
+			continue;
+		}
 		printf("[servent_connect]Signal received in id_dest %lld\n", id_dest);
 		
 		WLOCK(id_dest);
