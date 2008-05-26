@@ -17,6 +17,8 @@
 #ifndef SERVENT_H
 #define SERVENT_H
 
+#define _GNU_SOURCE
+
 #include "common.h"
 #include "packetmanager.h"
 #include "utils.h"
@@ -37,6 +39,9 @@
 #include <string.h>
 
 #define TIMEOUT "timeout error"
+
+#define COPY_SERVENT(servent, copy)			copy=calloc(1, sizeof(servent_data)); \
+											memcpy(copy, servent, sizeof(servent_data))
 //#include "confvars.h"
 
 //#define RECV_MAX_LEN 4000;
