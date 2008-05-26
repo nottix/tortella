@@ -62,7 +62,7 @@ u_int4 servent_start_client(char *dest_ip, u_int4 dest_port) {
 	pthread_cond_init(&servent->cond, NULL);
 
 	servent->post_type=PING_ID;
-    logger(SOCK_INFO, "[servent_start_client]prima pthread_create\n");
+    logger(SOCK_INFO, "[servent_start_client]prima pthread_create cliid %lld\n", cliid);
 	g_hash_table_insert(servent_hashtable, (gpointer)to_string(cliid), (gpointer)servent);
 	pthread_create(clithread, NULL, servent_connect, (void*)&cliid);
 	client_thread = g_slist_prepend(client_thread, (gpointer)(*clithread));
@@ -373,7 +373,7 @@ void *servent_responde(void *parm) {
 							conn_servent->timestamp = h_packet->data->header->timestamp;
 							
 							conn_servent->status = GET_PING(h_packet->data)->status;
-							conn_servent->timestamp = h_packet->data->header->timestamp;
+							//conn_servent->timestamp = h_packet->data->header->timestamp;
 							conn_servent->nick = h_packet->data->data;
 							conn_servent->id = h_packet->data->header->sender_id;
 							
@@ -463,7 +463,7 @@ void *servent_responde(void *parm) {
 							res = search_all_chat(tortella_get_data(h_packet->data_string), chat_hashtable);
 							printf("[servent_responde]Results number %d\n", g_list_length(res));
 							//if(g_list_length(res)>0) {
-								conn_servent->chat_res = res;
+								sd->chat_res = res;
 							//}
 							//else {
 							//	conn_servent->chat_res = NULL;
