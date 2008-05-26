@@ -41,7 +41,7 @@ int controller_init_gui(void);
 
 int controller_menu(void);
 
-int controller_search(const char *query);
+u_int8 controller_search(const char *query);
 
 int controller_create(const char *title);
 

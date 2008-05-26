@@ -203,6 +203,30 @@ u_int4 add_chat(u_int8 id, const char *title, GHashTable **chat_table) {
 	return 1;
 }
 
+int add_all_to_chat(GList *chats) {
+	if(chats==NULL) {
+		return -1;
+	}
+	
+	int i=0, j=0;
+	chat *elem;
+	chatclient *user;
+	GList *user_list;
+	for(; i<g_list_length(chats); i++) {
+		elem = (chat*)g_list_nth_data(chats, i);
+		add_chat(elem->id, elem->title, &chat_hashtable);
+		if(elem->users!=NULL) {
+			logger(SYS_INFO, "[add_all_to_chat]Utenti presenti\n");
+			user_list = g_hash_table_get_values(elem->users);
+			for(j=0; j<g_list_length(user_list); j++) {
+				user = (chatclient*)g_list_nth_data(user_list, j);
+				add_user_to_chat(elem->id, user->id, user->nick, user->ip, user->port, chat_hashtable, &chatclient_hashtable);
+			}
+		}
+	}
+	return 0;
+}
+
 u_int4 del_chat(u_int8 id, GHashTable *chat_table) {
 	if(chat_table==NULL)
 		return 0;

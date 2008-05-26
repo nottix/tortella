@@ -77,22 +77,26 @@ int controller_join_chat(u_int8 chat_id) {
 			printf("eeee1\n");
 			GList *clients = g_hash_table_get_values(chat_elem->users);
 			chatclient *client;
-			servent_data *peer;
+			servent_data *peer, *sd;
 			int i;
 			for(i=0; i<g_list_length(clients); i++) {
 				client = (chatclient*)g_list_nth_data(clients, i);
 				printf("eeee\n");
 				if(client!=NULL) {
 					peer = servent_get(client->id);
+					logger(CTRL_INFO, "[controller_join_chat]Sending join to %lld\n", client->id);
 					if(peer!=NULL) {
-						WLOCK(peer->id);
-						peer->chat_id_req = chat_id;
-						peer->post_type = JOIN_ID;
-						UNLOCK(peer->id);
-						pthread_cond_signal(&peer->cond);
+						COPY_SERVENT(peer, sd);
+						//WLOCK(peer->id);
+						sd->chat_id_req = chat_id;
+						sd->post_type = JOIN_ID;
+						//UNLOCK(peer->id);
+						servent_send_packet(sd);
+						//pthread_cond_signal(&peer->cond);
 					}
 				}
 			}
+			add_exist_user_to_chat(chat_id, servent_get_local()->id, chat_hashtable, &chatclient_hashtable);
 			return 0;
 		}
 	}
@@ -359,22 +363,24 @@ int controller_menu() {
 	return 0;
 }
 
-int controller_search(const char *query) {
+u_int8 controller_search(const char *query) {
 	if(query==NULL || strcmp(query, "")==0) {
 		logger(CTRL_INFO, "[controller_search]Stringa di query inaccettabile\n");
-		return -1;
+		return 0;
 	}
 	
 	GList *servents = servent_get_values();
 	logger(CTRL_INFO, "[controller_search]Query: %s\n", query);
 	if(servents==NULL) {
 		logger(CTRL_INFO, "[controller_search]Servents null\n");
-		return -2;
+		return 0;
 	}
 	servent_data *servent, *tmp;
 	int i=0;
 	for(; i<g_list_length(servents); i++) {
 		servent = g_list_nth_data(servents, i);
+		if(servent->id==servent_get_local()->id)
+			continue;
 		if(servent->queue==NULL) {
 			logger(CTRL_INFO, "[controller_search]Coda Servent NULL\n");
 			continue;
@@ -382,7 +388,7 @@ int controller_search(const char *query) {
 		//RLOCK(servent->id);
 		COPY_SERVENT(servent, tmp);
 		//UNLOCK(servent->id);
-		if(tmp->queue==NULL) {
+		if(tmp->queue==NULL || tmp->res_queue==NULL) {
 			logger(CTRL_INFO, "[controller_search]Coda NULL\n");
 			continue;
 		}
@@ -390,9 +396,24 @@ int controller_search(const char *query) {
 		tmp->title = strdup(query);
 		tmp->title_len = strlen(query);
 		servent_send_packet(tmp);
+		
+	}
+	//Da gestire i timeout
+	
+	char *ret;
+	for(i=0; i<g_list_length(servents); i++) {
+		servent = g_list_nth_data(servents, i);
+		if(servent->id==servent_get_local()->id)
+			continue;
+		
+		ret = servent_pop_response(servent);
+		if(strcmp(ret, TIMEOUT)==0)
+			return servent->id;
+		printf("RECEIVED %s\n", ret);
+		
 	}
 	
-	return 0;
+	return 1;
 }
 
 int controller_create(const char *title) {
