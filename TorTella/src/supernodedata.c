@@ -25,9 +25,9 @@
  * In modalità TRUNC crea ogni volta un nuovo file, mentre
  * nella modalità APPEND modifica il file esistente.
  */
-u_int4 write_to_file(const char *filename, chat *chat_str, u_int4 mode) {
+int write_to_file(const char *filename, chat *chat_str, u_int4 mode) {
 	if(chat_str==NULL || filename==NULL || strcmp(filename, "")==0)
-		return 0;
+		return -1;
 	
 	int fd;
 	if(mode==MODE_TRUNC) {
@@ -37,12 +37,10 @@ u_int4 write_to_file(const char *filename, chat *chat_str, u_int4 mode) {
 		if((fd=open(filename, O_TRUNC|O_CREAT|O_WRONLY, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH))<0)
 			return 0;
 		
-		//GList *list = g_hash_table_get_values(chat_table);
 		GList *listclient;
-		//chat *chat_str;
 		chatclient *chatclient_str;
-		char buffer[2000];
-		char bufferclient[2000];
+		char buffer[2048];
+		char bufferclient[1024];
 		int j;
 
 		sprintf(buffer, "%lld;%s;\n", chat_str->id, chat_str->title);
@@ -57,7 +55,7 @@ u_int4 write_to_file(const char *filename, chat *chat_str, u_int4 mode) {
 				
 		int len=0;
 		if((len=write(fd, buffer, strlen(buffer)))<0)
-			return 0;
+			return -1;
 		
 		close(fd);
 		
@@ -66,19 +64,19 @@ u_int4 write_to_file(const char *filename, chat *chat_str, u_int4 mode) {
 		return len;
 	}
 	
-	return 1;
+	return 0;
 }
 
-u_int4 write_all(GHashTable *chat_table, u_int4 mode) {
+int write_all(u_int4 mode) {
 	
 	if(mode==MODE_TRUNC) {
-		GList *list = g_hash_table_get_values(chat_table);
+		GList *list = g_hash_table_get_values(chat_hashtable);
 		printf("[write_all]size list: %d\n", g_list_length(list));
 		chat *chat_str;
 		int i;
 		for(i=0; i<g_list_length(list); i++) {
 			chat_str = (chat*)g_list_nth_data(list, i);
-			printf("[write_all]Writing file: %lld\n", chat_str->id);
+			logger(SYS_INFO, "[write_all]Writing file: %lld\n", chat_str->id);
 			char *path = calloc(strlen(to_string(chat_str->id))+strlen(conf_get_datadir())+2, 1);
 			strcpy(path, conf_get_datadir());
 			strcat(path, "/");
@@ -87,7 +85,7 @@ u_int4 write_all(GHashTable *chat_table, u_int4 mode) {
 		}
 	}
 	
-	return 1;
+	return 0;
 }
 
 /*
@@ -95,18 +93,17 @@ u_int4 write_all(GHashTable *chat_table, u_int4 mode) {
  * Aggiunge i dati sulla chat alla hashtable relativa, inoltre i dati degli utenti
  * alla hashtable relativa.
  */
-u_int4 read_from_file(const char *filename, GHashTable **chat_table, GHashTable **chatclient_table) {
-	printf("[read_from_file]opening filename: %s\n", filename);
+int read_from_file(const char *filename) {
 	char *saveptr;
 	if(filename==NULL || strcmp(filename, "")==0) {
 		printf("[read_from_file]Errore filename\n");
-		return 0;
+		return -1;
 	}
 	
 	int fd;
 	if((fd=open(filename, O_RDONLY|O_EXCL))<0) {
 		printf("[read_from_file]Errore apertura file\n");
-		return 0;
+		return -2;
 	}
 	
 	char ch;
@@ -121,21 +118,14 @@ u_int4 read_from_file(const char *filename, GHashTable **chat_table, GHashTable 
 	char *nick;
 	char *ip;
 	char *port;
-	//char *token;
-	//printf("[read_from_file]Before while\n");
 	while(read(fd, &ch, 1)>0) {
-		//printf("[read_from_file]char: %c\n", ch);
 		if(ch=='\n') {
 			if(line_count==0) {
-				//printf("[read_from_file]line_count: %d\n", line_count);
 				buf = strdup(line);
 				chat_id = strtok_r(buf, ";",&saveptr);
 				title = strtok_r(NULL, ";",&saveptr);
-				printf("[read_from_file]title: %s\n", title);
-				add_chat(strtoull(chat_id, NULL, 10), strdup(title), chat_table);
-				//printf("[read_from_file]add done\n");
-				memset(line, 0, 100);
-				//printf("[read_from_file]memset done\n");
+				add_chat(strtoull(chat_id, NULL, 10), strdup(title));
+				memset(line, 0, 256);;
 				index=0;
 			}
 			else if(line_count>0) {
@@ -144,23 +134,21 @@ u_int4 read_from_file(const char *filename, GHashTable **chat_table, GHashTable 
 				nick = strtok_r(NULL, ";",&saveptr);
 				ip = strtok_r(NULL, ";",&saveptr);
 				port = strtok_r(NULL, ";",&saveptr);
-				printf("[read_from_file]add_user\n");
-				add_user_to_chat(strtoull(chat_id, NULL, 10), strtoull(id, NULL, 10), strdup(nick), strdup(ip), strtod(port, NULL), *chat_table, chatclient_table);
-				memset(line, 0, 100);
+				add_user_to_chat(strtoull(chat_id, NULL, 10), strtoull(id, NULL, 10), strdup(nick), strdup(ip), strtod(port, NULL));
+				memset(line, 0, 256);
 				index=0;
 			}
 			line_count++;
 		}
 		else {
 			line[index++]=ch;
-			//printf("[read_from_file]line: %s\n", line);
 		}
 	}
 	
-	return 1;
+	return 0;
 }
 
-u_int4 read_all(GHashTable **chat_table, GHashTable **chatclient_table) {
+int read_all(void) {
 	DIR *dir=opendir(conf_get_datadir());
 	struct dirent *ent;
 	char buf[100];
@@ -169,7 +157,6 @@ u_int4 read_all(GHashTable **chat_table, GHashTable **chatclient_table) {
 		printf("[read_all]Opening %s\n",ent->d_name);
 		if(strcmp(ent->d_name, ".")!=0 && strcmp(ent->d_name, "..")!=0 && strcmp(ent->d_name, ".svn")!=0 && strstr(ent->d_name, "init_data")==NULL) {
 			sprintf(buf, "%s/%s", conf_get_datadir(), ent->d_name);
-			printf("[read_all]file appended: %s\n", buf);
 			dir_list = g_list_append(dir_list, (gpointer)strdup(buf));
 		}
 	}
@@ -177,31 +164,30 @@ u_int4 read_all(GHashTable **chat_table, GHashTable **chatclient_table) {
 	
 	int i;
 	for(i=0; i<g_list_length(dir_list); i++) {
-		printf("[read_all]read from file %d\n", i);
-		read_from_file((char*)g_list_nth_data(dir_list, i), chat_table, chatclient_table);
+		read_from_file((char*)g_list_nth_data(dir_list, i));
 	}
 	return 1;
 }
 
-u_int4 add_chat(u_int8 id, const char *title, GHashTable **chat_table) {
-	if((*chat_table)==NULL) {
-		(*chat_table) = g_hash_table_new(g_str_hash, g_str_equal);
+int add_chat(u_int8 id, const char *title) {
+	if(chat_hashtable==NULL) {
+		chat_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
 	}
-	if(g_hash_table_lookup(*chat_table, (gpointer)to_string(id))!=NULL) {
+	if(g_hash_table_lookup(chat_hashtable, (gpointer)to_string(id))!=NULL) {
 		printf("[add_chat]Elemento già presente\n");
-		return 0;
+		return -1;
 	}
-	chat *chat_str = (chat*)malloc(sizeof(chat));
+	chat *chat_str = (chat*)calloc(1, sizeof(chat));
 	chat_str->id = id;
-	chat_str->title = (char*)title;
+	chat_str->title = (char*)strdup(title);
 	chat_str->users = g_hash_table_new(g_str_hash, g_str_equal);
 	pthread_mutex_init(&chat_str->mutex, NULL);
 	
-	printf("[add_chat]table created\n");
+	logger(SYS_INFO, "[add_chat]Table created\n");
 	
-	g_hash_table_insert((*chat_table), (gpointer)to_string(id), (gpointer)chat_str); //Aggiunta la chat alla hashtable
+	g_hash_table_insert(chat_hashtable, (gpointer)to_string(id), (gpointer)chat_str); //Aggiunta la chat alla hashtable
 	
-	return 1;
+	return 0;
 }
 
 int add_all_to_chat(GList *chats) {
@@ -215,147 +201,120 @@ int add_all_to_chat(GList *chats) {
 	GList *user_list;
 	for(; i<g_list_length(chats); i++) {
 		elem = (chat*)g_list_nth_data(chats, i);
-		add_chat(elem->id, elem->title, &chat_hashtable);
+		add_chat(elem->id, elem->title);
 		if(elem->users!=NULL) {
 			logger(SYS_INFO, "[add_all_to_chat]Utenti presenti\n");
 			user_list = g_hash_table_get_values(elem->users);
 			for(j=0; j<g_list_length(user_list); j++) {
 				user = (chatclient*)g_list_nth_data(user_list, j);
-				add_user_to_chat(elem->id, user->id, user->nick, user->ip, user->port, chat_hashtable, &chatclient_hashtable);
+				add_user_to_chat(elem->id, user->id, user->nick, user->ip, user->port);
 			}
 		}
 	}
 	return 0;
 }
 
-u_int4 del_chat(u_int8 id, GHashTable *chat_table) {
-	if(chat_table==NULL)
-		return 0;
+int del_chat(u_int8 id) {
+	if(chat_hashtable==NULL)
+		return -1;
 	
-	g_hash_table_remove(chat_table, (gconstpointer)to_string(id));
+	g_hash_table_remove(chat_hashtable, (gconstpointer)to_string(id));
 	
-	return 1;
+	return 0;
 }
 
-u_int4 add_exist_user_to_chat(u_int8 chat_id, u_int8 id, GHashTable *chat_table, GHashTable **chatclient_table) {
-	printf("[add_exist_user_to_chat]Init\n");
-	if(chat_table==NULL)
-		return 0;
+int add_exist_user_to_chat(u_int8 chat_id, u_int8 id) {
+	if(chat_hashtable==NULL || chatclient_hashtable==NULL)
+		return -1;
 	
-	if((*chatclient_table)==NULL)
-		return 0;
-	
-	printf("[add_exist_user_to_chat]Checked\n");
-	chat *chat_elem = (chat*)g_hash_table_lookup(chat_table, (gconstpointer)to_string(chat_id));
+	chat *chat_elem = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(chat_id));
 	if(chat_elem!=NULL) {
-		chatclient *chatclient_elem = (chatclient*)g_hash_table_lookup(*chatclient_table, to_string(id));
-		printf("[add_exist_user_to_chat]After\n");
+		chatclient *chatclient_elem = (chatclient*)g_hash_table_lookup(chatclient_hashtable, to_string(id));
 		if(chatclient_elem!=NULL) {
 			g_hash_table_insert(chat_elem->users, (gpointer)to_string(chatclient_elem->id), (gpointer)chatclient_elem);
 			return 1;
 		}
 	}
-	printf("[add_exist_user_to_chat]End\n");
 	return 0;
 }
 
-//FIXIT: da togliere il doppio inserimento nella lista degli utenti
-u_int4 add_user_to_chat(u_int8 chat_id, u_int8 id, const char *nick, const char *ip, u_int4 port, GHashTable *chat_table, GHashTable **chatclient_table) {
+int add_user_to_chat(u_int8 chat_id, u_int8 id, const char *nick, const char *ip, u_int4 port) {
 	
-	if(chat_table==NULL)
-		return 0;
+	if(chat_hashtable==NULL)
+		return -1;
 	
-	if((*chatclient_table)==NULL)
-		(*chatclient_table) = g_hash_table_new(g_str_hash, g_str_equal);
+	if(chatclient_hashtable==NULL)
+		chatclient_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
 	
-	add_user(id, nick, ip, port, chatclient_table);
+	add_user(id, nick, ip, port);
 	
-	printf("[add_user_to_chat]Init\n");
-	chatclient *chatclient_str = (chatclient*)malloc(sizeof(chatclient));
+	chatclient *chatclient_str = (chatclient*)calloc(1, sizeof(chatclient));
 	chatclient_str->id = id;
-	chatclient_str->nick = (char*)nick;
-	chatclient_str->ip = (char*)ip;
+	chatclient_str->nick = (char*)strdup(nick);
+	chatclient_str->ip = (char*)strdup(ip);
 	chatclient_str->port = port;
-	printf("[add_user_to_chat] ID: %lld\n", chatclient_str->id);
-	g_hash_table_insert((*chatclient_table), (gpointer)to_string(id), (gpointer)chatclient_str);
-	printf("[add_user_to_chat] ID: %lld\n", chatclient_str->id);
+	g_hash_table_insert(chatclient_hashtable, (gpointer)to_string(id), (gpointer)chatclient_str);
 	
-	chat *chat_str = (chat*)g_hash_table_lookup(chat_table, (gconstpointer)to_string(chat_id));
-	printf("[add_user_to_chat] ID: %lld\n", chatclient_str->id);
+	chat *chat_str = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(chat_id));
 	if(chat_str==NULL) {
 		printf("[add_user_to_chat]chat non presente\n");
-		return 0;
+		return -1;
 	}
-	printf("[add_user_to_chat] ID: %lld\n", chatclient_str->id);
-	printf("[add_user_to_chat]Chat presente\n");
-	//pthread_mutex_lock(&chat_str->mutex);
-	printf("[add_user_to_chat]Locked\n");
-	printf("[add_user_to_chat] ID: %lld\n", chatclient_str->id);
-	/*if(chat_str->users==NULL) {
-		printf("[add_user_to_chat]Creating hashtable\n");
-		chat_str->users = g_hash_table_new(g_str_hash, g_str_equal);
-	}*/
-	printf("[add_user_to_chat] ID: %lld\n", chatclient_str->id);
-	/*if(chat_str->users==NULL) {
-		printf("[add_user_to_chat]chat NULL\n");
-	}*/
-	printf("[add_user_to_chat]Created table %s, %lld.\n", to_string(id), chatclient_str->id);
+	
+	pthread_mutex_lock(&chat_str->mutex);
 	if(g_hash_table_lookup(chat_str->users, (gpointer)to_string(id))==NULL) {
-		printf("[add_user_to_chat]non è presente\n");
 		g_hash_table_insert(chat_str->users, (gpointer)to_string(id), (gpointer)chatclient_str);
 	}
 	printf("[add_user_to_chat]Inserted\n");
-	//pthread_mutex_unlock(&chat_str->mutex);
+	pthread_mutex_unlock(&chat_str->mutex);
 	
-	printf("[add_user_to_chat]End\n");
-	
-	return 1;
+	return 0;
 }
 
-u_int4 add_user(u_int8 id, const char *nick, const char *ip, u_int4 port, GHashTable **chatclient_table) {
+int add_user(u_int8 id, const char *nick, const char *ip, u_int4 port) {
 	
-	if((*chatclient_table)==NULL)
-		(*chatclient_table) = g_hash_table_new(g_str_hash, g_str_equal);
+	if(chatclient_hashtable==NULL)
+		chatclient_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
 	
 	chatclient *chatclient_str = (chatclient*)malloc(sizeof(chatclient));
 	chatclient_str->id = id;
 	chatclient_str->nick = (char*)nick;
 	chatclient_str->ip = (char*)ip;
 	chatclient_str->port = port;
-	g_hash_table_insert((*chatclient_table), (gpointer)to_string(id), (gpointer)chatclient_str);
+	g_hash_table_insert(chatclient_hashtable, (gpointer)to_string(id), (gpointer)chatclient_str);
 	
-	return 1;
+	return 0;
 }
 
-u_int4 del_user(u_int8 id, GHashTable *chatclient_table) {
-	if(chatclient_table==NULL)
-		return 0;
+int del_user(u_int8 id) {
+	if(chatclient_hashtable==NULL)
+		return -1;
 	
-	g_hash_table_remove(chatclient_table, (gconstpointer)to_string(id));
+	g_hash_table_remove(chatclient_hashtable, (gconstpointer)to_string(id));
 	
-	return 1;
+	return 0;
 }
 
-u_int4 del_user_from_chat(u_int8 chat_id, u_int8 id, GHashTable *chat_table, GHashTable *chatclient_table) {
-	if(chat_table==NULL || chatclient_table==NULL)
-		return 0;
+int del_user_from_chat(u_int8 chat_id, u_int8 id) {
+	if(chat_hashtable==NULL || chatclient_hashtable==NULL)
+		return -1;
 	
-	g_hash_table_remove(chatclient_table, (gconstpointer)to_string(id));
-	chat *chat_str = (chat*)g_hash_table_lookup(chat_table, (gconstpointer)to_string(chat_id));
+	g_hash_table_remove(chatclient_hashtable, (gconstpointer)to_string(id));
+	chat *chat_str = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(chat_id));
 	g_hash_table_remove(chat_str->users, (gconstpointer)to_string(id));
 
-	return 1;
+	return 0;
 }
 
 chat *search_chat_local(const char *title) {
-	return search_chat(title, chat_hashtable);
+	return search_chat(title);
 }
 
-chat *search_chat(const char *title, GHashTable *chat_table) {
-	if(title==NULL || chat_table==NULL)
+chat *search_chat(const char *title) {
+	if(title==NULL || chat_hashtable==NULL)
 		return NULL;
 	
-	GList *listchat = g_hash_table_get_values(chat_table);
+	GList *listchat = g_hash_table_get_values(chat_hashtable);
 	chat *chatval;
 	int j;
 	for(j=0; j<g_list_length(listchat); j++) {
@@ -366,25 +325,22 @@ chat *search_chat(const char *title, GHashTable *chat_table) {
 	return NULL;
 }
 
-GList *search_all_chat(const char *title, GHashTable *chat_table) {
-	if(title==NULL || chat_table==NULL) {
-		printf("[search_all_chat]title e chat_table NULL\n");
+GList *search_all_chat(const char *title) {
+	if(title==NULL || chat_hashtable==NULL) {
+		printf("[search_all_chat]title e chat_hashtable NULL\n");
 		return NULL;
 	}
 	
-	//printf("[search_all_chat]Title to search: %s\n", title);
 	GList *listallchat=NULL;
-	GList *listchat = g_hash_table_get_values(chat_table);
+	GList *listchat = g_hash_table_get_values(chat_hashtable);
 	if(listchat==NULL) {
 		printf("[search_all_chat]null list\n");
 		return NULL;
 	}
 	chat *chatval;
 	int j;
-	//printf("[search_all_chat]before for\n");
 	for(j=0; j<g_list_length(listchat); j++) {
 		chatval = (chat*)g_list_nth_data(listchat, j);
-		printf("[search_all_chat]searching %s in %s\n", title, chatval->title);
 		if(strstr(chatval->title, title)!=NULL) {
 			printf("[search_all_chat]found\n");
 			listallchat = g_list_prepend(listallchat, (gpointer)chatval);
@@ -394,15 +350,15 @@ GList *search_all_chat(const char *title, GHashTable *chat_table) {
 }
 
 GList *search_all_local_chat(const char *title) {
-	return search_all_chat(title, chat_hashtable);
+	return search_all_chat(title);
 }
 
-chatclient *search_chatclient(const char *nick, GHashTable *chatclient_table) {
-	if(nick==NULL || chatclient_table==NULL) {
+chatclient *search_chatclient(const char *nick) {
+	if(nick==NULL || chatclient_hashtable==NULL) {
 		return NULL;
 	}
 	
-	GList *listclient = g_hash_table_get_values(chatclient_table);
+	GList *listclient = g_hash_table_get_values(chatclient_hashtable);
 	chatclient *clientval;
 	int j;
 	for(j=0; j<g_list_length(listclient); j++) {
@@ -411,7 +367,6 @@ chatclient *search_chatclient(const char *nick, GHashTable *chatclient_table) {
 			return clientval;
 	}
 	return NULL;
-	
 }
 
 /*
@@ -423,10 +378,11 @@ chatclient *search_chatclient(const char *nick, GHashTable *chatclient_table) {
 char *chatlist_to_char(GList *chat_list, int *len) {
 	if(chat_list==NULL) {
 		printf("[chatlist_to_char]chat_list NULL\n");
-		return NULL; //FIXIT
+		return NULL;
 	}
 	if(g_list_length(chat_list)==0)
 		return NULL;
+	
 	chat *chat_elem;
 	chatclient *chatclient_elem;
 	int cur_size = 512;
@@ -435,12 +391,9 @@ char *chatlist_to_char(GList *chat_list, int *len) {
 	char *line = (char*)calloc(512, 1);
 	int i, j;
 	GList *chatclient_list;
-	printf("[chatlist_to_char]Init\n");
 	for(i=0; i<g_list_length(chat_list); i++) {
 		chat_elem = (chat*)g_list_nth_data(chat_list, i);
-		printf("[chatlist_to_char]chat: %lld, %s.\n", chat_elem->id, chat_elem->title);
 		sprintf(line, "%lld;%s;\n", chat_elem->id, chat_elem->title);
-		printf("[chatlist_to_char]chat len: %d\n", strlen(line));
 		cur += strlen(line);
 		if(cur>=cur_size) {
 			cur_size *= 2;
@@ -451,10 +404,8 @@ char *chatlist_to_char(GList *chat_list, int *len) {
 		chatclient_list = g_hash_table_get_values(chat_elem->users);
 		for(j=0; j<g_list_length(chatclient_list); j++) {
 			chatclient_elem = (chatclient*)g_list_nth_data(chatclient_list, j);
-			printf("[chatlist_to_char]chatclient: %s\n", chatclient_elem->nick);
 			sprintf(line, "%lld;%s;%s;%d;\n", chatclient_elem->id, chatclient_elem->nick, chatclient_elem->ip, chatclient_elem->port);
 			cur += strlen(line);
-			printf("[chatlist_to_char]cur: %d\n", cur);
 			if(cur>=cur_size) {
 				cur_size *= 2;
 				ret = realloc(ret, cur_size);
@@ -471,7 +422,6 @@ char *chatlist_to_char(GList *chat_list, int *len) {
 	}
 	ret = realloc(ret, cur);
 	*len = cur;
-	printf("[chatlist_to_char] strlen(ret): %d, len: %d\n", strlen(ret), *len);
 	
 	return ret;
 }
@@ -484,19 +434,16 @@ char *chatlist_to_char(GList *chat_list, int *len) {
  * |222;test;
  * 333;si.......
  */
-GList *char_to_chatlist(const char *buffer,int len) {
+GList *char_to_chatlist(const char *buffer, int len) {
 	char *saveptr, *saveptr2;
-	char *token, *token2;
 	char *buffer2 = strdup(buffer);
-//	char *tmp = calloc(1,len);
+	char *token;
 	int i=0;
 	int line=-1;
-//	int count = 0;
 	
 	GList *chat_list=NULL;	
 	while((token = strtok_r(buffer2, "|", &saveptr))!=NULL) {
 		line = -1;
-		// printf("token: %s\n", token);
 		for(i=0;i<strlen(token);i++) {
 			if(token[i]=='\n')
 				line++;
@@ -506,15 +453,12 @@ GList *char_to_chatlist(const char *buffer,int len) {
 			chat_elem->id= atoll(strtok_r(strdup(token), ";", &saveptr2));
 			chat_elem->title=strdup(strtok_r(NULL, ";", &saveptr2)); 
 			chat_elem->users=g_hash_table_new(g_str_hash, g_str_equal);
-			printf("[char_to_chatlist]chat ID: %lld\n", chat_elem->id);
-			// printf("chat ID: %lld\n", chat_elem->id);
 			for(i=0;i<line;i++) {
 				chatclient *chat_client=(chatclient *)calloc(1,sizeof(chatclient));	
 				chat_client->id=atoll(strtok_r(NULL, ";", &saveptr2));
 				chat_client->nick=strdup(strtok_r(NULL, ";", &saveptr2));
 				chat_client->ip=strdup(strtok_r(NULL, ";", &saveptr2));
 				chat_client->port= atoi(strtok_r(NULL, ";", &saveptr2));
-				printf("[char_to_chatlist] ID: %lld, nick: %s, ip: %s, port: %d\n", chat_client->id, chat_client->nick, chat_client->ip, chat_client->port);
 				g_hash_table_insert(chat_elem->users,(gpointer)to_string(chat_client->id),(gpointer)chat_client);
 			}
 			chat_list=g_list_append(chat_list,(gpointer)chat_elem);	 
@@ -530,7 +474,7 @@ GList *char_to_chatlist(const char *buffer,int len) {
  */
 GList *get_chatclient_from_chat(const char *title) {
 	chat *chatval;
-	if((chatval=search_chat(title, chat_hashtable))!=NULL)
+	if((chatval=search_chat(title))!=NULL)
 		return g_hash_table_get_values(chatval->users);
 	return NULL;
 }

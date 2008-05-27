@@ -212,15 +212,18 @@ int recv_sized_packet(int sock_descriptor, char **buf, int max_len)
 
 	while(!flag) {
 		char_read = read(sock_descriptor, tmp, max_len);
-
+		if(char_read==0) {
+			flag=1;
+			continue;
+		}
 		len += char_read;
 
 		buf2 = calloc(len-char_read, 1);
 		memcpy(buf2, buffer, len-char_read);
-		free(buffer);
+		//free(buffer);
 		buffer = calloc(len, 1);
 		memcpy(buffer, buf2, len-char_read);
-		free(buf2);
+		//free(buf2);
 
 		memcpy(iter, tmp, char_read);
 		iter += char_read;

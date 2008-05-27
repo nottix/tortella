@@ -55,8 +55,8 @@ char *hex_dump(const char *packet, int len, int n)
 
 	int length =   (len*4+(divtemp)*4+(modulo)*3)*2;
 	//int length = 5000;
-	char *buffer = (char*)malloc(length);
-	char *strtemp = (char*)calloc(4,1);
+	char *buffer = (char*)calloc(length, 1);
+	char *strtemp = (char*)calloc(4, 1);
 
 	strcat(buffer, "\n");
 
