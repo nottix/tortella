@@ -232,7 +232,7 @@ gint search_chat_button(GtkWidget *widget, gpointer gdata)
 	controller_search(gtk_entry_get_text(GTK_ENTRY(bar_textfield)));
 	clear_chat_list();
 	GList *chats;
-	int i=0, counter=3;
+	int i=0, counter=6;
 	chat *chat_val;
 	while(counter--) { //TODO: trovare metodo migliore di stampa risultati
 		chats = search_all_local_chat(gtk_entry_get_text(GTK_ENTRY(bar_textfield)));
@@ -241,9 +241,8 @@ gint search_chat_button(GtkWidget *widget, gpointer gdata)
 			add_chat_to_list(chat_val->id, chat_val->title);
 			
 		}
-		usleep(50);
+		usleep(200);
 	}
-	printf("ok");
 	return(FALSE);
 }
 

@@ -45,4 +45,6 @@ u_int8 controller_search(const char *query);
 
 int controller_create(const char *title);
 
+int controller_add_user_to_chat(u_int8 chat_id, u_int8 id);
+
 #endif /*CONTROLLER_H_*/
