@@ -73,6 +73,7 @@ int controller_join_chat(u_int8 chat_id) {
 	if(chat_id>0) {
 		printf("eeee2\n");
 		chat *chat_elem = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(chat_id));
+		char *ret;
 		if(chat_elem!=NULL) {
 			printf("eeee1\n");
 			GList *clients = g_hash_table_get_values(chat_elem->users);
@@ -96,7 +97,26 @@ int controller_join_chat(u_int8 chat_id) {
 					}
 				}
 			}
-			add_exist_user_to_chat(chat_id, servent_get_local()->id, chat_hashtable, &chatclient_hashtable);
+			
+			for(i=0; i<g_list_length(clients); i++) {
+				client = (chatclient*)g_list_nth_data(clients, i);
+				printf("eeee\n");
+				if(client!=NULL) {
+					peer = servent_get(client->id);
+					logger(CTRL_INFO, "[controller_join_chat]Sending join to %lld\n", client->id);
+					if(peer!=NULL) {
+						COPY_SERVENT(peer, sd);
+						//WLOCK(peer->id);
+
+						//UNLOCK(peer->id);
+						ret = servent_pop_response(peer);
+						if(strcmp(ret, TIMEOUT)==0)
+							return peer->id;
+						printf("RECEIVED %s\n", ret);
+						add_user_to_chat_list(chat_elem->id, client->id, client->nick, peer->status);
+					}
+				}
+			}
 			return 0;
 		}
 	}
@@ -430,5 +450,10 @@ int controller_create(const char *title) {
 
 	chat *test = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(chat_id));
 	printf("chat created with ID: %lld\n", test->id);
+	
+	open_chatroom_gui(chat_id);
+	
+	add_exist_user_to_chat(chat_id, servent_get_local()->id, chat_hashtable, &chatclient_hashtable);
+	add_user_to_chat_list(chat_id, local->id, local->nick, local->nick);
 	return 0;
 }

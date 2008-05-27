@@ -39,25 +39,52 @@ gint ClosingAppWindow (GtkWidget *widget, gpointer gdata) {
 	return (FALSE);
 }
 
-gint add_chat_to_list(char *chat_name)
+gint add_chat_to_list(u_int8 chat_id, char *chat_name)
 {
-  gchar *msg = g_strdup_printf (chat_name);
-        gtk_list_store_append (GTK_LIST_STORE (chat_model), &chat_iter);
-        gtk_list_store_set (GTK_LIST_STORE (chat_model), 
-	                    &chat_iter,
-                            0, msg,
-	                    -1);
+  gchar *msg = g_strdup_printf (to_string(chat_id));
+	gchar *msg1 = g_strdup_printf (chat_name);
+	printf("msg: %s\n", msg1);
+        gtk_list_store_append (chat_model, &chat_iter);
+	gtk_list_store_set (GTK_LIST_STORE(chat_model), &chat_iter, 0, msg, 1, msg1, -1);
+	printf("msg: %s\n", msg);
 	g_free (msg);
+	
+	//gchar *msg1 = g_strdup_printf (chat_name);
+	//printf("msg: %s\n", msg1);
+    // gtk_list_store_append (GTK_LIST_STORE (chat_model), &chat_iter);
+   //  gtk_list_store_set_(GTK_LIST_STORE (chat_model), &chat_iter, msg1, -1);
+	g_free (msg1);
 	return 0;
 }
 
-gint add_user_to_chat_list(int index, char *user)
+gint add_user_to_chat_list(u_int8 chat_id, u_int8 id, char *user, u_int1 status)
 {
 	gchar *msg = g_strdup_printf(user);
-	tree_model *mod = (tree_model*)g_hash_table_lookup(tree_model_hashtable,(gconstpointer)to_string(index));
-	gtk_list_store_append(GTK_LIST_STORE(mod->user_model), &(mod->user_iter));
-	gtk_list_store_set(GTK_LIST_STORE(mod->user_model), &(mod->user_iter), 0, msg, -1);
-	g_free(msg);
+	if(tree_model_hashtable==NULL) {
+		logger(INFO, "[add_user_to_chat_list]Hashtable NULL\n");
+		return -1;
+	}
+	tree_model *mod = (tree_model*)g_hash_table_lookup(tree_model_hashtable,(gconstpointer)to_string(chat_id));
+	
+	if(mod!=NULL) {
+		logger(INFO, "[add_user_to_chat_list]Tree model non NULL\n");
+		gtk_list_store_append(GTK_LIST_STORE(mod->user_model), &(mod->user_iter));
+		gtk_list_store_set(GTK_LIST_STORE(mod->user_model), &(mod->user_iter), 0, msg, -1);
+		g_free(msg);
+		
+		msg = g_strdup_printf(to_string(id));
+		//gtk_list_store_append(GTK_LIST_STORE(mod->user_model), &(mod->user_iter));
+		gtk_list_store_set(GTK_LIST_STORE(mod->user_model), &(mod->user_iter), 1, msg, -1);
+		g_free(msg);
+		
+		msg = g_strdup_printf(to_string((u_int8)status));
+		//gtk_list_store_append(GTK_LIST_STORE(mod->user_model), &(mod->user_iter));
+		gtk_list_store_set(GTK_LIST_STORE(mod->user_model), &(mod->user_iter), 2, msg, -1);
+		g_free(msg);
+	}
+	else
+		return -2;
+	
 	return 0;
 }
 
@@ -104,8 +131,10 @@ gint open_chat(GtkWidget *widget, GdkEventButton *event, gpointer func_data) {
 		GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(widget));
 		GList *lis = gtk_tree_selection_get_selected_rows(selection, &chat_model);
 		int i=0;
+		u_int8 chat_id;
 		for(; i<g_list_length(lis); i++) {
 			printf("selected row: %s\n", (gchar*)g_list_nth_data(lis, i));
+			//chat_id = atol(
 		}
 		//printf("size: %d\n", g_list_length(lis));
 		//gpointer data = gtk_tree_selection_get_user_data(selection);
@@ -113,7 +142,7 @@ gint open_chat(GtkWidget *widget, GdkEventButton *event, gpointer func_data) {
 		
 		//if(search_chat_local())
 		/* prende l'ID della chat e richiede la connessione al controller */
-		open_chatroom_gui(); 
+		open_chatroom_gui(1); 
 	}
 
 	return FALSE;
@@ -135,12 +164,14 @@ void view_onRowActivated (GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewC
 
      g_print ("Double-clicked row contains name %s\n", name);
 
-     chat *elem;
-     if((elem=search_chat_local(name))!=NULL) {
-    	 controller_connect_users(g_hash_table_get_values(elem->users));
-    	 sleep(1);
-    	 controller_join_chat(elem->id);
-    	 open_chatroom_gui();
+     chat *elem = get_chat(atol(name));
+     if(elem!=NULL) {
+    	 
+    	 open_chatroom_gui(elem->id);
+		 usleep(200);
+		 controller_connect_users(g_hash_table_get_values(elem->users));
+		 sleep(1);
+		 controller_join_chat(elem->id);
      }
      g_free(name);
   }
@@ -207,10 +238,10 @@ gint search_chat_button(GtkWidget *widget, gpointer gdata)
 		chats = search_all_local_chat(gtk_entry_get_text(GTK_ENTRY(bar_textfield)));
 		for(; i<g_list_length(chats); i++) {
 			chat_val = (chat*)g_list_nth_data(chats, i);
-			add_chat_to_list(chat_val->title);
+			add_chat_to_list(chat_val->id, chat_val->title);
 			
 		}
-		//sleep(1);
+		usleep(50);
 	}
 	printf("ok");
 	return(FALSE);
@@ -233,15 +264,15 @@ gint send_text_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata)
 }
 
 
-GtkWidget *create_users_list(int index )
+GtkWidget *create_users_list(u_int8 index )
 {
 
     GtkWidget *scrolled_window;
     GtkWidget *tree_view;
-    GtkListStore *model = gtk_list_store_new(1, G_TYPE_STRING);
+    GtkListStore *model = gtk_list_store_new(3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
    // GtkTreeIter iter;
     GtkCellRenderer *cell;
-    GtkTreeViewColumn *column;
+    //GtkTreeViewColumn *column[3];
     tree_model *model_str = calloc(sizeof(tree_model),1);
     model_str->user_model = model;
     int i;
@@ -260,7 +291,7 @@ GtkWidget *create_users_list(int index )
     gtk_widget_show (tree_view);
    
     /* Add some messages to the window */
-    for (i = 0; i < 10; i++) {
+    /*for (i = 0; i < 10; i++) {
         
         gchar *msg = g_strdup_printf ("User #%d", i);
         gtk_list_store_append (GTK_LIST_STORE (model_str->user_model), &(model_str->user_iter));
@@ -269,42 +300,44 @@ GtkWidget *create_users_list(int index )
                             0, msg,
 	                    -1);
 	g_free (msg);
-    }
+    }*/
    
     cell = gtk_cell_renderer_text_new ();
-
-    column = gtk_tree_view_column_new_with_attributes ("Messages",
-                                                       cell,
-                                                       "text", 0,
-                                                       NULL);
+	gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW(tree_view), -1, "Nickname", cell, "text", 0, NULL);
+	cell = gtk_cell_renderer_text_new ();
+	 gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW(tree_view), -1, "ID", cell, "text", 1, NULL);
+	cell = gtk_cell_renderer_text_new ();
+	gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW(tree_view), -1, "Status", cell, "text", 2, NULL);
     
 	GtkTreeSelection *select;
     select = gtk_tree_view_get_selection(GTK_TREE_VIEW(tree_view));
     gtk_tree_selection_set_mode(select, GTK_SELECTION_MULTIPLE);
 
-    gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view),
-	  		         GTK_TREE_VIEW_COLUMN (column));
-   
+   // gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view), GTK_TREE_VIEW_COLUMN (column[0]));
+	//gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view), GTK_TREE_VIEW_COLUMN (column[1]));
+	//gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view), GTK_TREE_VIEW_COLUMN (column[2]));
    
      g_signal_connect(G_OBJECT(tree_view),
                      "button_press_event",
                      G_CALLBACK(open_conversation),
                      NULL);  //EVENTO CHE AL DOPPIO CLICK SU UNA CHAT DOVREBBE APRIRE LA GUI DELLA CHAT SELEZIONATA
-   if(tree_model_hashtable == NULL)
-			tree_model_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
+   if(tree_model_hashtable == NULL) {
+		logger(INFO, "[create_users_list] Hashtable created\n");
+	   tree_model_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
+   }
 
    g_hash_table_insert(tree_model_hashtable, (gpointer)to_string(index), (gpointer)model_str);
 
    return scrolled_window;
 }
 
-GtkWidget *create_chat_list(int index )
+GtkWidget *create_chat_list(u_int8 index )
 {
 
     GtkWidget *scrolled_window;
     GtkWidget *tree_view;
     GtkCellRenderer *cell;
-    GtkTreeViewColumn *column;
+   // GtkTreeViewColumn *column[2];
 
     int i;
    
@@ -314,7 +347,7 @@ GtkWidget *create_chat_list(int index )
 				    GTK_POLICY_AUTOMATIC, 
 				    GTK_POLICY_AUTOMATIC);
    
-    chat_model = gtk_list_store_new (1, G_TYPE_STRING);
+    chat_model = gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_STRING);
     tree_view = gtk_tree_view_new ();
     gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (scrolled_window), 
                                            tree_view);
@@ -322,7 +355,7 @@ GtkWidget *create_chat_list(int index )
     gtk_widget_show (tree_view);
    
     /* Add some messages to the window */
-    for (i = 0; i < 10; i++) {
+    /*for (i = 0; i < 10; i++) {
         
         gchar *msg = g_strdup_printf ("Chat #%d", i);
         gtk_list_store_append (GTK_LIST_STORE (chat_model), &chat_iter);
@@ -331,20 +364,18 @@ GtkWidget *create_chat_list(int index )
                             0, msg,
 	                    -1);
 	g_free (msg);
-    }
+    }*/
    
     cell = gtk_cell_renderer_text_new ();
+    gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW(tree_view), -1, "ID", cell, "text", 0, NULL);
+	cell = gtk_cell_renderer_text_new ();
+	gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW(tree_view), -1, "Title", cell, "text", 1, NULL);
+   // GtkTreeSelection *select;
+ //   select = gtk_tree_view_get_selection(GTK_TREE_VIEW(tree_view));
+  //  gtk_tree_selection_set_mode(select, GTK_SELECTION_MULTIPLE);
 
-    column = gtk_tree_view_column_new_with_attributes ("Messages",
-                                                       cell,
-                                                       "text", 0,
-                                                       NULL);
-    GtkTreeSelection *select;
-    select = gtk_tree_view_get_selection(GTK_TREE_VIEW(tree_view));
-    gtk_tree_selection_set_mode(select, GTK_SELECTION_MULTIPLE);
-
-    gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view),
-	  		         GTK_TREE_VIEW_COLUMN (column));
+    //gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view), GTK_TREE_VIEW_COLUMN (column[0]));
+	//gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view), GTK_TREE_VIEW_COLUMN (column[1]));
 //    g_signal_connect(G_OBJECT(tree_view),
 //                     "button_press_event",
 //                     G_CALLBACK(open_chat),
@@ -463,7 +494,7 @@ GtkWidget *create_text(int i )
 	return scrolled_window;
 }
 
-int open_chatroom_gui() {
+int open_chatroom_gui(u_int8 chat_id) {
 	/*-- Declare the GTK Widgets used in the program --*/
 	GtkWidget *window;
 	GtkWidget *menu;
@@ -510,7 +541,7 @@ int open_chatroom_gui() {
 	gtk_box_pack_start(GTK_BOX(vbox), handlebox, FALSE, TRUE, 0);    
 
 	gtk_container_add(GTK_CONTAINER(vbox),hbox);
-	list = create_users_list (1);
+	list = create_users_list (chat_id);
 	gtk_container_add(GTK_CONTAINER(hbox),vbox2);
 	gtk_container_add (GTK_CONTAINER (hbox), list);
 	// gtk_container_add(GTK_CONTAINER(vbox),sep);  
@@ -547,7 +578,7 @@ int open_chatroom_gui() {
 	gtk_widget_show(window);
 
 	/*-- Start the GTK event loop --*/
-	gtk_main();
+	//gtk_main();
 
 	/*-- Return 0 if exit is successful --*/
 	return 0;

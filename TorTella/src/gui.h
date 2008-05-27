@@ -43,8 +43,6 @@ typedef struct tree_model tree_model;
 
 
 //FUNZIONI PER LA CREAZIONE DELLE GUI
-int open_chatroom_gui(void);
-int open_pm_gui(void);
 
 void destroyapp (GtkWidget *widget, gpointer gdata);
 
@@ -54,7 +52,7 @@ gint destroywindow(GtkWidget *widget, gpointer gdata);
 
 gint ClosingAppWindow (GtkWidget *widget, gpointer gdata);
 
-gint add_chat_to_list(char *chat_name);
+gint add_chat_to_list(u_int8 chat_id, char *chat_name);
 
 gint clear_chat_list();
 
@@ -62,7 +60,7 @@ gint clear_buffer(GtkTextView *widget);
 
 gint add_to_buffer_new_message(GtkTextView *widget, gchar *msg);
 
-gint add_user_to_chat_list(int index, char *user);
+gint add_user_to_chat_list(u_int8 chat_id, u_int8 id, char *user, u_int1 status);
 
 gint remove_user_from_chat_list(int index, int user_id);
 
@@ -82,9 +80,9 @@ gint search_chat_button(GtkWidget *widget, gpointer gdata);
 
 gint send_text_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata);
 
-GtkWidget *create_users_list(int index);
+GtkWidget *create_users_list(u_int8 index);
 
-GtkWidget *create_chat_list(int index);
+GtkWidget *create_chat_list(u_int8 index);
 
 GtkWidget *create_menu(void);
 
@@ -94,7 +92,7 @@ GtkWidget *create_searchbar(void);
 
 gint create_chat_button(GtkWidget *widget, gpointer gdata);
 
-int open_chatroom_gui(void);
+int open_chatroom_gui(u_int8);
 
 int open_pm_gui(void);
 
