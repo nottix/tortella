@@ -126,8 +126,10 @@ GList *char_to_chatlist(const char *buffer,int len);
 /*
  * Ritorna una lista di tutti i client della chat specificata
  */
-GList *get_chatclient(const char *title, GHashTable *chat_table);
+GList *get_chatclient_from_chat(const char *title);
 
 chat *get_chat(u_int8 chat_id);
+
+chatclient *get_chatclient(u_int8 id);
 
 #endif //SUPERNODEDATA_H

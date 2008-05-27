@@ -85,6 +85,8 @@ int conf_save_value(const char *line) {
 		local_ip = right;
 	else if(strcmp(left, "local_port")==0)
 		local_port = atoi(right);
+	else if(strcmp(left, "nick")==0)
+		nick = right;
 	
 	return 1;
 	
@@ -116,4 +118,8 @@ char *conf_get_local_ip(void) {
 
 u_int4 conf_get_local_port(void) {
 	return local_port;
+}
+
+char *conf_get_nick(void) {
+	return nick;
 }

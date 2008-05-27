@@ -117,6 +117,7 @@ int controller_join_chat(u_int8 chat_id) {
 					}
 				}
 			}
+			add_user_to_chat_list(chat_elem->id, servent_get_local()->id, servent_get_local()->nick, servent_get_local()->status);
 			return 0;
 		}
 	}
@@ -454,6 +455,15 @@ int controller_create(const char *title) {
 	open_chatroom_gui(chat_id);
 	
 	add_exist_user_to_chat(chat_id, servent_get_local()->id, chat_hashtable, &chatclient_hashtable);
-	add_user_to_chat_list(chat_id, local->id, local->nick, local->nick);
+	add_user_to_chat_list(chat_id, local->id, local->nick, local->status);
+	return 0;
+}
+
+int controller_add_user_to_chat(u_int8 chat_id, u_int8 id) {
+	
+	servent_data *servent = servent_get(id);
+	logger(CTRL_INFO, "[controller_add_user_to_chat]Addingi user: %s, id: %lld, status: %c\n", servent->nick, servent->id, servent->status);
+	add_user_to_chat_list(chat_id, servent->id, servent->nick, servent->status);
+	
 	return 0;
 }

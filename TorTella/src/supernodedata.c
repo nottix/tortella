@@ -527,13 +527,17 @@ GList *char_to_chatlist(const char *buffer,int len) {
 /*
  * Ritorna una lista di tutti i client della chat specificata
  */
-GList *get_chatclient(const char *title, GHashTable *chat_table) {
+GList *get_chatclient_from_chat(const char *title) {
 	chat *chatval;
-	if((chatval=search_chat(title, chat_table))!=NULL)
+	if((chatval=search_chat(title, chat_hashtable))!=NULL)
 		return g_hash_table_get_values(chatval->users);
 	return NULL;
 }
 
 chat *get_chat(u_int8 chat_id) {
 	return g_hash_table_lookup(chat_hashtable, to_string(chat_id));
+}
+
+chatclient *get_chatclient(u_int8 id) {
+	return g_hash_table_lookup(chatclient_hashtable, to_string(id));
 }

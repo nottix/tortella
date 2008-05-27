@@ -162,7 +162,7 @@ void servent_init(char *ip, u_int4 port, u_int1 status) {
 	local_servent->queue = g_queue_new();
 	local_servent->res_queue = g_queue_new();
 	local_servent->status = status;
-	local_servent->nick = "simone";
+	local_servent->nick = conf_get_nick();
 	
 	add_user(local_servent->id, local_servent->nick, local_servent->ip, local_servent->port, &chatclient_hashtable);
 	
@@ -320,6 +320,7 @@ void *servent_responde(void *parm) {
 						conn_servent->timestamp = h_packet->data->header->timestamp;
 						
 						add_exist_user_to_chat(GET_JOIN(h_packet->data)->chat_id, id, chat_hashtable, &chatclient_hashtable);
+						controller_add_user_to_chat(GET_JOIN(h_packet->data)->chat_id, id);
 
 						UNLOCK(id);
 						
@@ -365,6 +366,7 @@ void *servent_responde(void *parm) {
 							conn_servent->res_queue = g_queue_new();
 							
 							conn_servent->status = GET_PING(h_packet->data)->status;
+							logger(SYS_INFO, "[servent_responde]Status recv: %c\n", conn_servent->status);
 							//conn_servent->timestamp = h_packet->data->header->timestamp;
 							conn_servent->nick = h_packet->data->data;
 							conn_servent->id = h_packet->data->header->sender_id;
@@ -557,11 +559,11 @@ void *servent_responde(void *parm) {
 					free(h_packet->data);
 				if(h_packet->data_string!=NULL)
 					free(h_packet->data_string);*/
-				if(h_packet->header_request!=NULL) {
-					printf("[servent_responde]free\n");
-					free(h_packet->header_request);
-				}
-				free(h_packet);
+//				if(h_packet->header_request!=NULL) {
+//					printf("[servent_responde]free\n");
+//					free(h_packet->header_request);
+//				}
+//				free(h_packet);
 			}
 		}
 		else {

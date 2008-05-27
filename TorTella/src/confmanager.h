@@ -35,6 +35,7 @@ static char *datadir = "./data";
 //SERVENT
 static char *local_ip;
 static u_int4 local_port;
+static char *nick;
 
 int conf_read(const char *filename);
 
@@ -53,5 +54,7 @@ char *conf_get_datadir(void);
 char *conf_get_local_ip(void);
 
 u_int4 conf_get_local_port(void);
+
+char *conf_get_nick(void);
 
 #endif /*CONFMANAGER_H*/
