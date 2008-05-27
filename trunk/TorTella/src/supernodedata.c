@@ -533,3 +533,7 @@ GList *get_chatclient(const char *title, GHashTable *chat_table) {
 		return g_hash_table_get_values(chatval->users);
 	return NULL;
 }
+
+chat *get_chat(u_int8 chat_id) {
+	return g_hash_table_lookup(chat_hashtable, to_string(chat_id));
+}

@@ -128,4 +128,6 @@ GList *char_to_chatlist(const char *buffer,int len);
  */
 GList *get_chatclient(const char *title, GHashTable *chat_table);
 
+chat *get_chat(u_int8 chat_id);
+
 #endif //SUPERNODEDATA_H
