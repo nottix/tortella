@@ -27,7 +27,6 @@
 #define HTTP_CERROR		"HTTP/1.1 400 Bad Request"
 #define HTTP_SERROR		"HTTP/1.1 500 Internal Server Error"
 
-
 struct http_header_request {
 	char *request;
 	char *user_agent;

@@ -41,7 +41,7 @@ void *server(void *fd) {
 	int connFd = listen_http_packet((int)fd);
 	
 	
-	switch_http_packet(connFd, buffer, LP_READ);
+	recv_http_packet(connFd, buffer, LP_READ);
 
 	//printf("buf: %s\n", buffer);
 	http_packet *packet = http_char_to_bin(buffer);

@@ -16,7 +16,7 @@
  
 #include "packetmanager.h"
 
-u_int4 send_search_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int1 ttl, u_int1 hops, u_int4 string_len, char *string) {
+int send_search_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int1 ttl, u_int1 hops, u_int4 string_len, char *string) {
 
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
@@ -44,13 +44,15 @@ u_int4 send_search_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 
 	int len;
 	http_packet *h_packet = http_create_packet(packet, HTTP_REQ_POST, 0, NULL, 0, 0, NULL, 0);
 	buffer = http_bin_to_char(h_packet, &len);
-	if(buffer==NULL)
+	if(buffer==NULL) {
 		logger(PAC_INFO, "[send_search_packet]Error while creating packet\n");
+		return -1;
+	}
 	
 	return send_packet(fd, buffer, len);
 }
 
-u_int4 send_searchhits_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int4 num_res, u_int4 res_len, char *res) {
+int send_searchhits_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int4 num_res, u_int4 res_len, char *res) {
 	
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
@@ -75,14 +77,15 @@ u_int4 send_searchhits_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_i
 	int len;
 	http_packet *h_packet = http_create_packet(packet, HTTP_REQ_POST, 0, NULL, 0, 0, NULL, 0);
 	buffer = http_bin_to_char(h_packet, &len);
-	//printf("[send_join_packet]type: %d\n", HTTP_REQ_POST);
-	if(buffer==NULL)
+	if(buffer==NULL) {
 		logger(PAC_INFO, "[send_searchhits_packet]Error while creating packet\n");
+		return -1;
+	}
 	
 	return send_packet(fd, buffer, len);
 }
 
-u_int4 send_join_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 status, u_int8 chat_id, char *nick) {
+int send_join_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 status, u_int8 chat_id, char *nick) {
 	
 	printf("[send_join_packet]nick: %s\n", nick);
 	
@@ -110,14 +113,15 @@ u_int4 send_join_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 stat
 	int len;
 	http_packet *h_packet = http_create_packet(packet, HTTP_REQ_POST, 0, NULL, 0, 0, NULL, 0);
 	buffer = http_bin_to_char(h_packet, &len);
-	//printf("[send_join_packet]type: %d\n", HTTP_REQ_POST);
-	if(buffer==NULL)
+	if(buffer==NULL) {
 		logger(PAC_INFO, "[send_join_packet]Error while creating packet\n");
+		return -1;
+	}
 	
 	return send_packet(fd, buffer, len);
 }
 
-u_int4 send_leave_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id) {
+int send_leave_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id) {
 	
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
@@ -142,13 +146,15 @@ u_int4 send_leave_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 cha
 	int len;
 	http_packet *h_packet = http_create_packet(packet, HTTP_REQ_POST, 0, NULL, 0, 0, NULL, 0);
 	buffer = http_bin_to_char(h_packet, &len);
-	if(buffer==NULL)
+	if(buffer==NULL) {
 		logger(PAC_INFO, "[send_leave_packet]Error while creating packet\n");
+		return -1;
+	}
 	
 	return send_packet(fd, buffer, len);
 }
 
-u_int4 send_ping_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, char *nick, u_int4 port, u_int1 status) {
+int send_ping_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, char *nick, u_int4 port, u_int1 status) {
 	
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
@@ -176,8 +182,10 @@ u_int4 send_ping_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, char *nick,
 	int len;
 	http_packet *h_packet = http_create_packet(packet, HTTP_REQ_POST, 0, NULL, 0, 0, NULL, 0);
 	buffer = http_bin_to_char(h_packet, &len);
-	if(buffer==NULL)
+	if(buffer==NULL) {
 		logger(PAC_INFO, "[send_ping_packet]Error while creating packet\n");
+		return -1;
+	}
 	
 	return send_packet(fd, buffer, len);
 }
@@ -273,7 +281,7 @@ u_int4 send_ping_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, char *nick,
 //	return send_packet(fd, buffer, len);
 //}
 
-u_int4 send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id, u_int4 msg_len, char *msg) {
+int send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id, u_int4 msg_len, char *msg) {
 
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
@@ -300,8 +308,10 @@ u_int4 send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 c
 	int len;
 	http_packet *h_packet = http_create_packet(packet, HTTP_REQ_POST, 0, NULL, 0, 0, NULL, 0);
 	buffer = http_bin_to_char(h_packet, &len);
-	if(buffer==NULL)
+	if(buffer==NULL) {
 		logger(PAC_INFO, "[send_message_packet]Error while creating packet\n");
+		return -1;
+	}
 	
 	return send_packet(fd, buffer, len);
 }
@@ -340,7 +350,7 @@ u_int4 send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 c
 //	return send_packet(fd, buffer, len);
 //}
 
-u_int4 send_post_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char *data) {
+int send_post_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char *data) {
 	printf("[send_post_response_packet]Sending with status: %d\n", status);
 	char *buffer;
 	int len;
@@ -350,11 +360,13 @@ u_int4 send_post_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char
 		printf("[send_post_response_packet]Http created\n");
 	else {
 		printf("[send_post_response_packet]Not created\n");
-		return 0;
+		return -1;
 	}
 	buffer = http_bin_to_char(h_packet, &len);
-	if(buffer==NULL)
+	if(buffer==NULL) {
 		logger(PAC_INFO, "[send_post_response_packet]Error while creating packet\n");
+		return -1;
+	}
 
 	free(h_packet->header_response);
 	free(h_packet);
@@ -362,24 +374,28 @@ u_int4 send_post_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char
 	return send_packet(fd, buffer, len);
 }
 
-u_int4 send_get_request_packet(u_int4 fd, char *filename, u_int4 range_start, u_int4 range_end) {
+int send_get_request_packet(u_int4 fd, char *filename, u_int4 range_start, u_int4 range_end) {
 	char *buffer;
 	int len;
 	http_packet *h_packet = http_create_packet(NULL, HTTP_REQ_GET, 0, filename, range_start, range_end, NULL, 0);
 	buffer = http_bin_to_char(h_packet, &len);
-	if(buffer==NULL)
+	if(buffer==NULL) {
 		logger(PAC_INFO, "[send_get_request_packet]Error while creating packet\n");
+		return -1;
+	}
 	
 	return send_packet(fd, buffer, len);
 }
 
-u_int4 send_get_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char *data) {
+int send_get_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char *data) {
 	char *buffer;
 	int len;
 	http_packet *h_packet = http_create_packet(NULL, HTTP_RES_GET, status, NULL, 0, 0, data, data_len);
 	buffer = http_bin_to_char(h_packet, &len);
-	if(buffer==NULL)
+	if(buffer==NULL) {
 		logger(PAC_INFO, "[send_get_response_packet]Error while creating packet\n");
+		return -1;
+	}
 	
 	return send_packet(fd, buffer, len);
 }

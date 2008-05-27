@@ -41,7 +41,7 @@ int delete_socket(int sock_descriptor);
 int listen_http_packet(int listen_socket);
 
 /*Legge il pacchetto in ingresso e ritorna il numero di caratteri*/
-int switch_http_packet(int con_socket, char **buffer, unsigned int mode);
+int recv_http_packet(int con_socket, char **buffer);
 
 /*Invia il contenuto di buffer*/
 int send_packet(int sock_descriptor, char* buffer, int len);
