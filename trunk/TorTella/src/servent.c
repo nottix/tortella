@@ -107,15 +107,15 @@ void servent_close_all(void) {
 	int i;
 	for(i=0; i<g_slist_length(server_fd); i++) {
 		logger(SYS_INFO, "[servent_close_all]Closing server %d\n", (int)g_slist_nth_data(server_fd, i));
-		close((int)g_slist_nth_data(server_fd, i));
+		delete_socket((int)g_slist_nth_data(server_fd, i));
 	}
 	for(i=0; i<g_slist_length(client_fd); i++) {
 		logger(SYS_INFO, "[servent_close_all]Closing client %d\n", (int)g_slist_nth_data(client_fd, i));
-		close((int)g_slist_nth_data(client_fd, i));
+		delete_socket((int)g_slist_nth_data(client_fd, i));
 	}
 	for(i=0; i<g_slist_length(server_connection_fd); i++) {
 		logger(SYS_INFO, "[servent_close_all]Closing server_connection %d\n", (int)g_slist_nth_data(server_connection_fd, i));
-		close((int)g_slist_nth_data(server_connection_fd, i));
+		delete_socket((int)g_slist_nth_data(server_connection_fd, i));
 	}
 	
 }
@@ -288,7 +288,7 @@ void *servent_responde(void *parm) {
 	u_int4 status = 0;
 	
 	while(1) {
-		len = switch_http_packet(fd, &buffer, LP_READ);
+		len = recv_http_packet(fd, &buffer);
 		printf("[servent_responde]Data received, buffer: %s, len: %d\n", buffer, len);
 		
 		if(len>0) {
@@ -568,7 +568,7 @@ void *servent_responde(void *parm) {
 		}
 		else {
 			printf("[servent_responde]Client disconnected\n");
-			close(fd);
+			delete_socket(fd);
 			server_connection_fd = g_slist_remove(server_connection_fd, (gconstpointer)fd);
 			server_connection_thread = g_slist_remove(server_connection_thread, (gconstpointer)(pthread_self()));
 			pthread_exit(NULL);
@@ -735,7 +735,7 @@ void *servent_connect(void *parm) {
 			}
 		
 			printf("[servent_connect]Listening response\n");
-			len = switch_http_packet(fd, &buffer, LP_READ);
+			len = recv_http_packet(fd, &buffer);
 			printf("[sevente_connect]Received response\n");
 			if(len>0) {
 				printf("[servent_connect]buffer recv: %s\n", dump_data(buffer, len));

@@ -6,7 +6,7 @@
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
-
+#include "confmanager.h"
 #include "common.h"
 
 //#define GEN_START 100000
