@@ -8,9 +8,9 @@ int conf_read(const char *filename) {
 	int i=0;
 	int nread;
 	
-	printf("opening %s\n", filename);
+	printf("[conf_read]Opening %s\n", filename);
 	if((fd=open(filename, O_RDONLY|O_EXCL))<0) {
-		//logger(ALARM_INFO, "Unable to open configuration file\n");
+		printf("Unable to open configuration file\n");
 		return -1;
 	}
 	
@@ -19,10 +19,10 @@ int conf_read(const char *filename) {
 		
 		if(tmp[i]=='\n'){
 			if(strchr(tmp, '#')!=NULL) {
-				printf("Comment\n");
+				//printf("Comment\n");
 			}
 			else if(strlen(tmp)<=2) {
-				printf("Empty line\n");
+				//printf("Empty line\n");
 			}
 			else {
 				conf_save_value(tmp);
@@ -40,7 +40,7 @@ int conf_read(const char *filename) {
 
 int conf_save_value(const char *line) {
 	if(line==NULL) {
-		//logger(ALARM_INFO, "Unable to read line\n");
+		printf("Unable to read line\n");
 		return -1;
 	}
 	
@@ -57,13 +57,11 @@ int conf_save_value(const char *line) {
 	int left_len = equal-line_dup;
 	char *left = calloc(left_len+1, 1);
 	strncpy(left, line_dup, left_len);
-	printf("left: %s\n", left);
 	
 	int right_len = (&line_dup[strlen(line_dup)])-equal-2;
 	char *right = calloc(right_len+1, 1);
 	equal++;
 	strncpy(right, equal, right_len);
-	printf("right: %s\n", right);
 	
 	if(strcmp(left, "qlen")==0)
 		qlen = atoi(right);
@@ -88,8 +86,7 @@ int conf_save_value(const char *line) {
 	else if(strcmp(left, "nick")==0)
 		nick = right;
 	
-	return 1;
-	
+	return 0;
 }
 
 int conf_get_qlen(void) {

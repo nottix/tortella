@@ -72,7 +72,7 @@ int controller_send_pm(u_int4 msg_len, char *msg, u_int8 recv_id) {
 int controller_join_chat(u_int8 chat_id) {
 	if(chat_id>0) {
 		printf("eeee2\n");
-		chat *chat_elem = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(chat_id));
+		chat *chat_elem = get_chat(chat_id);
 		char *ret;
 		if(chat_elem!=NULL) {
 			printf("eeee1\n");
@@ -126,7 +126,7 @@ int controller_join_chat(u_int8 chat_id) {
 
 int controller_leave_chat(u_int8 chat_id) {
 	if(chat_id>0) {
-		chat *chat_elem = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(chat_id));
+		chat *chat_elem = get_chat(chat_id);
 		if(chat_elem!=NULL) {
 			GList *clients = g_hash_table_get_values(chat_elem->users);
 			chatclient *client;
@@ -338,7 +338,7 @@ int controller_menu() {
 			scanf("%lld", &chat_id);
 			printf("Inserire titolo chat da creare: ");
 			scanf("%s", title);
-			add_chat(chat_id, title, &chat_hashtable);
+			add_chat(chat_id, title);
 
 			chat *test = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(chat_id));
 			printf("chat created with ID: %lld\n", test->id);
@@ -444,17 +444,17 @@ int controller_create(const char *title) {
 	}
 	
 	u_int8 chat_id = generate_id();
-	add_chat(chat_id, title, &chat_hashtable);
+	add_chat(chat_id, title);
 	
 	servent_data *local = servent_get_local();
-	add_user_to_chat(chat_id, local->id, local->nick, local->ip, local->port, chat_hashtable, &chatclient_hashtable);
+	add_user_to_chat(chat_id, local->id, local->nick, local->ip, local->port);
 
-	chat *test = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(chat_id));
+	chat *test = get_chat(chat_id);
 	printf("chat created with ID: %lld\n", test->id);
 	
 	open_chatroom_gui(chat_id);
 	
-	add_exist_user_to_chat(chat_id, servent_get_local()->id, chat_hashtable, &chatclient_hashtable);
+	add_exist_user_to_chat(chat_id, servent_get_local()->id);
 	add_user_to_chat_list(chat_id, local->id, local->nick, local->status);
 	return 0;
 }

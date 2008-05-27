@@ -29,6 +29,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <unistd.h>
+#include "controller.h"
 #include <glib.h>
 #include "logger.h"
 #include "confmanager.h"
@@ -39,12 +40,6 @@
 #include <string.h>
 
 #define TIMEOUT "timeout error"
-
-//#include "confvars.h"
-
-//#define RECV_MAX_LEN 4000;
-//#define THREAD_MAX 20
-//#define FD_MAX 100
 
 static u_int4 timer_interval = 5;
 
@@ -89,24 +84,10 @@ static GHashTable *servent_hashtable;
 
 static servent_data *local_servent;
 
-//extern char *local_ip;
-//extern u_int4 local_port;
-//extern u_int8 gen_start;
-
 static u_int1 last_request_type = 0;
 static u_int4 server_connection_num = 0;
 
 static u_int8 new_connection_counter = 10000;
-
-//static list *connection_list;
-
-/*static list *client_fd;
-static list *server_fd;
-static list *server_connection_fd;
-
-static list *client_thread;
-static list *server_thread;
-static list *server_connection_thread;*/
 
 static pthread_t *timer_thread;
 
@@ -131,16 +112,16 @@ static GSList *server_connection_thread;
 											memcpy(copy, servent, sizeof(servent_data))
 
 //Crea un server socket
-u_int4 servent_create_server(char *src_ip, u_int4 src_port);
+int servent_create_server(char *src_ip, u_int4 src_port);
 
 //Crea un client socket
-u_int4 servent_create_client(char *dst_ip, u_int4 dst_port);
+int servent_create_client(char *dst_ip, u_int4 dst_port);
 
-u_int4 servent_start_server(char *local_ip, u_int4 local_port);
+int servent_start_server(char *local_ip, u_int4 local_port);
 
-u_int4 servent_start_client(char *dest_ip, u_int4 dest_port);
+int servent_start_client(char *dest_ip, u_int4 dest_port);
 
-u_int4 servent_start(GList *init_servent);
+int servent_start(GList *init_servent);
 
 int servent_start_timer(void);
 
@@ -150,7 +131,7 @@ void servent_close_all(void);
 
 void kill_all_thread(int sig);
 
-void servent_init(char *ip, u_int4 port, u_int1 status);
+int servent_init(char *ip, u_int4 port, u_int1 status);
 
 void servent_init_supernode();
 

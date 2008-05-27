@@ -33,8 +33,6 @@
 #define MODE_TRUNC 0x900
 #define MODE_APPEND 0x901
 
-//#define DATADIR	"./data"
-
 struct chatclient {
 	u_int8 id;
 	char *nick;
@@ -51,8 +49,8 @@ struct chat {
 };
 typedef struct chat chat;
 
-GHashTable *chatclient_hashtable;
-GHashTable *chat_hashtable;
+static GHashTable *chatclient_hashtable;
+static GHashTable *chat_hashtable;
 
 /*
  * Scrive la struttura dati 'chat' in un file, nel seguente modo:
@@ -63,34 +61,34 @@ GHashTable *chat_hashtable;
  * In modalità TRUNC crea ogni volta un nuovo file, mentre
  * nella modalità APPEND modifica il file esistente.
  */
-u_int4 write_to_file(const char *filename, chat *chat_str, u_int4 mode);
+int write_to_file(const char *filename, chat *chat_str, u_int4 mode);
 
-u_int4 write_all(GHashTable *chat_table, u_int4 mode);
+int write_all(u_int4 mode);
 
 /*
  * Legge le informazioni delle chat e degli utenti dal file specificato.
  * Aggiunge i dati sulla chat alla hashtable relativa, inoltre i dati degli utenti
  * alla hashtable relativa.
  */
-u_int4 read_from_file(const char *filename, GHashTable **chat_table, GHashTable **chatclient_table);
+int read_from_file(const char *filename);
 
-u_int4 read_all(GHashTable **chat_table, GHashTable **chatclient_table);
+int read_all(void);
 
-u_int4 add_chat(u_int8 id, const char *title, GHashTable **chat_table);
+int add_chat(u_int8 id, const char *title);
 
 int add_all_to_chat(GList *chats);
 
-u_int4 del_chat(u_int8 id, GHashTable *chat_table);
+int del_chat(u_int8 id);
 
-u_int4 add_user(u_int8 id, const char *nick, const char *ip, u_int4 port, GHashTable **chatclient_table);
+int add_user(u_int8 id, const char *nick, const char *ip, u_int4 port);
 
-u_int4 add_exist_user_to_chat(u_int8 chat_id, u_int8 id, GHashTable *chat_table, GHashTable **chatclient_table);
+int add_exist_user_to_chat(u_int8 chat_id, u_int8 id);
 
-u_int4 add_user_to_chat(u_int8 chat_id, u_int8 id, const char *nick, const char *ip, u_int4 port, GHashTable *chat_table, GHashTable **chatclient_table);
+int add_user_to_chat(u_int8 chat_id, u_int8 id, const char *nick, const char *ip, u_int4 port);
 
-u_int4 del_user(u_int8 id, GHashTable *chatclient_table);
+int del_user(u_int8 id);
 
-u_int4 del_user_from_chat(u_int8 chat_id, u_int8 id, GHashTable *chat_table, GHashTable *chatclient_table);
+int del_user_from_chat(u_int8 chat_id, u_int8 id);
 
 chat *search_chat_local(const char *title);
 
@@ -98,17 +96,17 @@ chat *search_chat_local(const char *title);
  * Cerca nella hashtable chat_table l'occorrenza della chat title
  * Ritorna la struttura dati della chat
  */
-chat *search_chat(const char *title, GHashTable *chat_table);
+chat *search_chat(const char *title);
 
 /*
  * Cerca nella hashtable chat_table tutte le chat che hanno come titolo *title*
  * Ritorna le chat in una slist
  */
-GList *search_all_chat(const char *title, GHashTable *chat_table);
+GList *search_all_chat(const char *title);
 
 GList *search_all_local_chat(const char *title);
 
-chatclient *search_chatclient(const char *nick, GHashTable *chatclient_table);
+chatclient *search_chatclient(const char *nick);
 
 /*
  * Converte la lista di chat in una stringa del tipo:
