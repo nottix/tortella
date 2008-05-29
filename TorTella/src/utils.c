@@ -33,6 +33,14 @@ char *to_string(u_int8 num) {
 	return ret;
 }
 
+char *prepare_msg(time_t timestamp, const char *nick, const char *msg) {
+	char *time_str = asctime(localtime(&timestamp));
+	time_str[strlen(time_str)-1]='\0';
+	char *send_msg = calloc(strlen(msg)+strlen(time_str)+strlen(nick)+60, 1);
+	sprintf(send_msg, "%s %s:\n%s\n\n", time_str, nick, msg);
+	return send_msg;
+}
+
 /*char *to_string(u_int8 num1, u_int8 num2) {
 	char *ret = (char*)malloc(512);
 	sprintf(ret, "%lld;%lld", num1, num2);

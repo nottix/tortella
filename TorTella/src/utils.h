@@ -17,6 +17,8 @@ int generate_id4(void);
 
 char *to_string(u_int8 num);
 
+char *prepare_msg(time_t timestamp, const char *nick, const char *msg);
+
 //char *to_string(u_int8 num1, u_int8 num2);
 
 char *hex_dump(const char *packet, int len, int n);

@@ -272,12 +272,24 @@ gint send_text_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata)
 		logger(INFO, "[send_text_message]Msg: %s to %lld\n", msg, chat_id);
 		if(controller_send_chat_users(chat_id, strlen(msg), msg)>=0) {
 			clear_buffer(GTK_TEXT_VIEW(widget));
-			tree_model *model_str = (tree_model*)g_hash_table_lookup(tree_model_hashtable, to_string(chat_id));
+			tree_model *model_str = get_tree_model(chat_id);
 			add_to_buffer_new_message(GTK_TEXT_VIEW(model_str->text_area), msg);
 		}
-		return 0;
+		return TRUE;
 	}
 	return (FALSE);
+}
+
+int add_msg_to_chat(u_int8 chat_id, char *msg) {
+	tree_model *model_str = get_tree_model(chat_id);
+	if(model_str==NULL)
+		return -1;
+	add_to_buffer_new_message(GTK_TEXT_VIEW(model_str->text_area), msg);
+	return 0;
+}
+
+tree_model *get_tree_model(u_int8 chat_id) {
+	return (tree_model*)g_hash_table_lookup(tree_model_hashtable, to_string(chat_id));
 }
 
 GtkWidget *create_users_list(u_int8 index )

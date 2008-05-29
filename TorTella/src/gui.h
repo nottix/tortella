@@ -100,4 +100,8 @@ int open_chatroom_gui(u_int8);
 
 int open_pm_gui(void);
 
+tree_model *get_tree_model(u_int8 chat_id);
+
+int add_msg_to_chat(u_int8 chat_id, char *msg);
+
 #endif //GUI_H
