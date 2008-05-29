@@ -333,7 +333,7 @@ void *servent_responde(void *parm) {
 							conn_servent->nick = h_packet->data->data;
 							add_user(conn_servent->id, conn_servent->nick, conn_servent->ip, conn_servent->port);
 							UNLOCK(id);
-							printf("[servent_responde]Old PING\n");
+							printf("[servent_responde]Old PING, nick: %s, status: %c\n", conn_servent->nick, conn_servent->status);
 							
 							status = HTTP_STATUS_OK;
 						}
@@ -418,6 +418,9 @@ void *servent_responde(void *parm) {
 						conn_servent->msg = h_packet->data->data;
 						conn_servent->msg_len = h_packet->data->header->data_len;
 						conn_servent->timestamp = h_packet->data->header->timestamp;
+						
+						char *send_msg = prepare_msg(conn_servent->timestamp, conn_servent->nick, conn_servent->msg);
+						controller_add_msg_to_chat(GET_MESSAGE(h_packet->data)->chat_id, send_msg);
 						printf("[servent_responde]msg: %s, msg_len: %d\n", conn_servent->msg, conn_servent->msg_len);
 						UNLOCK(h_packet->data->header->sender_id);
 
@@ -677,7 +680,9 @@ void *servent_connect(void *parm) {
 							printf("[servent_connect]Responding to PING\n");
 							if(servent_peer!=NULL) {
 								printf("[servent_connect]Removing old %s\n", to_string(id_dest));
-								g_hash_table_remove(servent_hashtable, (gconstpointer)to_string(id_dest));
+								//servent_data *tmp;
+								//COPY_SERVENT(servent_peer, tmp);
+								//g_hash_table_remove(servent_hashtable, (gconstpointer)to_string(id_dest)); FIXIT
 								printf("[servent_connect]Removed old ID: %lld\n", servent_peer->id);
 								printf("[servent_connect]Converting %s, len: %d\n", h_packet->data_string, h_packet->data_len);
 								char *buf = calloc(h_packet->data_len+1, 1);
@@ -685,8 +690,11 @@ void *servent_connect(void *parm) {
 								printf("[servent_connect]buf: %s.\n", buf);
 								id_dest = strtoull(buf, NULL, 10);
 								printf("[servent_connect]New ID: %lld.\n", id_dest);
+								//COPY_SERVENT(tmp, servent_peer);
 								servent_peer->id = id_dest;
+								printf("[servent_connect]Nick %s, Status: %c\n", servent_peer->nick, servent_peer->status);
 								g_hash_table_insert(servent_hashtable, (gpointer)to_string(id_dest), (gpointer)servent_peer);
+								printf("[servent_connect]Nick %s, Status: %c\n", servent_peer->nick, servent_peer->status);
 							}
 							else
 								printf("[servent_connect]Data isn't present\n");
