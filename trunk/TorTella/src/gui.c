@@ -93,13 +93,13 @@ gint remove_user_from_chat_list(int index, int user_id)
   tree_model *mod = (tree_model*)g_hash_table_lookup(tree_model_hashtable,(gconstpointer)to_string(index));
   gtk_tree_model_iter_nth_child(GTK_TREE_MODEL(mod->user_model),&(mod->user_iter),NULL,(gint)user_id);
   gtk_list_store_remove(GTK_LIST_STORE(mod->user_model), &(mod->user_iter));
-  return (FALSE);
+  return 0;
 }
 
 gint clear_chat_list()
 {
    gtk_list_store_clear(chat_model);
-	return (FALSE);
+	return 0;
 }
 
 gint clear_buffer(GtkTextView *widget)
@@ -107,7 +107,7 @@ gint clear_buffer(GtkTextView *widget)
  GtkTextBuffer *text;
  text = gtk_text_buffer_new(NULL);
  gtk_text_view_set_buffer(GTK_TEXT_VIEW(widget),text);
- return (FALSE);
+ return 0;
 }
 
 gint add_to_buffer_new_message(GtkTextView *widget, gchar *msg)
@@ -116,7 +116,7 @@ gint add_to_buffer_new_message(GtkTextView *widget, gchar *msg)
   GtkTextIter iter;
   gtk_text_buffer_get_end_iter(text,&iter),
   gtk_text_buffer_insert(text,&iter,msg,-1); 
-  return (FALSE);
+  return 0;
 }
 
 
@@ -164,13 +164,13 @@ void view_onRowActivated (GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewC
 
      g_print ("Double-clicked row contains name %s\n", name);
 
-     chat *elem = get_chat(atol(name));
+     chat *elem = get_chat(atoll(name));
      if(elem!=NULL) {
     	 
     	 open_chatroom_gui(elem->id);
 		 usleep(200);
 		 controller_connect_users(g_hash_table_get_values(elem->users));
-		 sleep(1);
+		 sleep(1);//FIXIT
 		 controller_join_chat(elem->id);
      }
      g_free(name);
@@ -253,15 +253,32 @@ gint create_chat_button(GtkWidget *widget, gpointer gdata) {
 
 gint send_text_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata)
 {
-  
-  if(event->type == GDK_KEY_PRESS && event->keyval == GDK_Return)
-  {   g_print("Enter pressed...\n");
-      clear_buffer(GTK_TEXT_VIEW(widget));
-      return 1;
-  }
-     return (FALSE);
-}
 
+	if(event->type == GDK_KEY_PRESS && event->keyval == GDK_Return) {
+		g_print("Enter pressed...\n");
+		//Controlla se sono selezionati utenti a cui inviare
+		//...
+		//Altrimenti invia a tutti
+		u_int8 chat_id = atoll((char*)gdata);
+		GtkTextBuffer *buf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget));
+		g_print("Enter pressed...\n");
+		GtkTextIter start ;
+		gtk_text_buffer_get_start_iter(buf, &start);
+		g_print("Enter pressed...\n");
+		GtkTextIter end;
+		gtk_text_buffer_get_end_iter(buf, &end);
+		g_print("Enter pressed...\n");
+		char *msg = gtk_text_buffer_get_text(buf, &start, &end, TRUE);
+		logger(INFO, "[send_text_message]Msg: %s to %lld\n", msg, chat_id);
+		if(controller_send_chat_users(chat_id, strlen(msg), msg)>=0) {
+			clear_buffer(GTK_TEXT_VIEW(widget));
+			tree_model *model_str = (tree_model*)g_hash_table_lookup(tree_model_hashtable, to_string(chat_id));
+			add_to_buffer_new_message(GTK_TEXT_VIEW(model_str->text_area), msg);
+		}
+		return 0;
+	}
+	return -1;
+}
 
 GtkWidget *create_users_list(u_int8 index )
 {
@@ -272,7 +289,7 @@ GtkWidget *create_users_list(u_int8 index )
    // GtkTreeIter iter;
     GtkCellRenderer *cell;
     //GtkTreeViewColumn *column[3];
-    tree_model *model_str = calloc(sizeof(tree_model),1);
+    tree_model *model_str = calloc(1, sizeof(tree_model));
     model_str->user_model = model;
     int i;
    
@@ -325,6 +342,7 @@ GtkWidget *create_users_list(u_int8 index )
 	   tree_model_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
    }
 
+   logger(INFO, "[create_users_list]chat ID: %lld\n", index);
    g_hash_table_insert(tree_model_hashtable, (gpointer)to_string(index), (gpointer)model_str);
 
    return scrolled_window;
@@ -468,13 +486,13 @@ GtkWidget *create_menu(void) {
 	return menubar;
 }
 
-GtkWidget *create_text(int i )
+GtkWidget *create_text(u_int8 chat_id, int type)
 {
+	logger(INFO, "[create_text]chat ID: %lld\n", chat_id);
 	GtkWidget *scrolled_window;
-	GtkWidget *view;
+	GtkWidget *view = gtk_text_view_new ();
 	GtkTextBuffer *buffer;
 
-	view = gtk_text_view_new ();
 	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (view));
 
 	scrolled_window = gtk_scrolled_window_new (NULL, NULL);
@@ -482,12 +500,27 @@ GtkWidget *create_text(int i )
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
 			GTK_POLICY_AUTOMATIC,
 			GTK_POLICY_AUTOMATIC);
-	if(i==1)
-		gtk_text_view_set_editable(GTK_TEXT_VIEW(view),FALSE); 
+
 	gtk_container_add (GTK_CONTAINER (scrolled_window), view);
 	//insert_text (buffer);
-    if(i==0)
-        gtk_signal_connect(GTK_OBJECT(view),"key_press_event",GTK_SIGNAL_FUNC(send_text_message),NULL);
+    if(type == BOTTOM) {
+    	gtk_text_view_set_editable(GTK_TEXT_VIEW(view),TRUE);
+    	logger(INFO, "[create_text]signal connect\n");
+        gtk_signal_connect(GTK_OBJECT(view),"key_press_event", GTK_SIGNAL_FUNC(send_text_message), (gpointer)to_string(chat_id)); //TODO blocca l'inserimento testo
+        gtk_text_view_set_editable(GTK_TEXT_VIEW(view),TRUE);
+    }
+    else if (type == TOP){
+    	gtk_text_view_set_editable(GTK_TEXT_VIEW(view),FALSE);
+    	tree_model *model_str = (tree_model*)g_hash_table_lookup(tree_model_hashtable, to_string(chat_id));
+    	if(model_str!=NULL) {
+    		logger(INFO, "[create_text]OK\n");
+    		model_str->text_area = GTK_TEXT_VIEW(view);
+    	}
+    	else {
+    		logger(INFO, "[create_text]NULL\n");
+    		return NULL;
+    	}
+    }
 	gtk_widget_show_all (scrolled_window);
 
 	return scrolled_window;
@@ -507,20 +540,22 @@ int open_chatroom_gui(u_int8 chat_id) {
 
 	/*-- Create the new window --*/
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	
+	menu = create_menu();
+	list = create_users_list (chat_id);
+	
+	text = create_text(chat_id, TOP);
+	chat = create_text(chat_id, BOTTOM);
 
 	/*-- Create the vbox --*/
-	vbox = gtk_vbox_new(FALSE, 0);
+	vbox = gtk_vbox_new(FALSE, 5);
 
-	hbox = gtk_hbox_new(FALSE, 0);
-	vbox2 = gtk_vpaned_new();
-	//  gtk_paned_set_position(GTK_PANED(vbox2), 500);  //TROVARE UN MODO CORRETTO DI SETTARE IL SECONDO PARAMETRO PER POSIZIONARE BENE IL SEPARATORE
+	hbox = gtk_hbox_new(FALSE, 5);
+	vbox2 = gtk_vbox_new(FALSE, 5);
 	/*-- Create a text area --*/
-	text = create_text(0);
-	chat = create_text(1);
+	
 	/*-- Create the handlebox --*/
 	handlebox = gtk_handle_box_new();
-
-	menu = create_menu();
 
 
 	/*-- Connect the window to the destroyapp function  --*/
@@ -533,23 +568,16 @@ int open_chatroom_gui(u_int8 chat_id) {
 	/*-- Pack the handlebox into the top of the vbox.  
 	 *-- You must use gtk_box_pack_start here instead of gtk_container_add
 	 *-- or the menu will get larger as the window is enlarged
-	 */
+	 */ 
 
-	//gtk_box_pack_start(GTK_BOX(hbox), handlebox, FALSE, TRUE, 0);    
-
-	gtk_box_pack_start(GTK_BOX(vbox), handlebox, FALSE, TRUE, 0);    
+	gtk_box_pack_start(GTK_BOX(vbox), handlebox, FALSE, TRUE, 0);
 
 	gtk_container_add(GTK_CONTAINER(vbox),hbox);
-	list = create_users_list (chat_id);
+	
 	gtk_container_add(GTK_CONTAINER(hbox),vbox2);
 	gtk_container_add (GTK_CONTAINER (hbox), list);
-	// gtk_container_add(GTK_CONTAINER(vbox),sep);  
-	/*-- Add the text area to the window --*/
-	//gtk_container_add(GTK_CONTAINER(vbox), text);  
-	// gtk_container_add(GTK_CONTAINER(hbox),vbox2);
-	gtk_paned_add1(GTK_PANED(vbox2), chat);
-	// gtk_container_add(GTK_CONTAINER(vbox2),sep);
-	gtk_paned_add2(GTK_PANED(vbox2), text);
+	gtk_container_add(GTK_CONTAINER(vbox2),text);
+	gtk_box_pack_end(GTK_BOX(vbox2), chat, FALSE, TRUE, 0);
 	/*-- Add the vbox to the main window --*/
 	gtk_container_add(GTK_CONTAINER(window), vbox);
 
@@ -560,10 +588,11 @@ int open_chatroom_gui(u_int8 chat_id) {
 	gtk_container_border_width (GTK_CONTAINER (window), 0);
 
 	/*-- Set the window to be 640 x 480 pixels --*/
-	gtk_window_set_default_size (GTK_WINDOW(window), 640, 200);
+	gtk_window_set_default_size (GTK_WINDOW(window), 640, 400);
 
 	/*-- Set the window title --*/
 	gtk_window_set_title(GTK_WINDOW (window), "Chat Room");
+	logger(INFO, "[open_chatroom_gui]chat_id created: %lld\n", chat_id);
 
 	/*-- Display the widgets --*/
 	gtk_widget_show(handlebox);
@@ -571,11 +600,11 @@ int open_chatroom_gui(u_int8 chat_id) {
 	gtk_widget_show(vbox);
 	gtk_widget_show(vbox2);
 	gtk_widget_show(text);
-	gtk_widget_show (list);
-	gtk_widget_show (chat);
+	gtk_widget_show(list);
+	gtk_widget_show(chat);
 	gtk_widget_show(menu);
 	gtk_widget_show(window);
-
+	
 	/*-- Start the GTK event loop --*/
 	//gtk_main();
 
@@ -598,14 +627,14 @@ int open_pm_gui() {
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
 	/*-- Create the vbox --*/
-	vbox = gtk_vbox_new(FALSE, 0);
+	vbox = gtk_vbox_new(FALSE, 5);
 
 
-	vbox2 = gtk_vpaned_new();
-	gtk_paned_set_position(GTK_PANED(vbox2), 500);  //TROVARE UN MODO CORRETTO DI SETTARE IL SECONDO PARAMETRO PER POSIZIONARE BENE IL SEPARATORE
+	vbox2 = gtk_vbox_new(FALSE, 5);
+	//gtk_paned_set_position(GTK_PANED(vbox2), 500);  //TROVARE UN MODO CORRETTO DI SETTARE IL SECONDO PARAMETRO PER POSIZIONARE BENE IL SEPARATORE
 	/*-- Create a text area --*/
-	text = create_text(0);
-	chat = create_text(1);
+	text = create_text(0, TOP);
+	chat = create_text(1, BOTTOM);
 
 	/*-- Create the handlebox --*/
 	handlebox = gtk_handle_box_new();
@@ -629,10 +658,12 @@ int open_pm_gui() {
 
 	gtk_box_pack_start(GTK_BOX(vbox), handlebox, FALSE, TRUE, 0);    
 	gtk_container_add(GTK_CONTAINER(vbox),vbox2);
-	gtk_paned_add1(GTK_PANED(vbox2), chat);
-	// gtk_container_add(GTK_CONTAINER(vbox2),sep);
-	gtk_paned_add2(GTK_PANED(vbox2), text);
-	/*-- Add the vbox to the main window --*/
+	
+	//gtk_paned_add1(GTK_PANED(vbox2), chat);
+	//gtk_paned_add2(GTK_PANED(vbox2), text);
+	gtk_container_add(GTK_CONTAINER(vbox2),chat);
+	gtk_box_pack_end(GTK_BOX(vbox2), text, FALSE, TRUE, 0);
+	
 	gtk_container_add(GTK_CONTAINER(window), vbox);
 
 	/*-- Add some text to the window --*/
@@ -679,7 +710,7 @@ GtkWidget *create_searchbar(void) {
      g_signal_connect(G_OBJECT(bar_create_button), "clicked", G_CALLBACK(create_chat_button), NULL);
      
 	gtk_container_add(GTK_CONTAINER(bar_container), bar_textfield);
-	gtk_box_pack_start(GTK_BOX(bar_container), bar_textfield, FALSE, TRUE, 5);
+	//gtk_box_pack_start(GTK_BOX(bar_container), bar_textfield, FALSE, TRUE, 5);
 	gtk_box_pack_start(GTK_BOX(bar_container), bar_button, FALSE, TRUE, 5);
 	gtk_box_pack_start(GTK_BOX(bar_container), bar_create_button, FALSE, TRUE, 5);
 

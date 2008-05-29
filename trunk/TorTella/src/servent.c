@@ -190,11 +190,11 @@ int servent_init(char *ip, u_int4 port, u_int1 status) {
 }
 
 void servent_init_supernode() {
-	read_all();
+	//read_all();
 }
 
 void servent_close_supernode() {
-	write_all(MODE_TRUNC);
+	//write_all(MODE_TRUNC);
 }
 
 servent_data *servent_get(u_int8 id) {
@@ -283,6 +283,7 @@ void *servent_responde(void *parm) {
 	u_int4 status = 0;
 	
 	while(1) {
+		logger(SYS_INFO, "[servent_responde]Waiting\n");
 		len = recv_http_packet(fd, &buffer);
 		printf("[servent_responde]Data received len: %d, buffer: \nSTART\n%s\nEND\n", len, dump_data(buffer, len));
 		
@@ -433,11 +434,12 @@ void *servent_responde(void *parm) {
 							continue;
 						}
 						printf("[servent_responde]conn_servent entry found\n");
-						RLOCK(conn_servent->id);
 						
 						if(h_packet->data_len>0) {
 							servent_data *sd;
+							RLOCK(conn_servent->id);
 							COPY_SERVENT(conn_servent, sd);
+							UNLOCK(conn_servent->id);
 							
 							printf("[servent_responde]Searching %s\n", tortella_get_data(h_packet->data_string));
 							res = search_all_chat(tortella_get_data(h_packet->data_string));
@@ -450,7 +452,7 @@ void *servent_responde(void *parm) {
 							servent_send_packet(sd);
 						}
 
-						UNLOCK(conn_servent->id);
+						
 						printf("[servent_responde]Sending SEARCHHITS packet to searching peer\n");
 						
 						if(GET_SEARCH(h_packet->data)->ttl>0) {
@@ -470,10 +472,10 @@ void *servent_responde(void *parm) {
 									sd->title_len = h_packet->data->header->data_len;
 									sd->packet_id = h_packet->data->header->id;
 									sd->post_type = SEARCH_ID;
+									UNLOCK(conn_servent->id);
 									servent_send_packet(sd);
 									//Aggiunta regola di routing alla tabella
 									add_route_entry(h_packet->data->header->id, h_packet->data->header->sender_id, conn_servent->id, route_hashtable);
-									UNLOCK(conn_servent->id);
 									//pthread_cond_signal(&conn_servent->cond);
 									printf("[servent_responde]Retrasmitting SEARCH packet to other peers\n");
 								}
@@ -497,8 +499,8 @@ void *servent_responde(void *parm) {
 							printf("[servent_responde]list size: %d, users: %d\n", g_list_length(chat_list), g_hash_table_size(((chat*)g_list_nth_data(chat_list, 0))->users));
 							sd->chat_res = chat_list;
 							sd->post_type = SEARCHHITS_ID;
-							servent_send_packet(sd);
 							UNLOCK(entry->sender_id);
+							servent_send_packet(sd);
 							printf("[servent_responde]Routing packet from %lld to %lld\n", h_packet->data->header->sender_id, entry->sender_id);
 							del_route_entry(h_packet->data->header->id, route_hashtable);
 							printf("[servent_responde]Route entry %lld deleted\n", h_packet->data->header->id);
@@ -630,7 +632,7 @@ void *servent_connect(void *parm) {
 		else {
 			
 			if(post_type==JOIN_ID) {
-				send_join_packet(fd, local_servent->id, id_dest, status, chat_id_req, nick); //TODO: Dubbio su chat_id_req Local o peer???
+				send_join_packet(fd, local_servent->id, id_dest, status, chat_id_req, nick);
 			}
 			else if(post_type==PING_ID) {
 				send_ping_packet(fd, local_servent->id, id_dest, nick, local_servent->port, status);
@@ -704,11 +706,9 @@ void *servent_connect(void *parm) {
 				logger(SYS_INFO, "[servent_connect]Appending response TIMEOUT\n");
 				servent_append_response(servent_peer, TIMEOUT);
 			}
+			UNLOCK(id_dest);
+			UNLOCK(local_servent->id);
 		}
-		UNLOCK(id_dest);
-		UNLOCK(local_servent->id);
-		
-		
 	}
 	pthread_exit(NULL);
 }
