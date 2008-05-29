@@ -2,26 +2,40 @@
 
 int controller_send_chat_users(u_int8 chat_id, u_int4 msg_len, char *msg) {
 	if(chat_id != 0) {
-		chat *chat_elem = (chat*)g_hash_table_lookup(chat_hashtable,(gconstpointer)to_string(chat_id));
+		servent_data *data, *tmp;
+		chatclient *user;
+		chat *chat_elem = get_chat(chat_id);
+		if(chat_elem==NULL) {
+			logger(CTRL_INFO, "[controller_send_chat_users]Chat %lld non presente\n", chat_id);
+			return -2;
+		}
 		GList *users = g_hash_table_get_values(chat_elem->users);
+		if(users==NULL) {
+			logger(CTRL_INFO, "[controller_send_chat_users]Users NULL\n");
+			return -2;
+		}
+		logger(CTRL_INFO, "[controller_send_chat_users]Users size: %d\n", g_list_length(users));
 
 		int i=0;
 		for(; i<g_list_length(users); i++) {
 
-			chatclient *user = g_list_nth_data(users, i);
-
-			servent_data *data = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(user->id));
-
-			WLOCK(data->id);
-
-			data->msg = strdup(msg);
-			data->msg_len = msg_len;
-			data->chat_id_req = chat_id;
-			data->post_type = MESSAGE_ID;
-
-			UNLOCK(data->id);
-
-			pthread_cond_signal(&data->cond);
+			user = g_list_nth_data(users, i);
+			data = servent_get(user->id);
+			if(data!=NULL && data->id!=servent_get_local()->id ) {
+				RLOCK(data->id);
+				COPY_SERVENT(data, tmp);
+				UNLOCK(data->id);
+				
+				tmp->msg = strdup(msg);
+				tmp->msg_len = msg_len;
+				tmp->chat_id_req = chat_id;
+				tmp->post_type = MESSAGE_ID;
+	
+				servent_send_packet(tmp);
+				logger(CTRL_INFO, "[controller_send_chat_users]Sent msg\n");
+			}
+			else
+				logger(CTRL_INFO, "[controller_send_chat_users]Servent NULL\n");
 		}
 		return 0;
 	}
@@ -400,23 +414,31 @@ u_int8 controller_search(const char *query) {
 	int i=0;
 	for(; i<g_list_length(servents); i++) {
 		servent = g_list_nth_data(servents, i);
-		if(servent->id==servent_get_local()->id)
-			continue;
-		if(servent->queue==NULL) {
-			logger(CTRL_INFO, "[controller_search]Coda Servent NULL\n");
-			continue;
+		logger(CTRL_INFO, "[controller_search]Servent ID: %lld\n", servent->id);
+		if(servent->id!=servent_get_local()->id) {
+			
+			if(servent->queue==NULL) {
+				logger(CTRL_INFO, "[controller_search]Coda Servent NULL\n");
+				continue;
+			}
+			//RLOCK(servent->id);
+			logger(INFO, "[controller_search]Copy servent\n");
+			COPY_SERVENT(servent, tmp);
+			//UNLOCK(servent->id);
+			if(tmp->queue==NULL || tmp->res_queue==NULL) {
+				logger(CTRL_INFO, "[controller_search]Coda NULL\n");
+				continue;
+			}
+			logger(INFO, "[controller_search]Copy\n");
+			tmp->post_type = SEARCH_ID;
+			tmp->title = strdup(query);
+			tmp->title_len = strlen(query);
+			logger(INFO, "[controller_search]Send\n");
+			servent_send_packet(tmp);
+			logger(INFO, "[controller_search]Sent\n");
 		}
-		//RLOCK(servent->id);
-		COPY_SERVENT(servent, tmp);
-		//UNLOCK(servent->id);
-		if(tmp->queue==NULL || tmp->res_queue==NULL) {
-			logger(CTRL_INFO, "[controller_search]Coda NULL\n");
-			continue;
-		}
-		tmp->post_type = SEARCH_ID;
-		tmp->title = strdup(query);
-		tmp->title_len = strlen(query);
-		servent_send_packet(tmp);
+		else
+			logger(INFO, "[controller_search]Local ID\n");
 		
 	}
 	//Da gestire i timeout
@@ -424,17 +446,19 @@ u_int8 controller_search(const char *query) {
 	char *ret;
 	for(i=0; i<g_list_length(servents); i++) {
 		servent = g_list_nth_data(servents, i);
-		if(servent->id==servent_get_local()->id)
-			continue;
-		
-		ret = servent_pop_response(servent);
-		if(strcmp(ret, TIMEOUT)==0)
-			return servent->id;
-		printf("RECEIVED %s\n", ret);
+		if(servent->id!=servent_get_local()->id) {
+			ret = servent_pop_response(servent);
+			if(strcmp(ret, TIMEOUT)==0)
+				return servent->id;
+			printf("RECEIVED %s\n", ret);
+		}
+		else
+			logger(INFO, "[controller_search]Local response");
 		
 	}
+	logger(INFO, "[controller_search]End");
 	
-	return 1;
+	return 0;
 }
 
 int controller_create(const char *title) {

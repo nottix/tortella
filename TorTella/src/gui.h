@@ -26,6 +26,9 @@
 #include "controller.h"
 #include "supernodedata.h"
 
+#define TOP		0x01
+#define BOTTOM	0x02
+
 GtkListStore *chat_model;
 GtkTreeIter   chat_iter;
 static GHashTable *tree_model_hashtable = NULL;
@@ -37,7 +40,8 @@ GtkWidget *bar_textfield;
 struct tree_model
 {
   GtkListStore *user_model;
-  GtkTreeIter   user_iter;
+  GtkTreeIter user_iter;
+  GtkTextView *text_area;
 };
 typedef struct tree_model tree_model;
 
@@ -86,7 +90,7 @@ GtkWidget *create_chat_list(u_int8 index);
 
 GtkWidget *create_menu(void);
 
-GtkWidget *create_text(int i );
+GtkWidget *create_text(u_int8 chat_id, int type);
 
 GtkWidget *create_searchbar(void);
 
