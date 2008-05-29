@@ -93,13 +93,13 @@ gint remove_user_from_chat_list(int index, int user_id)
   tree_model *mod = (tree_model*)g_hash_table_lookup(tree_model_hashtable,(gconstpointer)to_string(index));
   gtk_tree_model_iter_nth_child(GTK_TREE_MODEL(mod->user_model),&(mod->user_iter),NULL,(gint)user_id);
   gtk_list_store_remove(GTK_LIST_STORE(mod->user_model), &(mod->user_iter));
-  return 0;
+  return (FALSE);
 }
 
 gint clear_chat_list()
 {
    gtk_list_store_clear(chat_model);
-	return 0;
+	return (FALSE);
 }
 
 gint clear_buffer(GtkTextView *widget)
@@ -107,7 +107,7 @@ gint clear_buffer(GtkTextView *widget)
  GtkTextBuffer *text;
  text = gtk_text_buffer_new(NULL);
  gtk_text_view_set_buffer(GTK_TEXT_VIEW(widget),text);
- return 0;
+ return (FALSE);
 }
 
 gint add_to_buffer_new_message(GtkTextView *widget, gchar *msg)
@@ -116,7 +116,7 @@ gint add_to_buffer_new_message(GtkTextView *widget, gchar *msg)
   GtkTextIter iter;
   gtk_text_buffer_get_end_iter(text,&iter),
   gtk_text_buffer_insert(text,&iter,msg,-1); 
-  return 0;
+  return (FALSE);
 }
 
 
@@ -277,7 +277,7 @@ gint send_text_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata)
 		}
 		return 0;
 	}
-	return -1;
+	return (FALSE);
 }
 
 GtkWidget *create_users_list(u_int8 index )
@@ -506,7 +506,7 @@ GtkWidget *create_text(u_int8 chat_id, int type)
     if(type == BOTTOM) {
     	gtk_text_view_set_editable(GTK_TEXT_VIEW(view),TRUE);
     	logger(INFO, "[create_text]signal connect\n");
-        gtk_signal_connect(GTK_OBJECT(view),"key_press_event", GTK_SIGNAL_FUNC(send_text_message), (gpointer)to_string(chat_id)); //TODO blocca l'inserimento testo
+		g_signal_connect(GTK_OBJECT(view),"key_press_event", G_CALLBACK(send_text_message), (gpointer)to_string(chat_id)); //TODO blocca l'inserimento testo
         gtk_text_view_set_editable(GTK_TEXT_VIEW(view),TRUE);
     }
     else if (type == TOP){

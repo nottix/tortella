@@ -600,8 +600,8 @@ void *servent_connect(void *parm) {
 		}
 		logger(SYS_INFO, "[servent_connect]Signal received in id_dest %lld\n", id_dest);
 		
-		RLOCK(local_servent->id);
-		WLOCK(id_dest);
+		//RLOCK(local_servent->id); 
+		//WLOCK(id_dest); 
 		logger(SYS_INFO, "[servent_connect] post_type %d\n", servent_queue->post_type);
 		servent_peer->post_type = servent_queue->post_type;
 		servent_peer->chat_id_req = servent_queue->chat_id_req;
@@ -706,8 +706,8 @@ void *servent_connect(void *parm) {
 				logger(SYS_INFO, "[servent_connect]Appending response TIMEOUT\n");
 				servent_append_response(servent_peer, TIMEOUT);
 			}
-			UNLOCK(id_dest);
-			UNLOCK(local_servent->id);
+			//UNLOCK(id_dest); 
+			//UNLOCK(local_servent->id); 
 		}
 	}
 	pthread_exit(NULL);
