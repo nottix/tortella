@@ -32,7 +32,7 @@
 //Status ID
 #define ONLINE_ID	0x80
 #define BUSY_ID		0x81
-
+#define AWAY_ID		0x82
 /*
                           TorTella Header
  +----+---------+-----------+---------+-----------+----------+----------+
