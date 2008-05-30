@@ -436,6 +436,8 @@ u_int8 controller_search(const char *query) {
 			tmp->post_type = SEARCH_ID;
 			tmp->title = strdup(query);
 			tmp->title_len = strlen(query);
+			tmp->ttl = 3;
+			tmp->hops = 0;
 			logger(INFO, "[controller_search]Send\n");
 			servent_send_packet(tmp);
 			logger(INFO, "[controller_search]Sent\n");
