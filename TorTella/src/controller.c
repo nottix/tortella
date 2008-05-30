@@ -127,11 +127,13 @@ int controller_join_chat(u_int8 chat_id) {
 						if(strcmp(ret, TIMEOUT)==0)
 							return peer->id;
 						printf("RECEIVED %s\n", ret);
+						add_user_to_chat(chat_elem->id, client->id, client->nick, client->ip, client->port);
 						add_user_to_chat_list(chat_elem->id, client->id, client->nick, peer->status);
 					}
 				}
 			}
 			add_user_to_chat_list(chat_elem->id, servent_get_local()->id, servent_get_local()->nick, servent_get_local()->status);
+			add_user_to_chat(chat_elem->id, servent_get_local()->id, servent_get_local()->nick, servent_get_local()->ip, servent_get_local()->port);
 			return 0;
 		}
 	}
@@ -171,6 +173,7 @@ int controller_connect_users(GList *users) {
 		chatclient *client;
 		for(i=0; i<g_list_length(users); i++) {
 			client = (chatclient*)g_list_nth_data(users, i);
+			logger(CTRL_INFO, "[controller_connect_users]Connecting to client: %s\n", client->nick);
 			if(servent_get(client->id)==NULL)
 				servent_start_client(client->ip, client->port);
 			else

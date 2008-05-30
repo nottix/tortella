@@ -273,7 +273,7 @@ gint send_text_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata)
 		if(controller_send_chat_users(chat_id, strlen(msg), msg)>=0) {
 			clear_buffer(GTK_TEXT_VIEW(widget));
 			time_t actual_time = time(NULL);
-			char *send_msg = prepare_msg(actual_time, servent_get_local()->nick, msg);
+			char *send_msg = prepare_msg(actual_time, servent_get_local()->nick, msg, strlen(msg));
 			add_msg_to_chat(chat_id, send_msg);
 			//tree_model *model_str = get_tree_model(chat_id);
 			//add_to_buffer_new_message(GTK_TEXT_VIEW(model_str->text_area), msg);
