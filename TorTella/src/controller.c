@@ -1,5 +1,28 @@
 #include "controller.h"
 
+int controller_change_status(int index, u_int8 chat_id) 
+{
+	servent_data *tmp;
+	if(servent_get_local () == NULL) {
+		logger(CTRL_INFO,"[controller_change_status] local_servent NULL\n");
+	    return -1;
+	}
+	if(index == 0) {
+		servent_get_local ()->status = ONLINE_ID;
+	}
+	else if(index == 1) {
+		servent_get_local()->status = BUSY_ID;
+	}
+	else if(index == 2) {
+		servent_get_local()->status = AWAY_ID;
+	}
+	COPY_SERVENT(servent_get_local(),tmp);
+    tmp->post_type = PING_ID;
+	logger(CTRL_INFO,"[controller_change_status] sending packet\n");
+	servent_send_packet(tmp);
+	return 0;
+}
+
 int controller_send_chat_users(u_int8 chat_id, u_int4 msg_len, char *msg) {
 	if(chat_id != 0) {
 		servent_data *data, *tmp;

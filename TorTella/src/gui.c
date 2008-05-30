@@ -220,18 +220,21 @@ gint open_about(GtkWidget *widget, gpointer gdata)
 gint set_to_online(GtkWidget *widget, gpointer gdata)
 {
 	g_print("Online...\n");
+	controller_change_status (0);
 	return(FALSE);
 }
 
 gint set_to_busy(GtkWidget *widget, gpointer gdata)
 {
 	g_print("Busy...\n");
+	controller_change_status(1);
 	return (FALSE);
 }
 
 gint set_to_away(GtkWidget *widget, gpointer gdata)
 {
 	g_print("Away...\n");
+	controller_change_status(2);
 	return (FALSE);
 }
 
@@ -658,8 +661,8 @@ int open_pm_gui() {
 	vbox2 = gtk_vbox_new(FALSE, 5);
 	//gtk_paned_set_position(GTK_PANED(vbox2), 500);  //TROVARE UN MODO CORRETTO DI SETTARE IL SECONDO PARAMETRO PER POSIZIONARE BENE IL SEPARATORE
 	/*-- Create a text area --*/
-	text = create_text(0, TOP);
-	chat = create_text(1, BOTTOM);
+	text = create_text(1, TOP);
+	chat = create_text(1, BOTTOM); //Naturalmente non si vede nella window xkè l'id della chat non è 1
 
 	/*-- Create the handlebox --*/
 	handlebox = gtk_handle_box_new();
@@ -686,8 +689,8 @@ int open_pm_gui() {
 	
 	//gtk_paned_add1(GTK_PANED(vbox2), chat);
 	//gtk_paned_add2(GTK_PANED(vbox2), text);
-	gtk_container_add(GTK_CONTAINER(vbox2),chat);
-	gtk_box_pack_end(GTK_BOX(vbox2), text, FALSE, TRUE, 0);
+	gtk_container_add(GTK_CONTAINER(vbox2),text);
+	gtk_box_pack_end(GTK_BOX(vbox2), chat, FALSE, TRUE, 0);
 	
 	gtk_container_add(GTK_CONTAINER(window), vbox);
 
@@ -698,7 +701,7 @@ int open_pm_gui() {
 	gtk_container_border_width (GTK_CONTAINER (window), 0);
 
 	/*-- Set the window to be 640 x 480 pixels --*/
-	gtk_window_set_default_size (GTK_WINDOW(window), 640, 200);
+	gtk_window_set_default_size (GTK_WINDOW(window), 640, 400);
 
 	/*-- Set the window title --*/
 	gtk_window_set_title(GTK_WINDOW (window), "messaggio privato");
