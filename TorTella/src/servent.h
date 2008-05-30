@@ -99,13 +99,16 @@ static GSList *client_thread;
 static GSList *server_thread;
 static GSList *server_connection_thread;
 
-#define WLOCK(servent)			if(servent_get(servent)!=NULL) \
+#define WLOCK(servent)			logger(SYS_INFO, "[WLOCK]Lock %lld\n", servent); \
+								if(servent_get(servent)!=NULL) \
 									pthread_rwlock_wrlock( &(servent_get(servent)->rwlock_data))
 
-#define RLOCK(servent)			if(servent_get(servent)!=NULL) \
+#define RLOCK(servent)			logger(SYS_INFO, "[RLOCK]Lock %lld\n", servent); \
+								if(servent_get(servent)!=NULL) \
 									pthread_rwlock_rdlock( &(servent_get(servent)->rwlock_data))
 
-#define UNLOCK(servent)			if(servent_get(servent)!=NULL) \
+#define UNLOCK(servent)			logger(SYS_INFO, "[UNLOCK]Unlock %lld\n", servent); \
+								if(servent_get(servent)!=NULL) \
 									pthread_rwlock_unlock( &(servent_get(servent)->rwlock_data))
 
 #define COPY_SERVENT(servent, copy)			copy=calloc(1, sizeof(servent_data)); \
