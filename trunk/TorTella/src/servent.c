@@ -313,7 +313,6 @@ void *servent_responde(void *parm) {
 						servent_data *conn_servent = g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id));
 
 						conn_servent->timestamp = h_packet->data->header->timestamp;
-						
 						add_exist_user_to_chat(GET_JOIN(h_packet->data)->chat_id, id);
 						controller_add_user_to_chat(GET_JOIN(h_packet->data)->chat_id, id);
 
@@ -347,7 +346,7 @@ void *servent_responde(void *parm) {
 								char *new_id = to_string(local_servent->id);
 								printf("[servent_responde]sending new ID: %s with len %d\n", new_id, strlen(new_id));
 								send_post_response_packet(fd, status, strlen(new_id), new_id);
-								usleep(200); //FIXIT: Ritardo per evitare che invii un nuovo pacchetto ping prima che l'altro peer abbia creato la struttura
+								usleep(800); //FIXIT: Ritardo per evitare che invii un nuovo pacchetto ping prima che l'altro peer abbia creato la struttura
 								status = 0;
 							}
 							else {
@@ -422,7 +421,7 @@ void *servent_responde(void *parm) {
 						conn_servent->msg_len = h_packet->data->header->data_len;
 						conn_servent->timestamp = h_packet->data->header->timestamp;
 						
-						char *send_msg = prepare_msg(conn_servent->timestamp, conn_servent->nick, conn_servent->msg);
+						char *send_msg = prepare_msg(conn_servent->timestamp, conn_servent->nick, conn_servent->msg, conn_servent->msg_len);
 						controller_add_msg_to_chat(GET_MESSAGE(h_packet->data)->chat_id, send_msg);
 						printf("[servent_responde]msg: %s, msg_len: %d\n", conn_servent->msg, conn_servent->msg_len);
 						UNLOCK(h_packet->data->header->sender_id);
