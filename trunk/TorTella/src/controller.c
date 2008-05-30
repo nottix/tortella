@@ -22,9 +22,9 @@ int controller_send_chat_users(u_int8 chat_id, u_int4 msg_len, char *msg) {
 			user = g_list_nth_data(users, i);
 			data = servent_get(user->id);
 			if(data!=NULL && data->id!=servent_get_local()->id ) {
-				RLOCK(data->id);
+				//RLOCK(data->id);
 				COPY_SERVENT(data, tmp);
-				UNLOCK(data->id);
+				//UNLOCK(data->id);
 				
 				tmp->msg = strdup(msg);
 				tmp->msg_len = msg_len;
@@ -424,10 +424,10 @@ u_int8 controller_search(const char *query) {
 				logger(CTRL_INFO, "[controller_search]Coda Servent NULL\n");
 				continue;
 			}
-			//RLOCK(servent->id);
+			RLOCK(servent->id);
 			logger(INFO, "[controller_search]Copy servent\n");
 			COPY_SERVENT(servent, tmp);
-			//UNLOCK(servent->id);
+			UNLOCK(servent->id);
 			if(tmp->queue==NULL || tmp->res_queue==NULL) {
 				logger(CTRL_INFO, "[controller_search]Coda NULL\n");
 				continue;

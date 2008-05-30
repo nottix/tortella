@@ -114,6 +114,15 @@ gint add_to_buffer_new_message(GtkTextView *widget, gchar *msg)
 {
   GtkTextBuffer *text = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget));
   GtkTextIter iter;
+  gtk_text_buffer_get_end_iter(text,&iter);
+  //gtk_text_buffer_create_tag(text, "blue_fg", "foreground", "blue", NULL);
+  char *first = strstr(msg, "\n");
+  int len = first-msg;
+  char *tmp = calloc(len+1, 1);
+  strncpy(tmp, msg, len);
+  //gtk_text_buffer_insert_with_tags_by_name(text, &iter, tmp, -1, "blue_fg", "lmarg",  NULL);
+  gtk_text_buffer_insert(text,&iter,tmp,-1);
+  msg+=len;
   gtk_text_buffer_get_end_iter(text,&iter),
   gtk_text_buffer_insert(text,&iter,msg,-1); 
   return (FALSE);
@@ -517,6 +526,7 @@ GtkWidget *create_text(u_int8 chat_id, int type)
 			GTK_POLICY_AUTOMATIC);
 
 	gtk_container_add (GTK_CONTAINER (scrolled_window), view);
+	 
 	//insert_text (buffer);
     if(type == BOTTOM) {
     	gtk_text_view_set_editable(GTK_TEXT_VIEW(view),TRUE);

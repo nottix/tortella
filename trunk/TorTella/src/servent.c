@@ -219,6 +219,10 @@ void servent_send_packet(servent_data *sd) {
 
 servent_data *servent_pop_queue(servent_data *sd) {
 	servent_data *servent;
+	if(sd==NULL) {
+		logger(SYS_INFO, "[servent_pop_queue]NULL\n");
+		return NULL;
+	}
 	while((servent = (servent_data*)g_queue_pop_head(sd->queue))==NULL) {
 		usleep(200);
 	}
@@ -309,14 +313,13 @@ void *servent_responde(void *parm) {
 						printf("[servent_responde]JOIN ricevuto\n");
 						u_int8 id = h_packet->data->header->sender_id;
 						
-						WLOCK(id);
 						servent_data *conn_servent = g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id));
-
+						
+						WLOCK(id);
 						conn_servent->timestamp = h_packet->data->header->timestamp;
+						UNLOCK(id);
 						add_exist_user_to_chat(GET_JOIN(h_packet->data)->chat_id, id);
 						controller_add_user_to_chat(GET_JOIN(h_packet->data)->chat_id, id);
-
-						UNLOCK(id);
 						
 						status = HTTP_STATUS_OK;
 					}
@@ -332,8 +335,8 @@ void *servent_responde(void *parm) {
 							conn_servent->status = GET_PING(h_packet->data)->status;
 							conn_servent->timestamp = h_packet->data->header->timestamp;
 							conn_servent->nick = h_packet->data->data;
-							add_user(conn_servent->id, conn_servent->nick, conn_servent->ip, conn_servent->port);
 							UNLOCK(id);
+							add_user(conn_servent->id, conn_servent->nick, conn_servent->ip, conn_servent->port);
 							printf("[servent_responde]Old PING, nick: %s, status: %c\n", conn_servent->nick, conn_servent->status);
 							
 							status = HTTP_STATUS_OK;
@@ -422,9 +425,10 @@ void *servent_responde(void *parm) {
 						conn_servent->timestamp = h_packet->data->header->timestamp;
 						
 						char *send_msg = prepare_msg(conn_servent->timestamp, conn_servent->nick, conn_servent->msg, conn_servent->msg_len);
+						UNLOCK(h_packet->data->header->sender_id);
 						controller_add_msg_to_chat(GET_MESSAGE(h_packet->data)->chat_id, send_msg);
 						printf("[servent_responde]msg: %s, msg_len: %d\n", conn_servent->msg, conn_servent->msg_len);
-						UNLOCK(h_packet->data->header->sender_id);
+						
 
 						status = HTTP_STATUS_OK;
 					}
