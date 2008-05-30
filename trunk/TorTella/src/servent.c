@@ -326,7 +326,9 @@ void *servent_responde(void *parm) {
 						
 						servent_data *conn_servent;
 						u_int8 id = h_packet->data->header->sender_id;
+						logger(SYS_INFO, "[servent_responde]Searching in hashtable: %lld\n", id);
 						if((conn_servent=g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id)))!=NULL) {
+							logger(SYS_INFO, "[servent_responde]Found: %lld\n", id);
 							WLOCK(id);
 							conn_servent->status = GET_PING(h_packet->data)->status;
 							conn_servent->timestamp = h_packet->data->header->timestamp;
@@ -345,6 +347,7 @@ void *servent_responde(void *parm) {
 								char *new_id = to_string(local_servent->id);
 								printf("[servent_responde]sending new ID: %s with len %d\n", new_id, strlen(new_id));
 								send_post_response_packet(fd, status, strlen(new_id), new_id);
+								usleep(200); //FIXIT: Ritardo per evitare che invii un nuovo pacchetto ping prima che l'altro peer abbia creato la struttura
 								status = 0;
 							}
 							else {
@@ -603,8 +606,8 @@ void *servent_connect(void *parm) {
 		}
 		logger(SYS_INFO, "[servent_connect]Signal received in id_dest %lld\n", id_dest);
 		
-		//RLOCK(local_servent->id); 
-		//WLOCK(id_dest); 
+		RLOCK(local_servent->id); 
+		WLOCK(id_dest); 
 		logger(SYS_INFO, "[servent_connect] post_type %d\n", servent_queue->post_type);
 		servent_peer->post_type = servent_queue->post_type;
 		servent_peer->chat_id_req = servent_queue->chat_id_req;
@@ -682,7 +685,7 @@ void *servent_connect(void *parm) {
 								printf("[servent_connect]Removing old %s\n", to_string(id_dest));
 								//servent_data *tmp;
 								//COPY_SERVENT(servent_peer, tmp);
-								//g_hash_table_remove(servent_hashtable, (gconstpointer)to_string(id_dest)); FIXIT
+								g_hash_table_remove(servent_hashtable, (gconstpointer)to_string(id_dest));
 								printf("[servent_connect]Removed old ID: %lld\n", servent_peer->id);
 								printf("[servent_connect]Converting %s, len: %d\n", h_packet->data_string, h_packet->data_len);
 								char *buf = calloc(h_packet->data_len+1, 1);
@@ -692,9 +695,7 @@ void *servent_connect(void *parm) {
 								printf("[servent_connect]New ID: %lld.\n", id_dest);
 								//COPY_SERVENT(tmp, servent_peer);
 								servent_peer->id = id_dest;
-								printf("[servent_connect]Nick %s, Status: %c\n", servent_peer->nick, servent_peer->status);
 								g_hash_table_insert(servent_hashtable, (gpointer)to_string(id_dest), (gpointer)servent_peer);
-								printf("[servent_connect]Nick %s, Status: %c\n", servent_peer->nick, servent_peer->status);
 							}
 							else
 								printf("[servent_connect]Data isn't present\n");
@@ -709,13 +710,14 @@ void *servent_connect(void *parm) {
 			if(h_packet != NULL) {
 				logger(SYS_INFO, "[servent_connect]Appending response\n");
 				servent_append_response(servent_peer, h_packet->header_response->response);
+				logger(SYS_INFO, "[servent_connect]Appended\n");
 			}
 			else {
 				logger(SYS_INFO, "[servent_connect]Appending response TIMEOUT\n");
 				servent_append_response(servent_peer, TIMEOUT);
 			}
-			//UNLOCK(id_dest); 
-			//UNLOCK(local_servent->id); 
+			UNLOCK(id_dest); 
+			UNLOCK(local_servent->id); 
 		}
 	}
 	pthread_exit(NULL);
