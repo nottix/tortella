@@ -17,6 +17,8 @@ pthread_t gtk_main_thread;
 extern GHashTable *chat_hashtable;
 extern GHashTable *chatclient_hashtable;
 
+int controller_change_status(int index, u_int8 chat_id); 
+
 //Aggiunto il flag subset per vedere se il messaggio è da mandare solo a determinati  utenti, userslist contiene la lista degli utenti a cui inviare il messaggio
 int controller_send_chat_users(u_int8 chat_id, u_int4 msg_len, char *msg);
 
