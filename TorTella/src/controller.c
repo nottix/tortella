@@ -82,8 +82,8 @@ int controller_send_subset_users(u_int8 chat_id, u_int4 msg_len, char *msg, GLis
 			data->post_type = MESSAGE_ID;
 
 			UNLOCK(data->id);
-
-			pthread_cond_signal(&data->cond);
+			servent_send_packet(data); //
+			//pthread_cond_signal(&data->cond);
 		}
 		return 0;
 	}
@@ -101,8 +101,8 @@ int controller_send_pm(u_int4 msg_len, char *msg, u_int8 recv_id) {
 	data->post_type = MESSAGE_ID;
 
 	UNLOCK(data->id);
-
-	pthread_cond_signal(&data->cond);
+    servent_send_packet (data); //prova
+	//pthread_cond_signal(&data->cond);
 	return 0;
 }
 
@@ -180,7 +180,8 @@ int controller_leave_chat(u_int8 chat_id) {
 						peer->chat_id_req = chat_id;
 						peer->post_type = LEAVE_ID;
 						UNLOCK(peer->id);
-						pthread_cond_signal(&peer->cond);
+						//pthread_cond_signal(&peer->cond);
+						servent_send_packet(peer); //PROVA
 					}
 				}
 			}
