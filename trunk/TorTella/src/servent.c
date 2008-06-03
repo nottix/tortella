@@ -462,7 +462,7 @@ void *servent_responde(void *parm) {
 						}
 
 						
-						printf("[servent_responde]Sending SEARCHHITS packet to searching peer\n");
+						printf("[servent_responde]Sending SEARCH packet to searching peer\n");
 						
 						if(GET_SEARCH(h_packet->data)->ttl>0) {
 							printf("[servent_responde]TTL > 0\n");
@@ -673,6 +673,7 @@ void *servent_connect(void *parm) {
 				send_searchhits_packet(fd, packet_id, local_servent->id, id_dest, g_list_length(servent_queue->chat_res), length, buf);
 			}
 		
+			free(buffer);
 			logger(SYS_INFO, "[servent_connect]Listening response\n");
 			len = recv_http_packet(fd, &buffer);
 			logger(SYS_INFO, "[sevente_connect]Received response\n");
