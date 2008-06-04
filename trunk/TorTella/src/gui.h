@@ -28,6 +28,8 @@
 
 #define TOP		0x01
 #define BOTTOM	0x02
+#define CHAT 	0x03
+#define PM 		0x04
 
 GtkListStore *chat_model;
 GtkTreeIter   chat_iter;
@@ -70,7 +72,7 @@ gint remove_user_from_chat_list(int index, int user_id);
 
 gint open_chat(GtkWidget *widget, GdkEventButton *event, gpointer func_data);
 
-gint open_conversation(GtkWidget *widget, GdkEventButton *event, gpointer func_data);
+gint open_conversation(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn  *col, gpointer userdata);
 
 gint open_about(GtkWidget *widget, gpointer gdata);
 
@@ -84,13 +86,15 @@ gint search_chat_button(GtkWidget *widget, gpointer gdata);
 
 gint send_text_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata);
 
+gint send_pm_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata);
+
 GtkWidget *create_users_list(u_int8 index);
 
 GtkWidget *create_chat_list(u_int8 index);
 
 GtkWidget *create_menu(void);
 
-GtkWidget *create_text(u_int8 chat_id, int type);
+GtkWidget *create_text(u_int8 chat_id, int type, int msg_type);
 
 GtkWidget *create_searchbar(void);
 

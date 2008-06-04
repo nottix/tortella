@@ -28,7 +28,9 @@ void destroyapp (GtkWidget *widget, gpointer gdata)
 gint destroywindow(GtkWidget *widget, gpointer gdata)
 {
   g_print("Closing window\n");
-  gtk_main_quit();
+  //gtk_main_quit();
+  gdk_window_destroy(GTK_WINDOW(widget)); //reinserita la semplice chiusura della finestra e non dell'intera applicazione
+	//Aggiungere il leave dalla chat o dalla conversazione privata
   return(FALSE);
 }
 
@@ -186,15 +188,42 @@ void view_onRowActivated (GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewC
   }
 }
 
-gint open_conversation(GtkWidget *widget, GdkEventButton *event, gpointer func_data) {
-	if (event->type==GDK_2BUTTON_PRESS ||
+gint open_conversation(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn  *col, gpointer userdata) {
+	/*if (event->type==GDK_2BUTTON_PRESS ||
 			event->type==GDK_3BUTTON_PRESS) {
 		printf("I feel %s clicked with button %d\n",
 				event->type==GDK_2BUTTON_PRESS ? "double" : "triple",
 						event->button);
 		open_pm_gui();  
-	}
+	}*/
+  GtkTreeModel *model;
+  GtkTreeIter   iter;
 
+  g_print ("A row has been double-clicked!\n");
+
+  model = gtk_tree_view_get_model(treeview);
+
+  if (gtk_tree_model_get_iter(model, &iter, path))
+  {
+     gchar *user_id;
+	 gchar *name; 
+	 gtk_tree_model_get(model, &iter, 0, &name, -1);
+     gtk_tree_model_get(model, &iter, 1, &user_id, -1);
+
+     g_print ("Double-clicked row contains name %s\n", user_id);
+
+     //chat *elem = get_chat(atoll(name));
+     if(user_id > 0 ) {
+		//g_hash_table_insert(tree_model_hashtable, (gpointer)user_id, (gpointer)model); //PROVA NELLA STESSA HASHTABLE
+    	open_pm_gui(atoll(user_id),name);
+    	// open_chatroom_gui(elem->id);
+		// usleep(200);
+		// controller_connect_users(g_hash_table_get_values(elem->users));
+		// sleep(1);//FIXIT
+		// controller_join_chat(elem->id);
+     }
+    // g_free(name);
+  }
 	return FALSE;
 }
 
@@ -220,21 +249,21 @@ gint open_about(GtkWidget *widget, gpointer gdata)
 gint set_to_online(GtkWidget *widget, gpointer gdata)
 {
 	g_print("Online...\n");
-	controller_change_status (0);
+	//controller_change_status (0);
 	return(FALSE);
 }
 
 gint set_to_busy(GtkWidget *widget, gpointer gdata)
 {
 	g_print("Busy...\n");
-	controller_change_status(1);
+	//controller_change_status(1);
 	return (FALSE);
 }
 
 gint set_to_away(GtkWidget *widget, gpointer gdata)
 {
 	g_print("Away...\n");
-	controller_change_status(2);
+	//controller_change_status(2);
 	return (FALSE);
 }
 
@@ -287,6 +316,38 @@ gint send_text_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata)
 			time_t actual_time = time(NULL);
 			char *send_msg = prepare_msg(actual_time, servent_get_local()->nick, msg, strlen(msg));
 			add_msg_to_chat(chat_id, send_msg);
+			//tree_model *model_str = get_tree_model(chat_id);
+			//add_to_buffer_new_message(GTK_TEXT_VIEW(model_str->text_area), msg);
+		}
+		return TRUE;
+	}
+	return (FALSE);
+}
+
+gint send_pm_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata) //Prova per il pm, dà seg fault
+{
+
+	if(event->type == GDK_KEY_PRESS && event->keyval == GDK_Return) {
+		g_print("Enter pressed...\n");
+		//Controlla se sono selezionati utenti a cui inviare
+		//...
+		//Altrimenti invia a tutti
+		u_int8 chat_id = atoll((char*)gdata);
+		GtkTextBuffer *buf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget));
+		g_print("Enter pressed...\n");
+		GtkTextIter start ;
+		gtk_text_buffer_get_start_iter(buf, &start);
+		g_print("Enter pressed...\n");
+		GtkTextIter end;
+		gtk_text_buffer_get_end_iter(buf, &end);
+		g_print("Enter pressed...\n");
+		char *msg = gtk_text_buffer_get_text(buf, &start, &end, TRUE);
+		logger(INFO, "[send_pm_message]Msg: %s to %lld\n", msg, chat_id);
+		if(controller_send_pm(strlen(msg), msg, chat_id)>=0) { //qui c'è il seg_fault, l'hash table è null
+			clear_buffer(GTK_TEXT_VIEW(widget));
+			time_t actual_time = time(NULL);
+			char *send_msg = prepare_msg(actual_time, servent_get_local()->nick, msg, strlen(msg));
+			add_msg_to_chat(chat_id, send_msg); //sostituire con la text view corretta
 			//tree_model *model_str = get_tree_model(chat_id);
 			//add_to_buffer_new_message(GTK_TEXT_VIEW(model_str->text_area), msg);
 		}
@@ -361,9 +422,9 @@ GtkWidget *create_users_list(u_int8 index )
 	//gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view), GTK_TREE_VIEW_COLUMN (column[2]));
    
      g_signal_connect(G_OBJECT(tree_view),
-                     "button_press_event",
+                     "row-activated",
                      G_CALLBACK(open_conversation),
-                     NULL);  //EVENTO CHE AL DOPPIO CLICK SU UNA CHAT DOVREBBE APRIRE LA GUI DELLA CHAT SELEZIONATA
+                     to_string(index));  //EVENTO CHE AL DOPPIO CLICK SU UNA CHAT DOVREBBE APRIRE LA GUI DELLA CHAT SELEZIONATA
    if(tree_model_hashtable == NULL) {
 		logger(INFO, "[create_users_list] Hashtable created\n");
 	   tree_model_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
@@ -513,7 +574,7 @@ GtkWidget *create_menu(void) {
 	return menubar;
 }
 
-GtkWidget *create_text(u_int8 chat_id, int type)
+GtkWidget *create_text(u_int8 chat_id, int type, int msg_type)
 {
 	logger(INFO, "[create_text]chat ID: %lld\n", chat_id);
 	GtkWidget *scrolled_window;
@@ -534,21 +595,31 @@ GtkWidget *create_text(u_int8 chat_id, int type)
     if(type == BOTTOM) {
     	gtk_text_view_set_editable(GTK_TEXT_VIEW(view),TRUE);
     	logger(INFO, "[create_text]signal connect\n");
-		g_signal_connect(GTK_OBJECT(view),"key_press_event", G_CALLBACK(send_text_message), (gpointer)to_string(chat_id)); //TODO blocca l'inserimento testo
-        gtk_text_view_set_editable(GTK_TEXT_VIEW(view),TRUE);
+		if(msg_type == PM) {
+			g_signal_connect(GTK_OBJECT(view),"key_press_event", G_CALLBACK(send_pm_message), (gpointer)to_string(chat_id)); //prova prova prova di pm
+		}
+		else if(msg_type == CHAT) {	
+			g_signal_connect(GTK_OBJECT(view),"key_press_event", G_CALLBACK(send_text_message), (gpointer)to_string(chat_id)); //TODO blocca l'inserimento testo
+		}
+		gtk_text_view_set_editable(GTK_TEXT_VIEW(view),TRUE);
     }
     else if (type == TOP){
-    	gtk_text_view_set_editable(GTK_TEXT_VIEW(view),FALSE);
-    	tree_model *model_str = (tree_model*)g_hash_table_lookup(tree_model_hashtable, to_string(chat_id));
-    	if(model_str!=NULL) {
-    		logger(INFO, "[create_text]OK\n");
-    		model_str->text_area = GTK_TEXT_VIEW(view);
+		if(msg_type == CHAT) {
+    		gtk_text_view_set_editable(GTK_TEXT_VIEW(view),FALSE);
+    		tree_model *model_str = (tree_model*)g_hash_table_lookup(tree_model_hashtable, to_string(chat_id));
+    		if(model_str!=NULL) {
+    			logger(INFO, "[create_text]OK\n");
+    			model_str->text_area = GTK_TEXT_VIEW(view);
+    		}
+    		else {
+    			logger(INFO, "[create_text]NULL\n");
+    			return NULL;
+    		}
     	}
-    	else {
-    		logger(INFO, "[create_text]NULL\n");
-    		return NULL;
-    	}
-    }
+		else if(msg_type == PM) {
+			//gestire la text area del pm
+		}
+	}	
 	gtk_widget_show_all (scrolled_window);
 
 	return scrolled_window;
@@ -572,8 +643,8 @@ int open_chatroom_gui(u_int8 chat_id) {
 	menu = create_menu();
 	list = create_users_list (chat_id);
 	
-	text = create_text(chat_id, TOP);
-	chat = create_text(chat_id, BOTTOM);
+	text = create_text(chat_id, TOP, CHAT);
+	chat = create_text(chat_id, BOTTOM, CHAT);
 
 	/*-- Create the vbox --*/
 	vbox = gtk_vbox_new(FALSE, 5);
@@ -640,7 +711,7 @@ int open_chatroom_gui(u_int8 chat_id) {
 	return 0;
 }
 
-int open_pm_gui() {
+int open_pm_gui(u_int8 user_id, gchar *nickname) {
 	/*-- Declare the GTK Widgets used in the program --*/
 	GtkWidget *window;
 	GtkWidget *menu;
@@ -661,8 +732,8 @@ int open_pm_gui() {
 	vbox2 = gtk_vbox_new(FALSE, 5);
 	//gtk_paned_set_position(GTK_PANED(vbox2), 500);  //TROVARE UN MODO CORRETTO DI SETTARE IL SECONDO PARAMETRO PER POSIZIONARE BENE IL SEPARATORE
 	/*-- Create a text area --*/
-	text = create_text(1, TOP);
-	chat = create_text(1, BOTTOM); //Naturalmente non si vede nella window xkè l'id della chat non è 1
+	text = create_text(user_id, TOP, PM);
+	chat = create_text(user_id, BOTTOM, PM); //Naturalmente non si vede nella window xkè l'id della chat non è 1
 
 	/*-- Create the handlebox --*/
 	handlebox = gtk_handle_box_new();
@@ -704,7 +775,7 @@ int open_pm_gui() {
 	gtk_window_set_default_size (GTK_WINDOW(window), 640, 400);
 
 	/*-- Set the window title --*/
-	gtk_window_set_title(GTK_WINDOW (window), "messaggio privato");
+	gtk_window_set_title(GTK_WINDOW (window), nickname);
 
 	/*-- Display the widgets --*/
 	gtk_widget_show(handlebox);

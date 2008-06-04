@@ -91,8 +91,10 @@ int controller_send_subset_users(u_int8 chat_id, u_int4 msg_len, char *msg, GLis
 }
 
 int controller_send_pm(u_int4 msg_len, char *msg, u_int8 recv_id) {
-	servent_data *data = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(recv_id));
-
+	logger(CTRL_INFO, "[controller_send_pm] id destinatario %d\n", recv_id);
+	
+	servent_data *data = (servent_data*)servent_get(recv_id);
+	
 	WLOCK(data->id);
 
 	data->msg = strdup(msg);
@@ -101,7 +103,7 @@ int controller_send_pm(u_int4 msg_len, char *msg, u_int8 recv_id) {
 	data->post_type = MESSAGE_ID;
 
 	UNLOCK(data->id);
-    servent_send_packet (data); //prova
+    servent_send_packet (data); //prova */
 	//pthread_cond_signal(&data->cond);
 	return 0;
 }
