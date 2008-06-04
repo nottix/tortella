@@ -82,6 +82,8 @@ typedef struct servent_data servent_data;
 
 static GHashTable *servent_hashtable;
 
+static GHashTable *search_packet_hashtable = NULL;
+
 static servent_data *local_servent;
 
 static u_int1 last_request_type = 0;
@@ -155,6 +157,10 @@ servent_data *servent_pop_queue(servent_data *sd);
 void servent_append_response(servent_data *sd, const char *response);
 
 char *servent_pop_response(servent_data *sd);
+
+u_int8 *get_search_packet(u_int8 id);
+
+void new_search_packet(u_int8 id);
 
 //-----THREAD--------------
 
