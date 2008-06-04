@@ -465,6 +465,7 @@ u_int8 controller_search(const char *query) {
 			tmp->title_len = strlen(query);
 			tmp->ttl = 3;
 			tmp->hops = 0;
+			tmp->packet_id = generate_id(); //Se non ci fosse verrebbe riutilizzato l'ID di uno degli eventuali pacchetti SEARCH ritrasmessi
 			logger(INFO, "[controller_search]Send\n");
 			servent_send_packet(tmp);
 			logger(INFO, "[controller_search]Sent\n");
@@ -480,8 +481,10 @@ u_int8 controller_search(const char *query) {
 		servent = g_list_nth_data(servents, i);
 		if(servent->id!=servent_get_local()->id) {
 			ret = servent_pop_response(servent);
-			if(strcmp(ret, TIMEOUT)==0)
+			if(strcmp(ret, TIMEOUT)==0) {
+				logger(CTRL_INFO, "[controller_search]TIMEOUT\n");
 				return servent->id;
+			}
 			printf("RECEIVED %s\n", ret);
 		}
 		else

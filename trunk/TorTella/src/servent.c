@@ -157,6 +157,7 @@ int servent_init(char *ip, u_int4 port, u_int1 status) {
 	
 	servent_hashtable = g_hash_table_new_full(g_str_hash, g_str_equal, free, NULL);
 	route_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
+	search_packet_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
 	
 	local_servent = (servent_data*)calloc(1, sizeof(servent_data));
 	u_int8 id = local_servent->id = generate_id();
@@ -250,15 +251,15 @@ char *servent_pop_response(servent_data *sd) {
 	return buf;
 }
 
-u_int8 *get_search_packet(u_int8 id) {
-	return (tortella_packet*)g_hash_table_lookup(search_packet_hashtable,(gconstpointer)to_string(id));
+char *get_search_packet(u_int8 id) {
+	return (char*)g_hash_table_lookup(search_packet_hashtable,(gconstpointer)to_string(id));
 }
 
 void new_search_packet(u_int8 id) {
-	if(search_packet_hashtable == NULL) {
-		search_packet_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
-	}
-	g_hash_table_insert(search_packet_hashtable,(gpointer)to_string(id),(gpointer)id);
+	//if(search_packet_hashtable == NULL) {
+	//	search_packet_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
+	//}
+	g_hash_table_insert(search_packet_hashtable,(gpointer)to_string(id),(gpointer)to_string(id));
 }
 
 //---------THREAD---------------
@@ -360,7 +361,7 @@ void *servent_responde(void *parm) {
 								char *new_id = to_string(local_servent->id);
 								printf("[servent_responde]sending new ID: %s with len %d\n", new_id, strlen(new_id));
 								send_post_response_packet(fd, status, strlen(new_id), new_id);
-								usleep(800); //FIXIT: Ritardo per evitare che invii un nuovo pacchetto ping prima che l'altro peer abbia creato la struttura
+								usleep(1200); //FIXIT: Ritardo per evitare che invii un nuovo pacchetto ping prima che l'altro peer abbia creato la struttura
 								status = 0;
 							}
 							else {
@@ -444,8 +445,8 @@ void *servent_responde(void *parm) {
 						status = HTTP_STATUS_OK;
 					}
 					else if(h_packet->data->header->desc_id==SEARCH_ID) {
-						printf("[servent_responde]SEARCH ricevuto\n");
-						if(get_search_packet(h_packet->data->header->id) == NULL) { //Fino a dove st'if???
+						printf("[servent_responde]SEARCH ricevuto id: %lld\n", h_packet->data->header->id);
+						if(get_search_packet(h_packet->data->header->id) == NULL) {
 							new_search_packet(h_packet->data->header->id);
 						
 							GList *res;
@@ -476,7 +477,7 @@ void *servent_responde(void *parm) {
 							}
 
 						
-							printf("[servent_responde]Sending SEARCH packet to searching peer\n");
+							printf("[servent_responde]Sending SEARCHHITS packet to searching peer\n");
 						
 							if(GET_SEARCH(h_packet->data)->ttl>0) {
 								printf("[servent_responde]TTL > 0\n");
@@ -512,7 +513,7 @@ void *servent_responde(void *parm) {
 						
 						GList *chat_list = char_to_chatlist(tortella_get_data(h_packet->data_string), h_packet->data->header->data_len);
 						add_all_to_chat(chat_list);
-						
+
 						route_entry *entry = get_route_entry(h_packet->data->header->id, route_hashtable);
 						if(entry!=NULL) {
 							RLOCK(entry->sender_id);
@@ -529,6 +530,14 @@ void *servent_responde(void *parm) {
 							printf("[servent_responde]Routing packet from %lld to %lld\n", h_packet->data->header->sender_id, entry->sender_id);
 							del_route_entry(h_packet->data->header->id, route_hashtable);
 							printf("[servent_responde]Route entry %lld deleted\n", h_packet->data->header->id); 
+						}
+						else {
+							int i=0;
+							chat *chat_val;
+							for(; i<g_list_length(chat_list); i++) {
+								chat_val = (chat*)g_list_nth_data(chat_list, i);
+								add_chat_to_list(chat_val->id, chat_val->title);
+							}
 						}
 						
 						status = HTTP_STATUS_OK;
@@ -618,6 +627,10 @@ void *servent_connect(void *parm) {
 	//Ora si entra nel ciclio infinito che serve per inviare tutte le richieste
 	while(1) {
 		logger(SYS_INFO, "[servent_connect]Waiting\n");
+		if(servent_peer==NULL) {
+			logger(SYS_INFO, "[servent_connect] Peer NULL\n");
+			servent_peer = servent_get(id_dest);
+		}
 		servent_queue = servent_pop_queue(servent_peer);
 		if(servent_queue==NULL) {
 			logger(SYS_INFO, "[servent_connect] Queue NULL\n");
@@ -703,8 +716,8 @@ void *servent_connect(void *parm) {
 							printf("[servent_connect]Responding to PING\n");
 							if(servent_peer!=NULL) {
 								printf("[servent_connect]Removing old %s\n", to_string(id_dest));
-								//servent_data *tmp;
-								//COPY_SERVENT(servent_peer, tmp);
+								servent_data *tmp;
+								COPY_SERVENT(servent_peer, tmp);
 								g_hash_table_remove(servent_hashtable, (gconstpointer)to_string(id_dest));
 								printf("[servent_connect]Removed old ID: %lld\n", servent_peer->id);
 								printf("[servent_connect]Converting %s, len: %d\n", h_packet->data_string, h_packet->data_len);
@@ -713,7 +726,7 @@ void *servent_connect(void *parm) {
 								printf("[servent_connect]buf: %s.\n", buf);
 								id_dest = strtoull(buf, NULL, 10);
 								printf("[servent_connect]New ID: %lld.\n", id_dest);
-								//COPY_SERVENT(tmp, servent_peer);
+								COPY_SERVENT(tmp, servent_peer);
 								servent_peer->id = id_dest;
 								g_hash_table_insert(servent_hashtable, (gpointer)to_string(id_dest), (gpointer)servent_peer);
 							}
@@ -729,6 +742,10 @@ void *servent_connect(void *parm) {
 			}
 			if(h_packet != NULL) {
 				logger(SYS_INFO, "[servent_connect]Appending response\n");
+				if(servent_peer==NULL) {
+					logger(SYS_INFO, "[servent_connect] Peer response NULL\n");
+					servent_peer = servent_get(id_dest);
+				}
 				servent_append_response(servent_peer, h_packet->header_response->response);
 				logger(SYS_INFO, "[servent_connect]Appended\n");
 			}

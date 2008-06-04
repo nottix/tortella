@@ -326,8 +326,12 @@ chat *search_chat(const char *title) {
 }
 
 GList *search_all_chat(const char *title) {
-	if(title==NULL || chat_hashtable==NULL) {
-		printf("[search_all_chat]title e chat_hashtable NULL\n");
+	if(title==NULL) {
+		printf("[search_all_chat]title NULL\n");
+		return NULL;
+	}
+	if(chat_hashtable==NULL) {
+		printf("[search_all_chat]chat_hashtable NULL\n");
 		return NULL;
 	}
 	
