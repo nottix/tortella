@@ -250,6 +250,17 @@ char *servent_pop_response(servent_data *sd) {
 	return buf;
 }
 
+u_int8 *get_search_packet(u_int8 id) {
+	return (tortella_packet*)g_hash_table_lookup(search_packet_hashtable,(gconstpointer)to_string(id));
+}
+
+void new_search_packet(u_int8 id) {
+	if(search_packet_hashtable == NULL) {
+		search_packet_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
+	}
+	g_hash_table_insert(search_packet_hashtable,(gpointer)to_string(id),(gpointer)id);
+}
+
 //---------THREAD---------------
 
 //Thread che riceve le richieste di connessione e avvia nuovi thread
@@ -434,63 +445,67 @@ void *servent_responde(void *parm) {
 					}
 					else if(h_packet->data->header->desc_id==SEARCH_ID) {
 						printf("[servent_responde]SEARCH ricevuto\n");
+						if(get_search_packet(h_packet->data->header->id) == NULL) { //Fino a dove st'if???
+							new_search_packet(h_packet->data->header->id);
 						
-						GList *res;
-						GList *servent_list;
-						servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
-						if(conn_servent==NULL) {
-							printf("[servent_responde]conn_servent entry doesn't found\n");
-							continue;
-						}
-						printf("[servent_responde]conn_servent entry found\n");
+							GList *res;
+							GList *servent_list;
+							servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
+							if(conn_servent==NULL) {
+								printf("[servent_responde]conn_servent entry doesn't found\n");
+								continue;
+							}
+							printf("[servent_responde]conn_servent entry found\n");
 						
-						if(h_packet->data_len>0) {
-							servent_data *sd;
-							RLOCK(conn_servent->id);
-							COPY_SERVENT(conn_servent, sd);
-							UNLOCK(conn_servent->id);
+							if(h_packet->data_len>0) {
+								servent_data *sd;
+								RLOCK(conn_servent->id);
+								COPY_SERVENT(conn_servent, sd);
+								UNLOCK(conn_servent->id);
 							
-							printf("[servent_responde]Searching %s\n", tortella_get_data(h_packet->data_string));
-							res = search_all_chat(tortella_get_data(h_packet->data_string));
-							printf("[servent_responde]Results number %d\n", g_list_length(res));
+								printf("[servent_responde]Searching %s\n", tortella_get_data(h_packet->data_string));
+								res = search_all_chat(tortella_get_data(h_packet->data_string));
+								printf("[servent_responde]Results number %d\n", g_list_length(res));
 				
-							logger(SYS_INFO, "[servent_responde]Sending to ID: %lld\n", sd->id);
-							sd->chat_res = res;
-							sd->packet_id = h_packet->data->header->id;
-							sd->post_type = SEARCHHITS_ID;
-							servent_send_packet(sd);
-						}
+								logger(SYS_INFO, "[servent_responde]Sending to ID: %lld\n", sd->id);
+								sd->chat_res = res;
+								sd->packet_id = h_packet->data->header->id;
+								sd->post_type = SEARCHHITS_ID;								
+								servent_send_packet(sd);
+						
+							}
 
 						
-						printf("[servent_responde]Sending SEARCH packet to searching peer\n");
+							printf("[servent_responde]Sending SEARCH packet to searching peer\n");
 						
-						if(GET_SEARCH(h_packet->data)->ttl>0) {
-							printf("[servent_responde]TTL > 0\n");
-							int i;
-							servent_list = g_hash_table_get_values(servent_hashtable);
-							for(i=0; i<g_list_length(servent_list); i++) {
+							if(GET_SEARCH(h_packet->data)->ttl>0) {
+								printf("[servent_responde]TTL > 0\n");
+								int i;
+								servent_list = g_hash_table_get_values(servent_hashtable);
+								for(i=0; i<g_list_length(servent_list); i++) {
 							
-								conn_servent = (servent_data*)g_list_nth_data(servent_list, i);
-								if(conn_servent->id!=h_packet->data->header->sender_id) {
-									RLOCK(conn_servent->id);
-									servent_data *sd;
-									COPY_SERVENT(conn_servent, sd);
-									sd->ttl = GET_SEARCH(h_packet->data)->ttl-1;
-									sd->hops = GET_SEARCH(h_packet->data)->hops+1;
-									sd->title = tortella_get_data(h_packet->data_string);
-									sd->title_len = h_packet->data->header->data_len;
-									sd->packet_id = h_packet->data->header->id;
-									sd->post_type = SEARCH_ID;
-									UNLOCK(conn_servent->id);
-									servent_send_packet(sd);
-									//Aggiunta regola di routing alla tabella
-									add_route_entry(h_packet->data->header->id, h_packet->data->header->sender_id, conn_servent->id, route_hashtable);
-									//pthread_cond_signal(&conn_servent->cond);
-									printf("[servent_responde]Retrasmitting SEARCH packet to other peers\n");
-								}
-							}		   
+									conn_servent = (servent_data*)g_list_nth_data(servent_list, i);
+									if(conn_servent->id!=h_packet->data->header->sender_id) {
+										RLOCK(conn_servent->id);
+										servent_data *sd;
+										COPY_SERVENT(conn_servent, sd);
+										sd->ttl = GET_SEARCH(h_packet->data)->ttl-1;
+										sd->hops = GET_SEARCH(h_packet->data)->hops+1;
+										sd->title = tortella_get_data(h_packet->data_string);
+										sd->title_len = h_packet->data->header->data_len;
+										sd->packet_id = h_packet->data->header->id;
+										sd->post_type = SEARCH_ID;
+										UNLOCK(conn_servent->id);
+										servent_send_packet(sd);
+										//Aggiunta regola di routing alla tabella
+										add_route_entry(h_packet->data->header->id, h_packet->data->header->sender_id, conn_servent->id, route_hashtable);
+										//pthread_cond_signal(&conn_servent->cond);
+										printf("[servent_responde]Retrasmitting SEARCH packet to other peers\n");
+									}
+								}		   
+							}
+							status = HTTP_STATUS_OK;
 						}
-						status = HTTP_STATUS_OK;
 					}
 					else if(h_packet->data->header->desc_id==SEARCHHITS_ID) {
 						printf("[servent_responde]SEARCHHITS ricevuto\n");
@@ -503,16 +518,17 @@ void *servent_responde(void *parm) {
 							RLOCK(entry->sender_id);
 							servent_data *sd;
 							servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(entry->sender_id));
+							
 							COPY_SERVENT(conn_servent, sd);
 							sd->packet_id = h_packet->data->header->id;
-							printf("[servent_responde]list size: %d, users: %d\n", g_list_length(chat_list), g_hash_table_size(((chat*)g_list_nth_data(chat_list, 0))->users));
+		//COMMENTATA SEG FAULT					printf("[servent_responde]list size: %d, users: %d\n", g_list_length(chat_list), g_hash_table_size(((chat*)g_list_nth_data(chat_list, 0))->users));
 							sd->chat_res = chat_list;
-							sd->post_type = SEARCHHITS_ID;
+							sd->post_type = SEARCHHITS_ID; 
 							UNLOCK(entry->sender_id);
 							servent_send_packet(sd);
 							printf("[servent_responde]Routing packet from %lld to %lld\n", h_packet->data->header->sender_id, entry->sender_id);
 							del_route_entry(h_packet->data->header->id, route_hashtable);
-							printf("[servent_responde]Route entry %lld deleted\n", h_packet->data->header->id);
+							printf("[servent_responde]Route entry %lld deleted\n", h_packet->data->header->id); 
 						}
 						
 						status = HTTP_STATUS_OK;

@@ -103,7 +103,7 @@ int controller_send_pm(u_int4 msg_len, char *msg, u_int8 recv_id) {
 	data->post_type = MESSAGE_ID;
 
 	UNLOCK(data->id);
-    servent_send_packet (data); //prova */
+    servent_send_packet(data); 
 	//pthread_cond_signal(&data->cond);
 	return 0;
 }
@@ -123,9 +123,10 @@ int controller_join_chat(u_int8 chat_id) {
 				client = (chatclient*)g_list_nth_data(clients, i);
 				printf("eeee\n");
 				if(client!=NULL) {
-					peer = servent_get(client->id);
+					peer = servent_get(client->id); 
 					logger(CTRL_INFO, "[controller_join_chat]Sending join to %lld\n", client->id);
 					if(peer!=NULL) {
+						logger(CTRL_INFO, "[controller_join_chat] peer not NULL\n");
 						COPY_SERVENT(peer, sd);
 						//WLOCK(peer->id);
 						sd->chat_id_req = chat_id;

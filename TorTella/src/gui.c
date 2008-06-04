@@ -269,6 +269,7 @@ gint set_to_away(GtkWidget *widget, gpointer gdata)
 
 gint search_chat_button(GtkWidget *widget, gpointer gdata)
 {
+	
 	g_print("Search Chat: %s\n", gtk_entry_get_text(GTK_ENTRY(bar_textfield)));
 	controller_search(gtk_entry_get_text(GTK_ENTRY(bar_textfield)));
 	clear_chat_list();
