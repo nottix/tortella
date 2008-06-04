@@ -361,7 +361,7 @@ void *servent_responde(void *parm) {
 								char *new_id = to_string(local_servent->id);
 								printf("[servent_responde]sending new ID: %s with len %d\n", new_id, strlen(new_id));
 								send_post_response_packet(fd, status, strlen(new_id), new_id);
-								usleep(1200); //FIXIT: Ritardo per evitare che invii un nuovo pacchetto ping prima che l'altro peer abbia creato la struttura
+								usleep(2000); //FIXIT: Ritardo per evitare che invii un nuovo pacchetto ping prima che l'altro peer abbia creato la struttura
 								status = 0;
 							}
 							else {
