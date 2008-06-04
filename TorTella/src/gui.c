@@ -43,6 +43,7 @@ gint ClosingAppWindow (GtkWidget *widget, gpointer gdata) {
 
 gint add_chat_to_list(u_int8 chat_id, char *chat_name)
 {
+	//TODO: verificare duplicati!!!!
   gchar *msg = g_strdup_printf (to_string(chat_id));
 	gchar *msg1 = g_strdup_printf (chat_name);
 	printf("msg: %s\n", msg1);
@@ -271,20 +272,21 @@ gint search_chat_button(GtkWidget *widget, gpointer gdata)
 {
 	
 	g_print("Search Chat: %s\n", gtk_entry_get_text(GTK_ENTRY(bar_textfield)));
+	//set_searching();
 	controller_search(gtk_entry_get_text(GTK_ENTRY(bar_textfield)));
 	clear_chat_list();
-	GList *chats;
-	int i=0, counter=6;
-	chat *chat_val;
-	while(counter--) { //TODO: trovare metodo migliore di stampa risultati
-		chats = search_all_local_chat(gtk_entry_get_text(GTK_ENTRY(bar_textfield)));
-		for(; i<g_list_length(chats); i++) {
-			chat_val = (chat*)g_list_nth_data(chats, i);
-			add_chat_to_list(chat_val->id, chat_val->title);
-			
-		}
-		usleep(200);
-	}
+//	GList *chats;
+//	int i=0, counter=6;
+//	chat *chat_val;
+//	while(counter--) { //TODO: trovare metodo migliore di stampa risultati
+//		chats = search_all_local_chat(gtk_entry_get_text(GTK_ENTRY(bar_textfield)));
+//		for(; i<g_list_length(chats); i++) {
+//			chat_val = (chat*)g_list_nth_data(chats, i);
+//			add_chat_to_list(chat_val->id, chat_val->title);
+//			
+//		}
+//		usleep(200);
+//	}
 	return(FALSE);
 }
 
@@ -821,3 +823,10 @@ GtkWidget *create_searchbar(void) {
 	return bar_container;
 }
 
+//void set_searching(void) {
+//	searching = 1;
+//}
+//
+//void reset_searching(void) {
+//	searching = 0;
+//}

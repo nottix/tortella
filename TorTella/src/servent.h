@@ -101,17 +101,23 @@ static GSList *client_thread;
 static GSList *server_thread;
 static GSList *server_connection_thread;
 
-#define WLOCK(servent)			logger(SYS_INFO, "[WLOCK]Lock %lld\n", servent); \
-								if(servent_get(servent)!=NULL) \
-									pthread_rwlock_wrlock( &((servent_get(servent)->rwlock_data)))
+#define WLOCK(servent)			logger(SYS_INFO, "[WLOCK]Try locking %lld\n", servent); \
+								if(servent_get(servent)!=NULL) { \
+									logger(SYS_INFO, "[WLOCK]Lock %lld\n", servent); \
+									pthread_rwlock_wrlock( &((servent_get(servent)->rwlock_data))); \
+								}
 
-#define RLOCK(servent)			logger(SYS_INFO, "[RLOCK]Lock %lld\n", servent); \
-								if(servent_get(servent)!=NULL) \
-									pthread_rwlock_rdlock( &((servent_get(servent)->rwlock_data)))
+#define RLOCK(servent)			logger(SYS_INFO, "[RLOCK]Try locking %lld\n", servent); \
+								if(servent_get(servent)!=NULL) { \
+									logger(SYS_INFO, "[RLOCK]Lock %lld\n", servent); \
+									pthread_rwlock_rdlock( &((servent_get(servent)->rwlock_data))); \
+								}
 
-#define UNLOCK(servent)			logger(SYS_INFO, "[UNLOCK]Unlock %lld\n", servent); \
-								if(servent_get(servent)!=NULL) \
-									pthread_rwlock_unlock( &((servent_get(servent)->rwlock_data)))
+#define UNLOCK(servent)			logger(SYS_INFO, "[UNLOCK]Try unlocking %lld\n", servent); \
+								if(servent_get(servent)!=NULL) { \
+									logger(SYS_INFO, "[UNLOCK]Unlock %lld\n", servent); \
+									pthread_rwlock_unlock( &((servent_get(servent)->rwlock_data))); \
+								}
 
 #define COPY_SERVENT(servent, copy)			copy=calloc(1, sizeof(servent_data)); \
 											memcpy(copy, servent, sizeof(servent_data))
@@ -158,7 +164,7 @@ void servent_append_response(servent_data *sd, const char *response);
 
 char *servent_pop_response(servent_data *sd);
 
-u_int8 *get_search_packet(u_int8 id);
+char *get_search_packet(u_int8 id);
 
 void new_search_packet(u_int8 id);
 

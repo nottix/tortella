@@ -35,6 +35,7 @@ GtkListStore *chat_model;
 GtkTreeIter   chat_iter;
 static GHashTable *tree_model_hashtable = NULL;
 
+//static int searching = 0; 
 
 GtkWidget *bar_textfield;
 
@@ -107,5 +108,9 @@ int open_pm_gui(u_int8 user_id, gchar *nickname);
 tree_model *get_tree_model(u_int8 chat_id);
 
 int add_msg_to_chat(u_int8 chat_id, char *msg);
+
+//void set_searching(void);
+//
+//void reset_searching(void);
 
 #endif //GUI_H
