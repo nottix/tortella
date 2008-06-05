@@ -53,4 +53,6 @@ int controller_rem_user_from_chat(u_int8 chat_id, u_int8 id);
 
 int controller_add_msg_to_chat(u_int8 chat_id, char *msg);
 
+int controller_add_msg(u_int8 sender_id, char *msg);
+
 #endif /*CONTROLLER_H_*/
