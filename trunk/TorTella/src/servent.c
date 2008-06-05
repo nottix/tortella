@@ -220,12 +220,12 @@ void servent_send_packet(servent_data *sd) {
 
 servent_data *servent_pop_queue(servent_data *sd) {
 	servent_data *servent;
-	if(sd==NULL) {
+	if(sd==NULL || sd->queue==NULL) {
 		logger(SYS_INFO, "[servent_pop_queue]NULL\n");
 		return NULL;
 	}
 	while((servent = (servent_data*)g_queue_pop_head(sd->queue))==NULL) {
-		usleep(200);
+		usleep(10000);
 	}
 	return servent;
 }
@@ -236,7 +236,7 @@ void servent_append_response(servent_data *sd, const char *response) {
 
 char *servent_pop_response(servent_data *sd) {
 	char *buf;
-	if(sd->res_queue==NULL) {
+	if(sd==NULL || sd->res_queue==NULL) {
 		logger(SYS_INFO, "[servent_append_responde]Response queue NULL\n");
 		return NULL;
 	}
@@ -245,7 +245,7 @@ char *servent_pop_response(servent_data *sd) {
 	while((buf = (char*)g_queue_pop_head(sd->res_queue))==NULL) {
 		if(counter>10) //Serve per il timeout
 			break;
-		usleep(200);
+		usleep(200000);
 		counter++;
 	}
 	return buf;
@@ -422,7 +422,7 @@ void *servent_responde(void *parm) {
 										tmp->nick = h_packet->data->data;
 										add_user(tmp->id, tmp->nick, tmp->ip, tmp->port);
 										
-										g_hash_table_remove(servent_hashtable, (gpointer)tmp);
+										//g_hash_table_remove(servent_hashtable, (gpointer)tmp); TODO: meglio toglierlo per evitare segfault
 										g_hash_table_insert(servent_hashtable, (gpointer)to_string(tmp->id),(gpointer)tmp);
 									}
 								}
@@ -447,12 +447,15 @@ void *servent_responde(void *parm) {
 						
 						servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
 						WLOCK(h_packet->data->header->sender_id);
-						conn_servent->chat_list = g_list_remove(conn_servent->chat_list, (gconstpointer)&chat_id);
+						//conn_servent->chat_list = g_list_remove(conn_servent->chat_list, (gconstpointer)&chat_id); //TODO: non ci vorrebbe
 						conn_servent->timestamp = h_packet->data->header->timestamp;
 						UNLOCK(h_packet->data->header->sender_id);
 						
 						status = HTTP_STATUS_OK;
 						//Sconnetti dalla chat
+						logger(SYS_INFO, "[servent_responde]Deleting user\n");
+						controller_rem_user_from_chat(chat_id, conn_servent->id);
+						logger(SYS_INFO, "[servent_responde]Deleted user: %lld\n", conn_servent->id);
 					}
 					else if(h_packet->data->header->desc_id==MESSAGE_ID) {
 						printf("[servent_responde]MESSAGE ricevuto\n");
@@ -540,7 +543,7 @@ void *servent_responde(void *parm) {
 						printf("[servent_responde]SEARCHHITS ricevuto\n");
 						
 						GList *chat_list = char_to_chatlist(tortella_get_data(h_packet->data_string), h_packet->data->header->data_len);
-						add_all_to_chat(chat_list);
+						add_all_to_chat(chat_list); //TODO: deve ricercare anche in locale!!!
 
 						route_entry *entry = get_route_entry(h_packet->data->header->id, route_hashtable);
 						if(entry!=NULL) {

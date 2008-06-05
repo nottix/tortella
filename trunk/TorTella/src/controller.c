@@ -184,7 +184,7 @@ int controller_leave_chat(u_int8 chat_id) {
 					logger(CTRL_INFO,"[controller_leave_chat] client !=NULL\n");
 
 					peer = servent_get(client->id);
-					if(peer!=NULL) {
+					if(peer!=NULL && peer->id!=servent_get_local()->id) {
 						logger(CTRL_INFO,"[controller_leave_chat] peer !=NULL\n");
 						
 						WLOCK(peer->id);
@@ -202,7 +202,7 @@ int controller_leave_chat(u_int8 chat_id) {
 				if(client!=NULL) {
 					peer = servent_get(client->id);
 					logger(CTRL_INFO, "[controller_leave_chat]pop response %lld\n", client->id);
-					if(peer!=NULL) {
+					if(peer!=NULL && peer->id!=servent_get_local()->id) {
 						COPY_SERVENT(peer, sd);
 						//WLOCK(peer->id);
 
@@ -211,7 +211,7 @@ int controller_leave_chat(u_int8 chat_id) {
 						if(strcmp(ret, TIMEOUT)==0)
 							return peer->id;
 						printf("RECEIVED %s\n", ret);
-						del_user_from_chat(chat_id, client->id);
+						//del_user_from_chat(chat_id, client->id);
 						//remove_user_from_chat_list(chat_id, client->id);
 						//add_user_to_chat(chat_elem->id, client->id, client->nick, client->ip, client->port);
 						//add_user_to_chat_list(chat_elem->id, client->id, client->nick, peer->status);
@@ -557,6 +557,7 @@ int controller_add_user_to_chat(u_int8 chat_id, u_int8 id) {
 
 int controller_rem_user_from_chat(u_int8 chat_id, u_int8 id) {
 	remove_user_from_chat_list(chat_id, id);
+	del_user_from_chat(chat_id, id);
 	return 0;
 }
 
