@@ -366,56 +366,69 @@ void *servent_responde(void *parm) {
 								//send_post_response_packet(fd, status, strlen(new_id), new_id);
 								//sleep(1); //FIXIT: Ritardo per evitare che invii un nuovo pacchetto ping prima che l'altro peer abbia creato la struttura
 								//status = 0;
+								conn_servent = (servent_data*)calloc(1, sizeof(servent_data));
+								conn_servent->ip = get_dest_ip(fd);
+								conn_servent->port = GET_PING(h_packet->data)->port;
+								conn_servent->timestamp = h_packet->data->header->timestamp;
+								conn_servent->queue = g_queue_new();
+								conn_servent->res_queue = g_queue_new();
+								
+								conn_servent->status = GET_PING(h_packet->data)->status;
+								logger(SYS_INFO, "[servent_responde]Status recv: %c\n", conn_servent->status);
+								conn_servent->nick = h_packet->data->data;
+								conn_servent->id = h_packet->data->header->sender_id;
+								
+								add_user(conn_servent->id, conn_servent->nick, conn_servent->ip, conn_servent->port);
+								
+								//Si inizializzano il mutex e il cond
+								pthread_mutex_init(&conn_servent->mutex, NULL);
+								pthread_rwlock_init(&conn_servent->rwlock_data, NULL);
+								pthread_cond_init(&conn_servent->cond, NULL);
+								
+								printf("[servent_responde]Lookup ID: %s\n", to_string(id));
+								if(g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id))==NULL) {
+									printf("[servent_responde]connection %s added to hashtable\n", to_string(id));
+									g_hash_table_insert(servent_hashtable, (gpointer)to_string(id), (gpointer)conn_servent);
+								}
+								
+								conn_servent->post_type = PING_ID;
+								RLOCK(local_servent->id);
+								conn_servent->status = local_servent->status;
+								UNLOCK(local_servent->id);
+								
+								pthread_t *cli_thread = (pthread_t*)malloc(sizeof(pthread_t));
+								pthread_create(cli_thread, NULL, servent_connect, (void*)&id);
+								client_thread = g_slist_prepend(client_thread, (gpointer)(*cli_thread));
 							}
 							else {
 								status = HTTP_STATUS_OK;
 								GList *users = servent_get_values ();
 								int i=0;
+								logger(SYS_INFO, "[servent_responde]Changing ID\n");
 								for(;i<g_list_length(users);i++) {
 									servent_data *tmp = (servent_data*)g_list_nth_data(users,i);
+									
+									char *nick = tmp->nick;
 									char *tmp_ip = tmp->ip;
 									u_int4 tmp_port = tmp->port;
-									if(tmp_ip == get_dest_ip(fd) && tmp_port == GET_PING(h_packet->data)->port) {
-										tmp->id = h_packet->data->header->id;
+									
+									logger(SYS_INFO, "[servent_responde]old ID: %lld, new ID: %lld\n", tmp->id, h_packet->data->header->sender_id);
+									logger(SYS_INFO, "[servent_responde]nick: %s, ip: %s, port: %d\n", nick, get_dest_ip(fd), GET_PING(h_packet->data)->port);
+									if((strcmp(tmp_ip, get_dest_ip(fd))==0) && (tmp_port == GET_PING(h_packet->data)->port)) {
+										logger(SYS_INFO, "[servent_responde]Changing old ID: %lld with new ID: %lld\n", tmp->id, h_packet->data->header->sender_id);
+										tmp->id = h_packet->data->header->sender_id;
+										tmp->status = GET_PING(h_packet->data)->status;
+										tmp->timestamp = h_packet->data->header->timestamp;
+										tmp->nick = h_packet->data->data;
+										add_user(tmp->id, tmp->nick, tmp->ip, tmp->port);
+										
 										g_hash_table_remove(servent_hashtable, (gpointer)tmp);
-										g_hash_table_insert(servent_hashtable, (gconstpointer)to_string(tmp->id),(gpointer)tmp);
+										g_hash_table_insert(servent_hashtable, (gpointer)to_string(tmp->id),(gpointer)tmp);
 									}
 								}
 							}
 							
-							conn_servent = (servent_data*)calloc(1, sizeof(servent_data));
-							conn_servent->ip = get_dest_ip(fd);
-							conn_servent->port = GET_PING(h_packet->data)->port;
-							conn_servent->timestamp = h_packet->data->header->timestamp;
-							conn_servent->queue = g_queue_new();
-							conn_servent->res_queue = g_queue_new();
 							
-							conn_servent->status = GET_PING(h_packet->data)->status;
-							logger(SYS_INFO, "[servent_responde]Status recv: %c\n", conn_servent->status);
-							conn_servent->nick = h_packet->data->data;
-							conn_servent->id = h_packet->data->header->sender_id;
-							
-							add_user(conn_servent->id, conn_servent->nick, conn_servent->ip, conn_servent->port);
-							
-							//Si inizializzano il mutex e il cond
-							pthread_mutex_init(&conn_servent->mutex, NULL);
-							pthread_rwlock_init(&conn_servent->rwlock_data, NULL);
-							pthread_cond_init(&conn_servent->cond, NULL);
-							
-							printf("[servent_responde]Lookup ID: %s\n", to_string(id));
-							if(g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id))==NULL) {
-								printf("[servent_responde]connection %s added to hashtable\n", to_string(id));
-								g_hash_table_insert(servent_hashtable, (gpointer)to_string(id), (gpointer)conn_servent);
-							}
-							
-							conn_servent->post_type = PING_ID;
-							RLOCK(local_servent->id);
-							conn_servent->status = local_servent->status;
-							UNLOCK(local_servent->id);
-							
-							pthread_t *cli_thread = (pthread_t*)malloc(sizeof(pthread_t));
-							pthread_create(cli_thread, NULL, servent_connect, (void*)&id);
-							client_thread = g_slist_prepend(client_thread, (gpointer)(*cli_thread));
 						}
 					}
 					else if(h_packet->data->header->desc_id==PONG_ID) {
@@ -460,7 +473,7 @@ void *servent_responde(void *parm) {
 						status = HTTP_STATUS_OK;
 					}
 					else if(h_packet->data->header->desc_id==SEARCH_ID) {
-						printf("[servent_responde]SEARCH ricevuto id: %lld\n", h_packet->data->header->id);
+						printf("[servent_responde]SEARCH ricevuto packet_id: %lld\n", h_packet->data->header->id);
 						if(get_search_packet(h_packet->data->header->id) == NULL) {
 							new_search_packet(h_packet->data->header->id);
 						
@@ -468,7 +481,7 @@ void *servent_responde(void *parm) {
 							GList *servent_list;
 							servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
 							if(conn_servent==NULL) {
-								printf("[servent_responde]conn_servent entry doesn't found\n");
+								printf("[servent_responde]conn_servent entry %lld doesn't found\n", h_packet->data->header->sender_id);
 								continue;
 							}
 							printf("[servent_responde]conn_servent entry found\n");

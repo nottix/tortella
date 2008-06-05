@@ -291,8 +291,6 @@ int controller_init_gui(void) {
 	/*-- Connect the window to the destroyapp function  --*/
 	gtk_signal_connect(GTK_OBJECT(window), "delete_event", GTK_SIGNAL_FUNC(destroyapp), NULL);
 
-
-
 	/*-- Add the menubar to the handlebox --*/
 	gtk_container_add(GTK_CONTAINER(handlebox), menu);
 
@@ -329,7 +327,7 @@ int controller_init_gui(void) {
 	gtk_widget_show(vbox);
 	//gtk_widget_show(menuitem);
 	gtk_widget_show(searchbar);   
-	gtk_widget_show(menu);   
+	gtk_widget_show(menu);
 	gtk_widget_show(window);
 	gtk_widget_show(list);
 
