@@ -17,13 +17,28 @@
 #include "utils.h"
 
 u_int8 generate_id(void) {
-	srandom(time(0));
-	return (conf_get_gen_start()+random())^time(NULL);
+	srandom(time(NULL));
+	char *addr;
+	addr = get_mac_addr();
+	int i=0, j=10;
+	unsigned long res = 0;
+	for(; i<6; i++, j*=10) {
+		res += addr[i]*j;
+	}
+	//logger(INFO, "[generate_id]MAC: %lld\n", res);
+	return (conf_get_gen_start()+((random())^res))*(res/2);
 }
 
 int generate_id4(void) {
-	srandom(time(0));
-	return (random())^time(NULL);
+	srandom(time(NULL));
+	char *addr;
+	addr = get_mac_addr();
+	int i=0, j=10;
+	unsigned long res = 0;
+	for(; i<6; i++, j*=10) {
+		res += addr[i]*j;
+	}
+	return (random())^res;
 }
 
 char *to_string(u_int8 num) {
@@ -168,4 +183,58 @@ char *hex_dump(const char *packet, int len, int n)
 char *dump_data(const char *packet, int len) {
 	return hex_dump(packet, len, 10);
 	//return packet;
+}
+
+
+
+char *get_mac_addr(void) {
+	char *addr = calloc(7, 1);
+	struct ifreq ifr;
+	struct ifreq *IFR;
+	struct ifconf ifc;
+	char buf[1024];
+	int s, i;
+	int ok = 0;
+
+	s = socket(AF_INET, SOCK_DGRAM, 0);
+	if (s==-1) {
+		return NULL;
+	}
+
+	ifc.ifc_len = sizeof(buf);
+	ifc.ifc_buf = buf;
+	ioctl(s, SIOCGIFCONF, &ifc);
+
+	IFR = ifc.ifc_req;
+	
+	i = (ifc.ifc_len / sizeof(struct ifreq));
+	printf("ok i: %d\n", i);
+	for (; i >= 0;) {
+
+		printf("ok1\n");
+		strcpy(ifr.ifr_name, IFR->ifr_name);
+		printf("ok2\n");
+		if (ioctl(s, SIOCGIFFLAGS, &ifr) == 0) {
+			printf("ok3\n");
+			if (! (ifr.ifr_flags & IFF_LOOPBACK)) {
+				printf("ok4\n");
+				if (ioctl(s, SIOCGIFHWADDR, &ifr) == 0) {
+					printf("ok5\n");
+					ok = 1;
+					break;
+				}
+			}
+		}
+		IFR++;
+	}
+
+	close(s);
+	if (ok) {
+		bcopy( ifr.ifr_hwaddr.sa_data, addr, 6);
+		addr[6] = '\0';
+	}
+	else {
+		return NULL;
+	}
+	return addr;
 }

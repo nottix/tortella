@@ -6,6 +6,11 @@
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <linux/if.h>
 #include "confmanager.h"
 #include "common.h"
 
@@ -24,5 +29,7 @@ char *prepare_msg(time_t timestamp, const char *nick, char *msg, int msg_len);
 char *hex_dump(const char *packet, int len, int n);
 
 char *dump_data(const char *packet, int len);
+
+char *get_mac_addr(void);
 
 #endif //UTILS_H

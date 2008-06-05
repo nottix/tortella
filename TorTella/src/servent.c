@@ -531,7 +531,6 @@ void *servent_responde(void *parm) {
 										servent_send_packet(sd);
 										//Aggiunta regola di routing alla tabella
 										add_route_entry(h_packet->data->header->id, h_packet->data->header->sender_id, conn_servent->id, route_hashtable);
-										//pthread_cond_signal(&conn_servent->cond);
 										printf("[servent_responde]Retrasmitting SEARCH packet to other peers\n");
 									}
 								}		   
