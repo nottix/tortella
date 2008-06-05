@@ -167,18 +167,26 @@ int controller_join_chat(u_int8 chat_id) {
 }
 
 int controller_leave_chat(u_int8 chat_id) {
+	char *ret;
+	logger(CTRL_INFO,"[controller_leave_chat] chat_id %lld\n", chat_id); 
 	if(chat_id>0) {
+		logger(CTRL_INFO,"[controller_leave_chat] chat_id>0\n");
 		chat *chat_elem = get_chat(chat_id);
 		if(chat_elem!=NULL) {
+			logger(CTRL_INFO,"[controller_leave_chat] chat_elem !=NULL\n");
 			GList *clients = g_hash_table_get_values(chat_elem->users);
 			chatclient *client;
-			servent_data *peer;
+			servent_data *peer, *sd;
 			int i;
 			for(i=0; i<g_list_length(clients); i++) {
 				client = (chatclient*)g_list_nth_data(clients, i);
 				if(client!=NULL) {
+					logger(CTRL_INFO,"[controller_leave_chat] client !=NULL\n");
+
 					peer = servent_get(client->id);
 					if(peer!=NULL) {
+						logger(CTRL_INFO,"[controller_leave_chat] peer !=NULL\n");
+						
 						WLOCK(peer->id);
 						peer->chat_id_req = chat_id;
 						peer->post_type = LEAVE_ID;
@@ -188,6 +196,28 @@ int controller_leave_chat(u_int8 chat_id) {
 					}
 				}
 			}
+			for(i=0; i<g_list_length(clients); i++) {
+				client = (chatclient*)g_list_nth_data(clients, i);
+				printf("eeee\n");
+				if(client!=NULL) {
+					peer = servent_get(client->id);
+					logger(CTRL_INFO, "[controller_leave_chat]pop response %lld\n", client->id);
+					if(peer!=NULL) {
+						COPY_SERVENT(peer, sd);
+						//WLOCK(peer->id);
+
+						//UNLOCK(peer->id);
+						ret = servent_pop_response(peer);
+						if(strcmp(ret, TIMEOUT)==0)
+							return peer->id;
+						printf("RECEIVED %s\n", ret);
+						del_user_from_chat(chat_id, client->id);
+						//remove_user_from_chat_list(chat_id, client->id);
+						//add_user_to_chat(chat_elem->id, client->id, client->nick, client->ip, client->port);
+						//add_user_to_chat_list(chat_elem->id, client->id, client->nick, peer->status);
+					}
+				}
+			}	
 			return 0;
 		}
 	}
@@ -305,8 +335,8 @@ int controller_init_gui(void) {
 
 	/*-- Start the GTK event loop --*/
 	
-	pthread_create(&gtk_main_thread, NULL, controller_start_main_thread, NULL);
-	//gtk_main();
+	//pthread_create(&gtk_main_thread, NULL, controller_start_main_thread, NULL);
+	gtk_main();
 	return 1;
 }
 
@@ -524,6 +554,11 @@ int controller_add_user_to_chat(u_int8 chat_id, u_int8 id) {
 	logger(CTRL_INFO, "[controller_add_user_to_chat]Addingi user: %s, id: %lld, status: %c\n", servent->nick, servent->id, servent->status);
 	add_user_to_chat_list(chat_id, servent->id, servent->nick, servent->status);
 	
+	return 0;
+}
+
+int controller_rem_user_from_chat(u_int8 chat_id, u_int8 id) {
+	remove_user_from_chat_list(chat_id, id);
 	return 0;
 }
 

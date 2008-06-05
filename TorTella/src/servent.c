@@ -358,14 +358,29 @@ void *servent_responde(void *parm) {
 							
 							if(h_packet->data->header->recv_id < conf_get_gen_start()) {
 								status = HTTP_STATUS_OK;
-								char *new_id = to_string(local_servent->id);
-								printf("[servent_responde]sending new ID: %s with len %d\n", new_id, strlen(new_id));
-								send_post_response_packet(fd, status, strlen(new_id), new_id);
-								usleep(2000); //FIXIT: Ritardo per evitare che invii un nuovo pacchetto ping prima che l'altro peer abbia creato la struttura
-								status = 0;
+								
+						
+								//char *new_id = to_string(local_servent->id);
+								//printf("[servent_responde]sending new ID: %s with len %d\n", new_id, strlen(new_id));
+								
+								//send_post_response_packet(fd, status, strlen(new_id), new_id);
+								//sleep(1); //FIXIT: Ritardo per evitare che invii un nuovo pacchetto ping prima che l'altro peer abbia creato la struttura
+								//status = 0;
 							}
 							else {
 								status = HTTP_STATUS_OK;
+								GList *users = servent_get_values ();
+								int i=0;
+								for(;i<g_list_length(users);i++) {
+									servent_data *tmp = (servent_data*)g_list_nth_data(users,i);
+									char *tmp_ip = tmp->ip;
+									u_int4 tmp_port = tmp->port;
+									if(tmp_ip == get_dest_ip(fd) && tmp_port == GET_PING(h_packet->data)->port) {
+										tmp->id = h_packet->data->header->id;
+										g_hash_table_remove(servent_hashtable, (gpointer)tmp);
+										g_hash_table_insert(servent_hashtable, (gconstpointer)to_string(tmp->id),(gpointer)tmp);
+									}
+								}
 							}
 							
 							conn_servent = (servent_data*)calloc(1, sizeof(servent_data));
@@ -624,13 +639,14 @@ void *servent_connect(void *parm) {
 	u_int1 status;
 	char *nick;
 
-	//Ora si entra nel ciclio infinito che serve per inviare tutte le richieste
+	//Ora si entra nel ciclo infinito che serve per inviare tutte le richieste
 	while(1) {
 		logger(SYS_INFO, "[servent_connect]Waiting\n");
 		if(servent_peer==NULL) {
 			logger(SYS_INFO, "[servent_connect] Peer NULL\n");
 			servent_peer = servent_get(id_dest);
 		}
+		id_dest = servent_peer->id;
 		servent_queue = servent_pop_queue(servent_peer);
 		if(servent_queue==NULL) {
 			logger(SYS_INFO, "[servent_connect] Queue NULL\n");
@@ -712,7 +728,7 @@ void *servent_connect(void *parm) {
 				if(h_packet!=NULL && h_packet->type==HTTP_RES_POST) {
 					if(strcmp(h_packet->header_response->response, HTTP_OK)==0) {
 						printf("[servent_connect]OK POST received\n");
-						if(post_type==PING_ID && id_dest<conf_get_gen_start()) {
+						/*if(post_type==PING_ID && id_dest<conf_get_gen_start()) {
 							printf("[servent_connect]Responding to PING\n");
 							if(servent_peer!=NULL) {
 								printf("[servent_connect]Removing old %s\n", to_string(id_dest));
@@ -732,7 +748,7 @@ void *servent_connect(void *parm) {
 							}
 							else
 								printf("[servent_connect]Data isn't present\n");
-						}
+						}*/
 						
 					}
 					else {

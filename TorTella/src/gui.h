@@ -57,6 +57,8 @@ void view_onRowActivated (GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewC
 
 gint destroywindow(GtkWidget *widget, gpointer gdata);
 
+gint leave_chat(GtkWidget *widget, gpointer gdata);
+
 gint ClosingAppWindow (GtkWidget *widget, gpointer gdata);
 
 gint add_chat_to_list(u_int8 chat_id, char *chat_name);
@@ -69,7 +71,7 @@ gint add_to_buffer_new_message(GtkTextView *widget, gchar *msg);
 
 gint add_user_to_chat_list(u_int8 chat_id, u_int8 id, char *user, u_int1 status);
 
-gint remove_user_from_chat_list(int index, int user_id);
+gint remove_user_from_chat_list(u_int8 chat_id, u_int8 user_id);
 
 gint open_chat(GtkWidget *widget, GdkEventButton *event, gpointer func_data);
 

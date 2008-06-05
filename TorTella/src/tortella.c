@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 	
 	controller_init_gui();
 	printf("started\n");
-	pthread_join(gtk_main_thread, NULL);
+	//pthread_join(gtk_main_thread, NULL);
 
 	return (0);
 }

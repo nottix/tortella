@@ -28,9 +28,17 @@ void destroyapp (GtkWidget *widget, gpointer gdata)
 gint destroywindow(GtkWidget *widget, gpointer gdata)
 {
   g_print("Closing window\n");
-  //gtk_main_quit();
-  gdk_window_destroy(GTK_WINDOW(widget)); //reinserita la semplice chiusura della finestra e non dell'intera applicazione
-	//Aggiungere il leave dalla chat o dalla conversazione privata
+  gtk_widget_destroy(widget);
+  return(FALSE);
+}
+
+gint leave_chat(GtkWidget *widget, gpointer gdata)
+{
+  u_int8 chat_id = atoll((char*)gdata);
+  g_print("Closing chat %lld\n", chat_id);
+  controller_leave_chat(chat_id);
+  gtk_widget_destroy(widget);
+  //Aggiungere il leave dalla chat o dalla conversazione privata
   return(FALSE);
 }
 
@@ -44,14 +52,26 @@ gint ClosingAppWindow (GtkWidget *widget, gpointer gdata) {
 gint add_chat_to_list(u_int8 chat_id, char *chat_name)
 {
 	//TODO: verificare duplicati!!!!
-  gchar *msg = g_strdup_printf (to_string(chat_id));
+	/*GtkTreeIter temp; //Inizio prova
+	
+	gchar *id;
+	gtk_tree_model_get_iter_first(GTK_TREE_MODEL(chat_model),&temp);
+	
+	/*do {while(gtk_tree_model_iter_next(GTK_TREE_MODEL(chat_model),&temp)!=FALSE) {
+	gtk_tree_model_get(GTK_TREE_MODEL(chat_model), &temp, 0, &id);
+	logger(INFO, "[add_chat_to_list] confronto %d vs %d\n", atoll(id), chat_id);
+	if(atoll(id) == chat_id)
+			return 0;
+	} //while(gtk_tree_model_iter_next(chat_model,&temp)!=FALSE); */
+	//fine prova 
+	gchar *msg = g_strdup_printf (to_string(chat_id));
 	gchar *msg1 = g_strdup_printf (chat_name);
 	printf("msg: %s\n", msg1);
-        gtk_list_store_append (chat_model, &chat_iter);
-	gtk_list_store_set (GTK_LIST_STORE(chat_model), &chat_iter, 0, msg, 1, msg1, -1);
+        gtk_list_store_append (chat_model, /*temp*/&chat_iter);
+	gtk_list_store_set (GTK_LIST_STORE(chat_model), /*temp*/&chat_iter, 0, msg, 1, msg1, -1);
 	printf("msg: %s\n", msg);
 	g_free (msg);
-	
+	//gtk_tree_iter_free(&temp);
 	//gchar *msg1 = g_strdup_printf (chat_name);
 	//printf("msg: %s\n", msg1);
     // gtk_list_store_append (GTK_LIST_STORE (chat_model), &chat_iter);
@@ -91,9 +111,9 @@ gint add_user_to_chat_list(u_int8 chat_id, u_int8 id, char *user, u_int1 status)
 	return 0;
 }
 
-gint remove_user_from_chat_list(int index, int user_id)
+gint remove_user_from_chat_list(u_int8 chat_id, u_int8 user_id)
 {
-  tree_model *mod = (tree_model*)g_hash_table_lookup(tree_model_hashtable,(gconstpointer)to_string(index));
+  tree_model *mod = (tree_model*)g_hash_table_lookup(tree_model_hashtable,(gconstpointer)to_string(chat_id));
   gtk_tree_model_iter_nth_child(GTK_TREE_MODEL(mod->user_model),&(mod->user_iter),NULL,(gint)user_id);
   gtk_list_store_remove(GTK_LIST_STORE(mod->user_model), &(mod->user_iter));
   return (FALSE);
@@ -132,7 +152,7 @@ gint add_to_buffer_new_message(GtkTextView *widget, gchar *msg)
 }
 
 
-//EVENTO CHE SI SCATENA ALLA SELEZIONE DELLA CHAT, PER ORA FA SOLO UN PRINTF, in seguito dovrà aprire la gui della chat
+//EVENTO CHE SI SCATENA ALLA SELEZIONE DELLA CHAT.
 gint open_chat(GtkWidget *widget, GdkEventButton *event, gpointer func_data) {
 	if (event->type==GDK_2BUTTON_PRESS ||
 			event->type==GDK_3BUTTON_PRESS) {
@@ -141,7 +161,7 @@ gint open_chat(GtkWidget *widget, GdkEventButton *event, gpointer func_data) {
 						event->button);
 		
 		GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(widget));
-		GList *lis = gtk_tree_selection_get_selected_rows(selection, &chat_model);
+		GList *lis = gtk_tree_selection_get_selected_rows(selection, &chat_model); //warning
 		int i=0;
 		u_int8 chat_id;
 		for(; i<g_list_length(lis); i++) {
@@ -234,7 +254,7 @@ gint open_about(GtkWidget *widget, gpointer gdata)
     GtkWidget *label1;
 
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    g_signal_connect (G_OBJECT (window), "delete_event",
+    g_signal_connect (window, "delete_event",
 		      G_CALLBACK (destroywindow), NULL);
     
     gtk_container_set_border_width (GTK_CONTAINER (window), 25);
@@ -273,8 +293,8 @@ gint search_chat_button(GtkWidget *widget, gpointer gdata)
 	
 	g_print("Search Chat: %s\n", gtk_entry_get_text(GTK_ENTRY(bar_textfield)));
 	//set_searching();
-	controller_search(gtk_entry_get_text(GTK_ENTRY(bar_textfield)));
 	clear_chat_list();
+	controller_search(gtk_entry_get_text(GTK_ENTRY(bar_textfield)));
 //	GList *chats;
 //	int i=0, counter=6;
 //	chat *chat_val;
@@ -659,9 +679,8 @@ int open_chatroom_gui(u_int8 chat_id) {
 	/*-- Create the handlebox --*/
 	handlebox = gtk_handle_box_new();
 
-
+	logger(INFO,"[open_chatroom_gui] chat_id %lld\n", chat_id);
 	/*-- Connect the window to the destroyapp function  --*/
-	gtk_signal_connect(GTK_OBJECT(window), "delete_event", GTK_SIGNAL_FUNC(destroywindow), NULL);
 
 
 	/*-- Add the menubar to the handlebox --*/
@@ -709,6 +728,8 @@ int open_chatroom_gui(u_int8 chat_id) {
 	
 	/*-- Start the GTK event loop --*/
 	//gtk_main();
+	logger(INFO, "[open gui] to string %s\n",to_string(chat_id));
+		g_signal_connect(window, "delete_event", G_CALLBACK(leave_chat), to_string(chat_id));
 
 	/*-- Return 0 if exit is successful --*/
 	return 0;
@@ -745,7 +766,7 @@ int open_pm_gui(u_int8 user_id, gchar *nickname) {
 	menu = create_menu();
 
 	/*-- Connect the window to the destroyapp function  --*/
-	gtk_signal_connect(GTK_OBJECT(window), "delete_event", GTK_SIGNAL_FUNC(destroywindow), NULL);
+	g_signal_connect(window, "delete_event", G_CALLBACK(destroywindow), NULL);
 
 
 	/*-- Add the menubar to the handlebox --*/

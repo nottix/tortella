@@ -49,6 +49,8 @@ int controller_create(const char *title);
 
 int controller_add_user_to_chat(u_int8 chat_id, u_int8 id);
 
+int controller_rem_user_from_chat(u_int8 chat_id, u_int8 id);
+
 int controller_add_msg_to_chat(u_int8 chat_id, char *msg);
 
 #endif /*CONTROLLER_H_*/
