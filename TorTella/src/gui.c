@@ -34,9 +34,11 @@ gint destroywindow(GtkWidget *widget, gpointer gdata)
 
 gint leave_chat(GtkWidget *widget, gpointer gdata)
 {
-  u_int8 chat_id = atoll((char*)gdata);
-  g_print("Closing chat %lld\n", chat_id);
-  controller_leave_chat(chat_id);
+	u_int8 val = atoll((char*)gdata);
+	g_print("Closing chat %lld\n", val);
+  //u_int8 chat_id = atoll((char*)(*tmp));
+  //g_print("Closing chat %lld\n", chat_id);
+  controller_leave_chat(val);
   gtk_widget_destroy(widget);
   //Aggiungere il leave dalla chat o dalla conversazione privata
   return(FALSE);
@@ -727,10 +729,10 @@ int open_chatroom_gui(u_int8 chat_id) {
 	gtk_widget_show(window);
 	
 	/*-- Start the GTK event loop --*/
+	
+	logger(INFO, "[open gui] to string %s\n", to_string(chat_id));
+	g_signal_connect(GTK_OBJECT(window), "delete_event", G_CALLBACK(leave_chat), (gpointer)to_string(chat_id));
 	//gtk_main();
-	logger(INFO, "[open gui] to string %s\n",to_string(chat_id));
-		g_signal_connect(window, "delete_event", G_CALLBACK(leave_chat), to_string(chat_id));
-
 	/*-- Return 0 if exit is successful --*/
 	return 0;
 }
@@ -766,7 +768,7 @@ int open_pm_gui(u_int8 user_id, gchar *nickname) {
 	menu = create_menu();
 
 	/*-- Connect the window to the destroyapp function  --*/
-	g_signal_connect(window, "delete_event", G_CALLBACK(destroywindow), NULL);
+	g_signal_connect(GTK_OBJECT(window), "delete_event", G_CALLBACK(destroywindow), NULL);
 
 
 	/*-- Add the menubar to the handlebox --*/
@@ -811,7 +813,7 @@ int open_pm_gui(u_int8 user_id, gchar *nickname) {
 	gtk_widget_show(window);
 
 	/*-- Start the GTK event loop --*/
-	gtk_main();
+	//gtk_main();
 
 	/*-- Return 0 if exit is successful --*/
 	return 0; 
