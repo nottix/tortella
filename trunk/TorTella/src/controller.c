@@ -104,7 +104,6 @@ int controller_send_pm(u_int4 msg_len, char *msg, u_int8 recv_id) {
 
 	UNLOCK(data->id);
     servent_send_packet(data); 
-	//pthread_cond_signal(&data->cond);
 	return 0;
 }
 
@@ -570,9 +569,28 @@ int controller_add_msg_to_chat(u_int8 chat_id, char *msg) {
 	
 	if(chat_id>0) {
 		if(add_msg_to_chat(chat_id, msg)<0) {
-			logger(CTRL_INFO, "[controller_add_msg_to_chat]Msg added\n");
-			return 0;
+			logger(CTRL_INFO, "[controller_add_msg_to_chat]Msg error\n");
+			return -2;
 		}
+		return 0;
 	}
-	return -2;
+
+	return -3;
+}
+
+int controller_add_msg(u_int8 sender_id, char *msg) {
+	
+	if(msg==NULL) {
+		logger(CTRL_INFO, "[controller_add_msg]Messaggio non valido\n");
+		return -1;
+	}
+	
+	if(sender_id>0) {
+		if(add_msg_pm(sender_id, msg)<0) {
+			logger(CTRL_INFO, "[controller_add_msg]Msg pm error\n");
+			return -2;
+		}
+		return 0;
+	}
+	return -3;
 }

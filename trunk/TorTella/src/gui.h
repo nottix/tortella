@@ -31,22 +31,27 @@
 #define CHAT 	0x03
 #define PM 		0x04
 
-GtkListStore *chat_model;
-GtkTreeIter   chat_iter;
+static GtkListStore *chat_model;
+static GtkTreeIter   chat_iter;
 static GHashTable *tree_model_hashtable = NULL;
+static GHashTable *pm_data_hashtable = NULL;
 
 //static int searching = 0; 
 
 GtkWidget *bar_textfield;
 
-
 struct tree_model
 {
-  GtkListStore *user_model;
-  GtkTreeIter user_iter;
-  GtkTextView *text_area;
+	GtkListStore *user_model;
+	GtkTreeIter user_iter;
+	GtkTextView *text_area;
 };
 typedef struct tree_model tree_model;
+
+struct pm_data {
+	GtkTextView *text_area;
+};
+typedef struct pm_data pm_data;
 
 
 //FUNZIONI PER LA CREAZIONE DELLE GUI
@@ -110,6 +115,8 @@ int open_pm_gui(u_int8 user_id, gchar *nickname);
 tree_model *get_tree_model(u_int8 chat_id);
 
 int add_msg_to_chat(u_int8 chat_id, char *msg);
+
+int add_msg_pm(u_int8 sender_id, char *msg);
 
 //void set_searching(void);
 //

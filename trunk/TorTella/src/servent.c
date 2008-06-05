@@ -469,7 +469,15 @@ void *servent_responde(void *parm) {
 						
 						char *send_msg = prepare_msg(conn_servent->timestamp, conn_servent->nick, conn_servent->msg, conn_servent->msg_len);
 						UNLOCK(h_packet->data->header->sender_id);
-						controller_add_msg_to_chat(GET_MESSAGE(h_packet->data)->chat_id, send_msg);
+						u_int8 chat_id = GET_MESSAGE(h_packet->data)->chat_id;
+						if(chat_id==0) {
+							logger(SYS_INFO, "[servent_responde]PM\n");
+							controller_add_msg(h_packet->data->header->sender_id, send_msg);
+						}
+						else {
+							logger(SYS_INFO, "[servent_responde]CHAT\n");
+							controller_add_msg_to_chat(chat_id, send_msg);
+						}
 						printf("[servent_responde]msg: %s, msg_len: %d\n", conn_servent->msg, conn_servent->msg_len);
 						
 
