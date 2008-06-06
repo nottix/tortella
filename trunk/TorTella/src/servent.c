@@ -311,7 +311,7 @@ void *servent_responde(void *parm) {
 				if(h_packet->type==HTTP_REQ_POST) {
 					
 					printf("[servent_responde]POST ricevuto\n");
-									
+					
 					//Aggiunge le info in base al tipo di pacchetto
 					if(h_packet->data==NULL || h_packet->data->header==NULL) {
 						printf("[servent_responde]NULL\n");
@@ -359,13 +359,6 @@ void *servent_responde(void *parm) {
 							if(h_packet->data->header->recv_id < conf_get_gen_start()) {
 								status = HTTP_STATUS_OK;
 								
-						
-								//char *new_id = to_string(local_servent->id);
-								//printf("[servent_responde]sending new ID: %s with len %d\n", new_id, strlen(new_id));
-								
-								//send_post_response_packet(fd, status, strlen(new_id), new_id);
-								//sleep(1); //FIXIT: Ritardo per evitare che invii un nuovo pacchetto ping prima che l'altro peer abbia creato la struttura
-								//status = 0;
 								conn_servent = (servent_data*)calloc(1, sizeof(servent_data));
 								conn_servent->ip = get_dest_ip(fd);
 								conn_servent->port = GET_PING(h_packet->data)->port;
@@ -724,8 +717,8 @@ void *servent_connect(void *parm) {
 			else if(post_type==PING_ID) {
 				send_ping_packet(fd, local_servent->id, id_dest, nick, local_servent->port, status);
 			}
-			else if(post_type==PONG_ID) {
-//				send_pong_packet(fd, local_servent->id, id_dest, status);
+			else if(post_type==BYE_ID) {
+				send_bye_packet(fd, local_servent->id, id_dest);
 			}
 			else if(post_type==LEAVE_ID) {
 				send_leave_packet(fd, local_servent->id, id_dest, chat_id_req);
@@ -733,9 +726,20 @@ void *servent_connect(void *parm) {
 			else if(post_type==MESSAGE_ID) {
 				send_message_packet(fd, local_servent->id, id_dest, chat_id_req, msg_len, msg);
 			}
-//			else if(post_type==CREATE_ID) {
-//				send_create_packet(fd, local_servent->id, id_dest, chat_id_req, title_len, title);
-//			}
+			else if(post_type==LIST_ID) {
+				send_list_packet(fd, local_servent->id, id_dest, chat_id_req);
+			}
+			else if(post_type==LISTHITS_ID) {
+				int length;
+				char *buf = userlist_to_char(servent_queue->user_list, &length);
+				if(buf==NULL) {
+					length=0;
+				}
+				else {
+					logger(SYS_INFO, "[servent_connect]Results converted in buffer: %s\n", buf);
+				}
+				send_listhits_packet(fd, local_servent->id, id_dest, g_list_length(servent_queue->user_res), length, buf);
+			}
 			else if(post_type==SEARCH_ID) {
 				send_search_packet(fd, packet_id, local_servent->id, id_dest, ttl, hops, title_len, title);
 			}

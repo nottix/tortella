@@ -65,6 +65,7 @@ struct servent_data {
 	u_int1 is_supernode;	//Indica se il servente è un supernodo 1:si 0:no
 	
 	GList *chat_res; //Risultati della ricerca richiesta dal peer
+	GList *user_res; //Risultati della list
 	u_int1 ttl;		//ttl da inviare
 	u_int1 hops;	//hops da inviare
 	u_int8 packet_id;	//ID del pacchetto da ritrasmettere

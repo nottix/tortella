@@ -9,25 +9,25 @@
 #include "utils.h"
 
 #define GET_PING(packet)		((ping_desc*)packet->desc)
-#define GET_PONG(packet)		((pong_desc*)packet->desc)
 #define GET_JOIN(packet)		((join_desc*)packet->desc)
 #define GET_LEAVE(packet)		((leave_desc*)packet->desc)
 #define GET_MESSAGE(packet)		((message_desc*)packet->desc)
-#define GET_CREATE(packet)		((create_desc*)packet->desc)
 #define GET_SEARCH(packet)		((search_desc*)packet->desc)
 #define GET_SEARCHHITS(packet)  ((searchhits_desc*)packet->desc)
+#define GET_LIST(packet)		((list_desc*)packet->desc)
+#define GET_LISTHITS(packet)	((listhits_desc*)packet->desc)
+#define GET_BYE(packet)			((bye_desc*)packet->desc)
 
 //Descriptor ID
 #define PING_ID			0x01
-#define PONG_ID			0x02
 #define LIST_ID			0x03
 #define LISTHITS_ID		0x04
 #define JOIN_ID			0x05
 #define LEAVE_ID		0x06
 #define MESSAGE_ID		0x07
-#define CREATE_ID		0x08
 #define SEARCH_ID		0x09
 #define SEARCHHITS_ID	0x10
+#define BYE_ID			0x11
 
 //Status ID
 #define ONLINE_ID	0x80
@@ -58,11 +58,6 @@ struct ping_desc {
 };
 typedef struct ping_desc ping_desc;
 
-struct pong_desc {
-	u_int1 status;
-};
-typedef struct pong_desc pong_desc;
-
 struct list_desc {
 	u_int8 chat_id;	//ID della chat di cui si vuole la lista degli utenti
 };
@@ -70,7 +65,7 @@ typedef struct list_desc list_desc;
 
 struct listhits_desc {
 	u_int4 user_num;	//Numero di utenti nel campo data
-	//Riempire campo data
+	//Campo dati: elenco utenti della chat
 };
 typedef struct listhits_desc listhits_desc;
 
@@ -99,12 +94,6 @@ struct message_desc {
 };
 typedef struct message_desc message_desc;
 
-struct create_desc {
-	u_int8 chat_id;		//ID della chat da creare
-	//Campo dati:Title	//Titolo della chat da creare
-};
-typedef struct create_desc create_desc;
-
 /*
    Data
  +-------+
@@ -121,9 +110,13 @@ typedef struct search_desc search_desc;
 
 struct searchhits_desc {
 	u_int4 num_res;
-	//Campo dati: chat separate da '\n\n'
+	//Campo dati: risultati ricerca
 };
 typedef struct searchhits_desc searchhits_desc;
+
+struct bye_desc {
+};
+typedef struct bye_desc bye_desc;
 
 /*
         Tortella Packet
