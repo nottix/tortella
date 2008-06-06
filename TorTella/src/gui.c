@@ -155,6 +155,45 @@ gint remove_user_from_chat_list(u_int8 chat_id, u_int8 user_id)
 	return (FALSE);
 }
 
+gint manipulating_status(u_int8 user_id, char *status) 
+{
+	logger(INFO, "[manipulating_status] Enter function\n");
+	GList *chat_id_list = g_hash_table_get_keys(tree_model_hashtable);
+	int i=0;
+	char *id;
+	for(; i < g_list_length(chat_id_list); i++) {
+		logger(INFO, "[manipulating_status] Entering for\n");
+		u_int8 chat_id = atoll(g_list_nth_data(chat_id_list,i));
+		logger(INFO, "[manipulating_status] after retrieving glist data chat_id %lld\n",chat_id);
+
+		tree_model *chat_model_tmp = (tree_model*)g_hash_table_lookup(tree_model_hashtable, (gconstpointer)to_string(chat_id));
+		
+		logger(INFO, "[manipulating_status] after retrieving treemodel data\n");
+		int j=0;
+		GtkTreeIter iter;
+		gboolean valid = TRUE;
+		if(gtk_tree_model_get_iter_first(GTK_TREE_MODEL(chat_model_tmp->user_model), &iter)==TRUE) {			
+			logger(INFO, "[manipulating_status] after get iter first\n");
+			
+			while(valid) {
+				logger(INFO, "[manipulating status] entering while\n");
+				gtk_tree_model_get(GTK_TREE_MODEL(chat_model_tmp->user_model), &iter, 1, &id, -1);
+				logger(INFO, "[manipulating_status]ID: %s\n", id);
+
+				if(atoll(id)==user_id) {
+					gtk_list_store_set(GTK_LIST_STORE(chat_model_tmp->user_model), &iter, 2, status, -1);
+					logger(INFO, "[manipulating_status] changed status %s\n", status);
+					//	logger(INFO, "[add_chat_to_list]Exiting: %s\n", id);
+					//	return -1;
+				}
+
+				valid = gtk_tree_model_iter_next(GTK_TREE_MODEL(chat_model_tmp->user_model), &iter); 
+			}
+		}		
+	}
+	return (FALSE);
+}
+
 gint clear_chat_list()
 {
 	gtk_list_store_clear(chat_model);
@@ -312,6 +351,7 @@ gint set_to_online(GtkWidget *widget, gpointer gdata)
 {
 	g_print("Online...\n");
 	controller_change_status (ONLINE_ID);
+	manipulating_status(servent_get_local()->id, ONLINE);
 	return(FALSE);
 }
 
@@ -319,6 +359,7 @@ gint set_to_busy(GtkWidget *widget, gpointer gdata)
 {
 	g_print("Busy...\n");
 	controller_change_status(BUSY_ID);
+	manipulating_status(servent_get_local()->id, BUSY);
 	return (FALSE);
 }
 
@@ -326,6 +367,7 @@ gint set_to_away(GtkWidget *widget, gpointer gdata)
 {
 	g_print("Away...\n");
 	controller_change_status(AWAY_ID);
+	manipulating_status(servent_get_local()->id, AWAY);	
 	return (FALSE);
 }
 
@@ -696,7 +738,7 @@ GtkWidget *create_text(u_int8 chat_id, int type, int msg_type)
 	else if (type == TOP){
 		if(msg_type == CHAT) {
 			gtk_text_view_set_editable(GTK_TEXT_VIEW(view),FALSE);
-			tree_model *model_str = (tree_model*)g_hash_table_lookup(tree_model_hashtable, to_string(chat_id));
+			tree_model *model_str = get_tree_model(chat_id);
 			if(model_str!=NULL) {
 				logger(INFO, "[create_text]OK\n");
 				model_str->text_area = GTK_TEXT_VIEW(view);
