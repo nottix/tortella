@@ -479,7 +479,7 @@ GList *char_to_chatlist(const char *buffer, int len) {
  * 33;simon;127.0.0.1;2110;
  */
 char *userlist_to_char(GList *user_list, int *len) {
-		if(chat_list==NULL) {
+	if(user_list==NULL) {
 		printf("[userlist_to_char]user_list NULL\n");
 		return NULL;
 	}
