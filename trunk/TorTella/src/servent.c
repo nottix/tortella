@@ -391,11 +391,11 @@ void *servent_responde(void *parm) {
 									g_hash_table_insert(servent_hashtable, (gpointer)to_string(id), (gpointer)conn_servent);
 								}
 								
-								conn_servent->post_type = PING_ID;
-								RLOCK(local_servent->id);
+								//conn_servent->post_type = PING_ID;
+								//RLOCK(local_servent->id);
 							
-								conn_servent->status = local_servent->status;
-								UNLOCK(local_servent->id);
+								//conn_servent->status = local_servent->status;
+								//UNLOCK(local_servent->id);
 								
 								pthread_t *cli_thread = (pthread_t*)malloc(sizeof(pthread_t));
 								pthread_create(cli_thread, NULL, servent_connect, (void*)&id);
@@ -676,7 +676,8 @@ void *servent_connect(void *parm) {
 		logger(SYS_INFO, "[servent_connect]Waiting\n");
 		if(servent_peer==NULL) {
 			logger(SYS_INFO, "[servent_connect] Peer NULL\n");
-			servent_peer = servent_get(id_dest);
+			break;
+			//servent_peer = servent_get(id_dest);
 		}
 		id_dest = servent_peer->id;
 		servent_queue = servent_pop_queue(servent_peer);
