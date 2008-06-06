@@ -25,11 +25,16 @@
 #include "utils.h"
 #include "controller.h"
 #include "supernodedata.h"
+#include "tortellaprotocol.h"
 
 #define TOP		0x01
 #define BOTTOM	0x02
 #define CHAT 	0x03
 #define PM 		0x04
+
+#define ONLINE "Online"
+#define BUSY   "Busy"
+#define AWAY   "Away"
 
 static GtkListStore *chat_model;
 static GtkTreeIter   chat_iter;

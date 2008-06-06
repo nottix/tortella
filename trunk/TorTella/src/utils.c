@@ -226,6 +226,7 @@ char *get_mac_addr(void) {
 			}
 		}
 		IFR++;
+		i--;
 	}
 
 	close(s);
