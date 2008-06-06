@@ -69,7 +69,7 @@ int send_searchhits_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8
 	packet->desc = (char*)searchhits;
 
 	header->desc_len = sizeof(searchhits_desc);
-		
+	
 	packet->header = header;
 	packet->data = res;
 	
@@ -190,96 +190,105 @@ int send_ping_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, char *nick, u_
 	return send_packet(fd, buffer, len);
 }
 
-//u_int4 send_pong_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 status) {
-//	
-//	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
-//	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
-//	
-//	header->id = generate_id();
-//	header->desc_id = PONG_ID;
-//	header->sender_id = sender_id;
-//	header->recv_id = recv_id;
-//	header->timestamp = time(NULL);
-//	header->data_len = 0;
-//	
-//	pong_desc *pong = (pong_desc*)malloc(sizeof(pong_desc));
-//	pong->status = status;
-//	packet->desc = (char*)pong;
-//
-//	header->desc_len = sizeof(pong_desc);
-//		
-//	packet->header = header;
-//	packet->data = NULL;
-//	
-//	char *buffer;
-//	int len;
-//	http_packet *h_packet = http_create_packet(packet, HTTP_REQ_POST, 0, NULL, 0, 0, NULL, 0);
-//	buffer = http_bin_to_char(h_packet, &len);
-//	if(buffer==NULL)
-//		logger(PAC, "[send_pong_packet]Error while creating packet\n");
-//	
-//	return send_packet(fd, buffer, len);
-//}
+int send_list_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id) {
+	
+	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
+	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
+	
+	header->id = generate_id();
+	header->desc_id = LIST_ID;
+	header->sender_id = sender_id;
+	header->recv_id = recv_id;
+	header->timestamp = time(NULL);
+	header->data_len = 0;
+	
+	list_desc *list = (list_desc*)malloc(sizeof(list_desc));
+	list->chat_id = chat_id;
+	packet->desc = (char*)list;
 
-//u_int4 send_list_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id) {
-//	
-//	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
-//	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
-//	
-//	header->id = generate_id();
-//	header->desc_id = LIST_ID;
-//	header->sender_id = sender_id;
-//	header->recv_id = recv_id;
-//	header->timestamp = time(NULL);
-//	header->data_len = 0;
-//	
-//	list_desc *list = (list_desc*)malloc(sizeof(list_desc));
-//	packet->desc = (char*)list;
-//
-//	header->desc_len = sizeof(list_desc);
-//		
-//	packet->header = header;
-//	packet->data = NULL;
-//	
-//	char *buffer;
-//	int len;
-//	http_packet *h_packet = http_create_packet(packet, HTTP_REQ_POST, 0, NULL, 0, 0, NULL, 0);
-//	buffer = http_bin_to_char(h_packet, &len);
-//	if(buffer==NULL)
-//		logger(PAC, "[send_list_packet]Error while creating packet\n");
-//	
-//	return send_packet(fd, buffer, len);
-//}
-//
-//u_int4 send_listhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 data_len, char *data) {
-//	
-//	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
-//	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
-//	
-//	header->id = generate_id();
-//	header->desc_id = LISTHITS_ID;
-//	header->sender_id = sender_id;
-//	header->recv_id = recv_id;
-//	header->timestamp = time(NULL);
-//	header->data_len = data_len;
-//	
-//	listhits_desc *listhits = (listhits_desc*)malloc(sizeof(listhits_desc));
-//	packet->desc = (char*)listhits;
-//
-//	header->desc_len = sizeof(listhits_desc);
-//		
-//	packet->header = header;
-//	packet->data = data;
-//	
-//	char *buffer;
-//	int len;
-//	http_packet *h_packet = http_create_packet(packet, HTTP_REQ_POST, 0, NULL, 0, 0, NULL, 0);
-//	buffer = http_bin_to_char(h_packet, &len);
-//	if(buffer==NULL)
-//		logger(PAC, "[send_listhits_packet]Error while creating packet\n");
-//	
-//	return send_packet(fd, buffer, len);
-//}
+	header->desc_len = sizeof(list_desc);
+	
+	packet->header = header;
+	packet->data = string;
+	
+	printf("[send_list_packet]sending request ID: %lld\n", chat_id);
+	
+	char *buffer;
+	int len;
+	http_packet *h_packet = http_create_packet(packet, HTTP_REQ_POST, 0, NULL, 0, 0, NULL, 0);
+	buffer = http_bin_to_char(h_packet, &len);
+	if(buffer==NULL) {
+		logger(PAC_INFO, "[send_list_packet]Error while creating packet\n");
+		return -1;
+	}
+	
+	return send_packet(fd, buffer, len);
+}
+
+int send_listhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int4 user_num, u_int4 res_len, char *res) {
+	
+	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
+	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
+	
+	header->id = generate_id();
+	header->desc_id = LISTHITS_ID;
+	header->sender_id = sender_id;
+	header->recv_id = recv_id;
+	header->timestamp = time(NULL);
+	header->data_len = res_len;
+	
+	listhits_desc *listhits = (listhits_desc*)malloc(sizeof(listhits_desc));
+	listhits->user_num = user_num;
+	packet->desc = (char*)listhits;
+
+	header->desc_len = sizeof(listhits_desc);
+	
+	packet->header = header;
+	packet->data = res;
+	
+	char *buffer;
+	int len;
+	http_packet *h_packet = http_create_packet(packet, HTTP_REQ_POST, 0, NULL, 0, 0, NULL, 0);
+	buffer = http_bin_to_char(h_packet, &len);
+	if(buffer==NULL) {
+		logger(PAC_INFO, "[send_listhits_packet]Error while creating packet\n");
+		return -1;
+	}
+	
+	return send_packet(fd, buffer, len);
+}
+
+int send_bye_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id) {
+	
+	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
+	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
+	
+	header->id = generate_id();
+	header->desc_id = LEAVE_ID;
+	header->sender_id = sender_id;
+	header->recv_id = recv_id;
+	header->timestamp = time(NULL);
+	header->data_len = 0;
+	
+	bye_desc *bye = (bye_desc*)malloc(sizeof(bye_desc));
+	packet->desc = (char*)bye;
+
+	header->desc_len = sizeof(leave_desc);
+		
+	packet->header = header;
+	packet->data = NULL;
+	
+	char *buffer;
+	int len;
+	http_packet *h_packet = http_create_packet(packet, HTTP_REQ_POST, 0, NULL, 0, 0, NULL, 0);
+	buffer = http_bin_to_char(h_packet, &len);
+	if(buffer==NULL) {
+		logger(PAC_INFO, "[send_bye_packet]Error while creating packet\n");
+		return -1;
+	}
+	
+	return send_packet(fd, buffer, len);
+}
 
 int send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id, u_int4 msg_len, char *msg) {
 
@@ -315,40 +324,6 @@ int send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat
 	
 	return send_packet(fd, buffer, len);
 }
-
-//u_int4 send_create_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id, u_int4 title_len, char *title) {
-//	
-//	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
-//	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
-//	
-//	header->id = generate_id();
-//	header->desc_id = CREATE_ID;
-//	header->sender_id = sender_id;
-//	header->recv_id = recv_id;
-//	header->timestamp = time(NULL);
-//	header->data_len = title_len;
-//	
-//	create_desc *create = (create_desc*)malloc(sizeof(create_desc));
-//	create->chat_id = chat_id;
-//	
-//	packet->desc = (char*)create;
-//
-//	header->desc_len = sizeof(create_desc);
-//		
-//	packet->header = header;
-//	
-//	packet->data = title;
-//	
-//	char *buffer;
-//	int len;
-//	http_packet *h_packet = http_create_packet(packet, HTTP_REQ_POST, 0, NULL, 0, 0, NULL, 0);
-//	
-//	buffer = http_bin_to_char(h_packet, &len);
-//	if(buffer==NULL)
-//		logger(PAC, "[send_create_packet]Error while creating packet\n");
-//	
-//	return send_packet(fd, buffer, len);
-//}
 
 int send_post_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char *data) {
 	printf("[send_post_response_packet]Sending with status: %d\n", status);

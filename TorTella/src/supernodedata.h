@@ -122,6 +122,18 @@ char *chatlist_to_char(GList *chat_list, int *len);
 GList *char_to_chatlist(const char *buffer,int len);
 
 /*
+ * Converte la lista di utenti in una stringa del tipo:
+ * 22;simone;127.0.0.1;2110;
+ * 33;simon;127.0.0.1;2110;
+ */
+char *userlist_to_char(GList *user_list, int *len);
+
+/*
+ * Converte una stringa in una lista di utenti
+ */
+GList *char_to_userlist(const char *buffer,int len);
+
+/*
  * Ritorna una lista di tutti i client della chat specificata
  */
 GList *get_chatclient_from_chat(const char *title);

@@ -34,15 +34,13 @@ int send_leave_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_i
 
 int send_ping_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, char *nick, u_int4 port, u_int1 status);
 
-//u_int4 send_pong_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 status);
+int send_list_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id);
 
-//u_int4 send_list_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id);
-//
-//u_int4 send_listhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 data_len, char *data);
+int send_listhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int4 user_num, u_int4 res_len, char *res);
+
+int send_bye_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id);
 
 int send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id, u_int4 msg_len, char *msg);
-
-//u_int4 send_create_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id, u_int4 title_len, char *title);
 
 int send_post_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char *data);
 

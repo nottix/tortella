@@ -474,6 +474,70 @@ GList *char_to_chatlist(const char *buffer, int len) {
 }
 
 /*
+ * Converte la lista di utenti in una stringa del tipo:
+ * 22;simone;127.0.0.1;2110;
+ * 33;simon;127.0.0.1;2110;
+ */
+char *userlist_to_char(GList *user_list, int *len) {
+		if(chat_list==NULL) {
+		printf("[userlist_to_char]user_list NULL\n");
+		return NULL;
+	}
+	if(g_list_length(user_list)==0)
+		return NULL;
+	
+	chatclient *chatclient_elem;
+	int cur_size = 512;
+	int cur = 0;
+	char *ret = (char*)calloc(cur_size, 1);
+	char *line = (char*)calloc(512, 1);
+	int i, j;
+	for(j=0; j<g_list_length(user_list); j++) {
+		chatclient_elem = (chatclient*)g_list_nth_data(user_list, j);
+		sprintf(line, "%lld;%s;%s;%d;\n", chatclient_elem->id, chatclient_elem->nick, chatclient_elem->ip, chatclient_elem->port);
+		cur += strlen(line);
+		if(cur>=cur_size) {
+			cur_size *= 2;
+			ret = realloc(ret, cur_size);
+		}
+		strcat(ret, line);
+	}
+	
+	cur++;
+	if(cur>=cur_size) {
+		cur_size *= 2;
+		ret = realloc(ret, cur_size);
+	}
+	ret = realloc(ret, cur);
+	*len = cur;
+	
+	return ret;
+}
+
+/*
+ * Converte una stringa in una lista di utenti
+ */
+GList *char_to_userlist(const char *buffer,int len) {
+	char *saveptr, *saveptr2;
+	char *buffer2 = strdup(buffer);
+	char *token;
+	int i=0;
+	int line=-1;
+	
+	GList *user_list = NULL;	
+	while((token = strtok_r(buffer2, "\n", &saveptr))!=NULL) {
+		chatclient *chat_client=(chatclient *)calloc(1, sizeof(chatclient));	
+		chat_client->id=atoll(strtok_r(buffer2, ";", &saveptr2));
+		chat_client->nick=strdup(strtok_r(NULL, ";", &saveptr2));
+		chat_client->ip=strdup(strtok_r(NULL, ";", &saveptr2));
+		chat_client->port= atoi(strtok_r(NULL, ";", &saveptr2));
+		g_hash_table_insert(user_list, (gpointer)to_string(chat_client->id),(gpointer)chat_client);
+		buffer2 = NULL;
+	}
+	return user_list;
+}
+
+/*
  * Ritorna una lista di tutti i client della chat specificata
  */
 GList *get_chatclient_from_chat(const char *title) {
