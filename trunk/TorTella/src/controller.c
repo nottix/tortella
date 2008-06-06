@@ -25,6 +25,13 @@ int controller_change_status(u_int1 status)
 	return 0;
 }
 
+int controller_manipulating_status(u_int8 user_id, char *status) 
+{
+	if(user_id <= 0)
+		return -1;
+	manipulating_status(user_id, status);
+	return 0;
+}
 
 
 int controller_send_chat_users(u_int8 chat_id, u_int4 msg_len, char *msg) {

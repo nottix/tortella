@@ -83,6 +83,8 @@ gint add_user_to_chat_list(u_int8 chat_id, u_int8 id, char *user, u_int1 status)
 
 gint remove_user_from_chat_list(u_int8 chat_id, u_int8 user_id);
 
+gint manipulating_status(u_int8 user_id, char *status); 
+
 gint open_chat(GtkWidget *widget, GdkEventButton *event, gpointer func_data);
 
 gint open_conversation(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn  *col, gpointer userdata);
