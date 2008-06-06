@@ -1,27 +1,31 @@
 #include "controller.h"
 
-int controller_change_status(int index, u_int8 chat_id) 
+int controller_change_status(u_int1 status) 
 {
-	servent_data *tmp;
+	servent_data *tmp, *peer;
 	if(servent_get_local () == NULL) {
 		logger(CTRL_INFO,"[controller_change_status] local_servent NULL\n");
 	    return -1;
 	}
-	if(index == 0) {
-		servent_get_local ()->status = ONLINE_ID;
-	}
-	else if(index == 1) {
-		servent_get_local()->status = BUSY_ID;
-	}
-	else if(index == 2) {
-		servent_get_local()->status = AWAY_ID;
-	}
-	COPY_SERVENT(servent_get_local(),tmp);
-    tmp->post_type = PING_ID;
+	WLOCK(servent_get_local()->id);
+	servent_get_local()->status = status;
+	UNLOCK(servent_get_local()->id);	  
 	logger(CTRL_INFO,"[controller_change_status] sending packet\n");
-	servent_send_packet(tmp);
+	if(status == AWAY_ID)
+		logger(CTRL_INFO, "[controller_change_status] away\n");
+	GList *users = servent_get_values();
+	int i=0;
+	for(; i < g_list_length(users); i++) {
+		peer = g_list_nth_data(users, i);
+		peer->post_type = PING_ID;
+		peer->packet_id = generate_id();
+		servent_send_packet(peer);
+	}
+	
 	return 0;
 }
+
+
 
 int controller_send_chat_users(u_int8 chat_id, u_int4 msg_len, char *msg) {
 	if(chat_id != 0) {
@@ -153,6 +157,12 @@ int controller_join_chat(u_int8 chat_id) {
 							return peer->id;
 						printf("RECEIVED %s\n", ret);
 						add_user_to_chat(chat_elem->id, client->id, client->nick, client->ip, client->port);
+	if(peer->status == ONLINE_ID)
+		logger(CTRL_INFO,"[controller_join_chat] ONLINE\n");
+	else if(peer->status == AWAY_ID)
+		logger(CTRL_INFO, "[controller_join_chat] AWAY\n");
+	else if(peer->status == BUSY_ID)
+		logger(CTRL_INFO, "[controller_join_chat] BUSY\n");
 						add_user_to_chat_list(chat_elem->id, client->id, client->nick, peer->status);
 					}
 				}
@@ -230,6 +240,7 @@ int controller_connect_users(GList *users) {
 		for(i=0; i<g_list_length(users); i++) {
 			client = (chatclient*)g_list_nth_data(users, i);
 			logger(CTRL_INFO, "[controller_connect_users]Connecting to client: %s\n", client->nick);
+			logger(CTRL_INFO, "[controller_connect_users]Get local status: %s\n", to_string(servent_get_local()->status));
 			if(servent_get(client->id)==NULL)
 				servent_start_client(client->ip, client->port);
 			else
@@ -549,6 +560,12 @@ int controller_add_user_to_chat(u_int8 chat_id, u_int8 id) {
 	
 	servent_data *servent = servent_get(id);
 	logger(CTRL_INFO, "[controller_add_user_to_chat]Addingi user: %s, id: %lld, status: %c\n", servent->nick, servent->id, servent->status);
+	if(servent->status == ONLINE_ID)
+		logger(CTRL_INFO,"[controller_add_user_to_chat] ONLINE\n");
+	else if(servent->status == AWAY_ID)
+		logger(CTRL_INFO, "[controller_add_user_to_chat] AWAY\n");
+	else if(servent->status == BUSY_ID)
+		logger(CTRL_INFO, "[controller_add_user_to_chat] BUSY\n");
 	add_user_to_chat_list(chat_id, servent->id, servent->nick, servent->status);
 	
 	return 0;

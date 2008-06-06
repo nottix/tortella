@@ -393,6 +393,7 @@ void *servent_responde(void *parm) {
 								
 								conn_servent->post_type = PING_ID;
 								RLOCK(local_servent->id);
+							
 								conn_servent->status = local_servent->status;
 								UNLOCK(local_servent->id);
 								
@@ -551,7 +552,7 @@ void *servent_responde(void *parm) {
 						
 						GList *chat_list = char_to_chatlist(tortella_get_data(h_packet->data_string), h_packet->data->header->data_len);
 						add_all_to_chat(chat_list); //TODO: deve ricercare anche in locale!!!
-
+						
 						route_entry *entry = get_route_entry(h_packet->data->header->id, route_hashtable);
 						if(entry!=NULL) {
 							RLOCK(entry->sender_id);
@@ -572,9 +573,17 @@ void *servent_responde(void *parm) {
 						else {
 							int i=0;
 							chat *chat_val;
+							
 							for(; i<g_list_length(chat_list); i++) {
-								chat_val = (chat*)g_list_nth_data(chat_list, i);
-								add_chat_to_list(chat_val->id, chat_val->title);
+								chat_val = (chat*)g_list_nth_data(chat_list, i);																
+								logger(SYS_INFO,"[servent_responde] title chat %s\n", chat_val->title);
+								GList *local_chat = search_all_local_chat(chat_val->title);
+								int j=0;
+								for(; j<g_list_length(local_chat); j++) {
+								chat *tmp = (chat*)g_list_nth_data(local_chat, j);
+								logger(SYS_INFO, "[servent_responde] title chat %s\n", tmp->title);
+								add_chat_to_list(tmp->id, tmp->title);
+								}
 							}
 						}
 						

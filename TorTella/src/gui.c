@@ -45,6 +45,14 @@ gint leave_chat(GtkWidget *widget, gpointer gdata)
 	return(FALSE);
 }
 
+gint leave_pm(GtkWidget *widget, gpointer gdata)
+{
+	u_int8 val = atoll((char*)gdata);
+	g_print("Closing pm %lld\n", val);
+	g_hash_table_remove(pm_data_hashtable, (gconstpointer)to_string(val));
+	return (FALSE);
+}
+
 /*-- This function allows the program to exit properly when the window is closed --*/
 gint ClosingAppWindow (GtkWidget *widget, gpointer gdata) {
 	g_print ("Quitting...\n");
@@ -104,7 +112,13 @@ gint add_user_to_chat_list(u_int8 chat_id, u_int8 id, char *user, u_int1 status)
 		gtk_list_store_set(GTK_LIST_STORE(mod->user_model), &(mod->user_iter), 1, msg, -1);
 		g_free(msg);
 
-		msg = g_strdup_printf(to_string((u_int8)status));
+		//msg = g_strdup_printf(to_string((u_int8)status));
+		if(status == ONLINE_ID)
+			msg = g_strdup_printf(ONLINE);
+		else if(status == BUSY_ID)
+			msg = g_strdup_printf(BUSY);
+		else if(status == AWAY_ID)
+			msg = g_strdup_printf(AWAY);
 		//gtk_list_store_append(GTK_LIST_STORE(mod->user_model), &(mod->user_iter));
 		gtk_list_store_set(GTK_LIST_STORE(mod->user_model), &(mod->user_iter), 2, msg, -1);
 		g_free(msg);
@@ -258,6 +272,11 @@ gint open_conversation(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColu
 		//chat *elem = get_chat(atoll(name));
 		if(user_id > 0 ) {
 			//g_hash_table_insert(tree_model_hashtable, (gpointer)user_id, (gpointer)model); //PROVA NELLA STESSA HASHTABLE
+			logger(INFO, "[open_conversation] nick length %d\n", strlen(name));
+			if(g_hash_table_lookup(pm_data_hashtable, (gconstpointer)user_id) != NULL) {
+				logger(INFO, "[open_conversation] conversazione già attiva\n");
+				return (FALSE);
+			}	
 			open_pm_gui(atoll(user_id),name);
 			// open_chatroom_gui(elem->id);
 			// usleep(200);
@@ -292,21 +311,21 @@ gint open_about(GtkWidget *widget, gpointer gdata)
 gint set_to_online(GtkWidget *widget, gpointer gdata)
 {
 	g_print("Online...\n");
-	//controller_change_status (0);
+	controller_change_status (ONLINE_ID);
 	return(FALSE);
 }
 
 gint set_to_busy(GtkWidget *widget, gpointer gdata)
 {
 	g_print("Busy...\n");
-	//controller_change_status(1);
+	controller_change_status(BUSY_ID);
 	return (FALSE);
 }
 
 gint set_to_away(GtkWidget *widget, gpointer gdata)
 {
 	g_print("Away...\n");
-	//controller_change_status(2);
+	controller_change_status(AWAY_ID);
 	return (FALSE);
 }
 
@@ -417,6 +436,7 @@ int add_msg_pm(u_int8 sender_id, char *msg) {
 	pm_data *pm = (pm_data*)g_hash_table_lookup(pm_data_hashtable, (gconstpointer)to_string(sender_id));
 	if(pm==NULL) {
 		logger(INFO, "[add_msg_pm]PM NULL\n");
+		logger(INFO, "[add_msg_pm] strlen nick %d\n",strlen(servent_get(sender_id)->nick));
 		open_pm_gui(sender_id, servent_get(sender_id)->nick);
 		pm = (pm_data*)g_hash_table_lookup(pm_data_hashtable, (gconstpointer)to_string(sender_id));
 		if(pm==NULL) {
@@ -560,7 +580,7 @@ GtkWidget *create_chat_list(u_int8 index )
 	return scrolled_window;
 }
 
-GtkWidget *create_menu(void) {
+GtkWidget *create_menu() {
 	GtkWidget *menubar;
 	GtkWidget *menuFile;
 	GtkWidget *menuEdit;
@@ -665,10 +685,10 @@ GtkWidget *create_text(u_int8 chat_id, int type, int msg_type)
 		gtk_text_view_set_editable(GTK_TEXT_VIEW(view),TRUE);
 		logger(INFO, "[create_text]signal connect\n");
 		if(msg_type == PM) {
-			g_signal_connect(GTK_OBJECT(view),"key_press_event", G_CALLBACK(send_pm_message), (gpointer)to_string(chat_id)); //prova prova prova di pm
+			g_signal_connect(GTK_OBJECT(view),"key_press_event", G_CALLBACK(send_pm_message), (gpointer)to_string(chat_id)); 
 		}
 		else if(msg_type == CHAT) {	
-			g_signal_connect(GTK_OBJECT(view),"key_press_event", G_CALLBACK(send_text_message), (gpointer)to_string(chat_id)); //TODO blocca l'inserimento testo
+			g_signal_connect(GTK_OBJECT(view),"key_press_event", G_CALLBACK(send_text_message), (gpointer)to_string(chat_id)); 
 		}
 		gtk_text_view_set_editable(GTK_TEXT_VIEW(view),TRUE);
 		logger(INFO, "[create_text]signal connected\n");
@@ -692,6 +712,7 @@ GtkWidget *create_text(u_int8 chat_id, int type, int msg_type)
 			if(pm==NULL) {
 				pm = calloc(1, sizeof(pm_data));
 				pm->text_area = GTK_TEXT_VIEW(view);
+				gtk_text_view_set_editable(GTK_TEXT_VIEW(pm->text_area),FALSE);
 				logger(INFO, "[create_text]Allocating\n");
 				g_hash_table_insert(pm_data_hashtable, (gpointer)to_string(chat_id), (gpointer)pm);
 				logger(INFO, "[create_text]Allocated\n");
@@ -851,7 +872,7 @@ int open_pm_gui(u_int8 user_id, gchar *nickname) {
 	gtk_window_set_default_size (GTK_WINDOW(window), 640, 400);
 	logger(INFO, "[open_pm_gui]Here9\n");
 	/*-- Set the window title --*/
-	gtk_window_set_title(GTK_WINDOW (window), "PM"); //TODO: da mettere nick
+	gtk_window_set_title(GTK_WINDOW (window), nickname); 
 	//logger(INFO, "[open_pm_gui]Here10\n");
 	/*-- Display the widgets --*/
 	gtk_widget_show(handlebox);
@@ -865,7 +886,7 @@ int open_pm_gui(u_int8 user_id, gchar *nickname) {
 	
 	logger(INFO, "[open_pm_gui]Here\n");
 	/*-- Connect the window to the destroyapp function  --*/
-		g_signal_connect(GTK_OBJECT(window), "destroy", G_CALLBACK(destroywindow), (gpointer)to_string(user_id));
+		g_signal_connect(GTK_OBJECT(window), "destroy", G_CALLBACK(leave_pm), (gpointer)to_string(user_id));
 	
 	/*-- Start the GTK event loop --*/
 	//gtk_main();
