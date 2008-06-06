@@ -425,16 +425,6 @@ void *servent_responde(void *parm) {
 							
 						}
 					}
-					else if(h_packet->data->header->desc_id==PONG_ID) {
-						printf("[servent_responde]PONG ricevuto\n");
-						servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
-						WLOCK(h_packet->data->header->sender_id);
-						conn_servent->status = GET_PONG(h_packet->data)->status;
-						conn_servent->timestamp = h_packet->data->header->timestamp;
-						UNLOCK(h_packet->data->header->sender_id);
-						
-						status = HTTP_STATUS_OK;
-					}
 					else if(h_packet->data->header->desc_id==LEAVE_ID) {
 						printf("[servent_responde]LEAVE ricevuto\n");
 						u_int8 chat_id = GET_LEAVE(h_packet->data)->chat_id;
@@ -731,7 +721,7 @@ void *servent_connect(void *parm) {
 			}
 			else if(post_type==LISTHITS_ID) {
 				int length;
-				char *buf = userlist_to_char(servent_queue->user_list, &length);
+				char *buf = userlist_to_char(servent_queue->user_res, &length);
 				if(buf==NULL) {
 					length=0;
 				}

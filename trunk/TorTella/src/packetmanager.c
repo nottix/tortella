@@ -209,7 +209,7 @@ int send_list_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id
 	header->desc_len = sizeof(list_desc);
 	
 	packet->header = header;
-	packet->data = string;
+	packet->data = NULL;
 	
 	printf("[send_list_packet]sending request ID: %lld\n", chat_id);
 	

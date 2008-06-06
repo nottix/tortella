@@ -405,8 +405,6 @@ int controller_menu() {
 			servent->post_type=JOIN_ID;
 		else if(ch=='p')
 			servent->post_type=PING_ID;
-		else if(ch=='o')
-			servent->post_type=PONG_ID;
 		else if(ch=='m') {
 			char *text = calloc(100000, 1);
 			scanf("%s", text);
