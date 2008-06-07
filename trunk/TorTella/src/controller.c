@@ -25,11 +25,18 @@ int controller_change_status(u_int1 status)
 	return 0;
 }
 
-int controller_manipulating_status(u_int8 user_id, char *status) 
+int controller_manipulating_status(u_int8 user_id, u_int1 status) 
 {
+	char *status_tmp;
 	if(user_id <= 0)
 		return -1;
-	manipulating_status(user_id, status);
+	if(status == ONLINE_ID)
+		status_tmp = ONLINE;
+	else if(status == BUSY_ID)
+		status_tmp = BUSY;
+	else if(status == AWAY_ID)
+		status_tmp = AWAY;
+	manipulating_status(user_id, status_tmp);
 	return 0;
 }
 
@@ -79,12 +86,15 @@ int controller_send_chat_users(u_int8 chat_id, u_int4 msg_len, char *msg) {
 int controller_send_subset_users(u_int8 chat_id, u_int4 msg_len, char *msg, GList *users) { 
 	if(chat_id != 0) {
 		int i= 0;
+		logger(CTRL_INFO, "[controller_send_subset_users] chat id != 0\n");
+		logger(CTRL_INFO, "[controller_send_subset_users] list length %d\n", g_list_length(users));
 		for(; i<g_list_length(users); i++) {
 
 			chatclient *user = g_list_nth_data(users, i);
-
-			servent_data *data = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(user->id));
-
+			logger(CTRL_INFO, "[controller_send_subset_users] user id %lld\n",user->id);
+			
+			//servent_data *data = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(user->id));
+			servent_data *data = servent_get(user->id);
 			WLOCK(data->id);
 
 			data->msg = strdup(msg);
@@ -93,6 +103,7 @@ int controller_send_subset_users(u_int8 chat_id, u_int4 msg_len, char *msg, GLis
 			data->post_type = MESSAGE_ID;
 
 			UNLOCK(data->id);
+			logger(CTRL_INFO, "[controller_send_subset_users] sending packet\n");
 			servent_send_packet(data); //
 			//pthread_cond_signal(&data->cond);
 		}
