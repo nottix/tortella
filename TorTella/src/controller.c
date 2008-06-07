@@ -11,8 +11,6 @@ int controller_change_status(u_int1 status)
 	servent_get_local()->status = status;
 	UNLOCK(servent_get_local()->id);	  
 	logger(CTRL_INFO,"[controller_change_status] sending packet\n");
-	if(status == AWAY_ID)
-		logger(CTRL_INFO, "[controller_change_status] away\n");
 	GList *users = servent_get_values();
 	int i=0;
 	for(; i < g_list_length(users); i++) {
@@ -268,6 +266,28 @@ int controller_connect_users(GList *users) {
 	}
 	
 	return -1;
+}
+
+int controller_send_bye() 
+{
+	servent_data *tmp, *peer;
+	if(servent_get_local () == NULL) {
+		logger(CTRL_INFO,"[controller_send_bye] local_servent NULL\n");
+	    return -1;
+	}
+	  
+	logger(CTRL_INFO,"[controller_send_bye] sending packet\n");
+	
+	GList *users = servent_get_values();
+	int i=0;
+	for(; i < g_list_length(users); i++) {
+		peer = g_list_nth_data(users, i);
+		peer->post_type = BYE_ID;
+		peer->packet_id = generate_id();
+		servent_send_packet(peer);
+	}
+	
+	return 0;
 }
 
 int controller_init(const char *filename, const char *cache) {
