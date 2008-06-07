@@ -85,6 +85,8 @@ static GHashTable *servent_hashtable;
 
 static GHashTable *search_packet_hashtable = NULL;
 
+static GHashTable *list_packet_hashtable = NULL; //prova
+
 static servent_data *local_servent;
 
 static u_int1 last_request_type = 0;
@@ -168,6 +170,10 @@ char *servent_pop_response(servent_data *sd);
 char *get_search_packet(u_int8 id);
 
 void new_search_packet(u_int8 id);
+
+char *get_list_packet(u_int8 id); //PROVA
+
+void new_list_packet(u_int8 id); //PROVA
 
 //-----THREAD--------------
 
