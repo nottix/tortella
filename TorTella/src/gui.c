@@ -444,10 +444,12 @@ gint send_text_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata)
 					time_t actual_time = time(NULL);
 					char *send_msg = prepare_msg(actual_time, servent_get_local()->nick, msg, strlen(msg));
 					add_msg_to_chat(chat_id, send_msg);
+					gtk_tree_selection_unselect_all(selection);
 				}
 				return TRUE;
 			}
-		}	
+		}
+		/***			FINE SUBSET			***/
 		else { 
 		/*	GtkTextBuffer *buf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget));
 			g_print("Enter pressed...\n");
