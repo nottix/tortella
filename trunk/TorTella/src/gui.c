@@ -20,6 +20,7 @@
 void destroyapp (GtkWidget *widget, gpointer gdata)
 {
 	g_print ("Quitting...\n");
+	//controller_send_bye(); //Per ora commentato perchè c'è da gestire tutto nel servent responde
 	controller_exit();
 	gtk_main_quit();
 	exit(0);

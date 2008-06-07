@@ -35,6 +35,8 @@ int controller_leave_chat(u_int8 chat_id);
 
 int controller_connect_users(GList *users);
 
+int controller_send_bye(); 
+
 int controller_init(const char *filename, const char *cache);
 
 int controller_exit();
