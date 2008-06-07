@@ -50,6 +50,7 @@ struct tree_model
 	GtkListStore *user_model;
 	GtkTreeIter user_iter;
 	GtkTextView *text_area;
+	GtkTreeView *tree_view;
 };
 typedef struct tree_model tree_model;
 

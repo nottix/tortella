@@ -400,14 +400,8 @@ gint create_chat_button(GtkWidget *widget, gpointer gdata) {
 
 gint send_text_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata)
 {
-
 	if(event->type == GDK_KEY_PRESS && event->keyval == GDK_Return) {
-		g_print("Enter pressed...\n");
-		//Controlla se sono selezionati utenti a cui inviare
-		//...
-		//Altrimenti invia a tutti
-		u_int8 chat_id = atoll((char*)gdata);
-		GtkTextBuffer *buf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget));
+	 	GtkTextBuffer *buf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget));
 		g_print("Enter pressed...\n");
 		GtkTextIter start ;
 		gtk_text_buffer_get_start_iter(buf, &start);
@@ -415,29 +409,76 @@ gint send_text_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata)
 		GtkTextIter end;
 		gtk_text_buffer_get_end_iter(buf, &end);
 		g_print("Enter pressed...\n");
-		char *msg = gtk_text_buffer_get_text(buf, &start, &end, TRUE);
-		logger(INFO, "[send_text_message]Msg: %s to %lld\n", msg, chat_id);
-		if(controller_send_chat_users(chat_id, strlen(msg), msg)>=0) {
-			clear_buffer(GTK_TEXT_VIEW(widget));
-			time_t actual_time = time(NULL);
-			char *send_msg = prepare_msg(actual_time, servent_get_local()->nick, msg, strlen(msg));
-			add_msg_to_chat(chat_id, send_msg);
-			//tree_model *model_str = get_tree_model(chat_id);
-			//add_to_buffer_new_message(GTK_TEXT_VIEW(model_str->text_area), msg);
+		char *msg = gtk_text_buffer_get_text(buf, &start, &end, TRUE);		
+		g_print("Enter pressed...\n");
+		GtkTreeSelection *selection;
+		
+		u_int8 chat_id = atoll((char*)gdata);
+		logger(INFO, "[send_text_message] chat id = %lld\n",chat_id);
+		/* 					SUBSET						*/
+		tree_model *chat_list_tmp = get_tree_model(chat_id);
+		
+		selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(chat_list_tmp->tree_view));
+		if(gtk_tree_selection_count_selected_rows(selection) > 0) {
+			GList *subset = NULL;		
+			logger(INFO, "[send_text_message] send to subset\n");
+			GtkTreeIter tmp_iter;
+			gboolean valid = TRUE;
+			char *id;
+			logger(INFO, "[add_user_tolist_of_subset]Init\n");
+		
+			if(gtk_tree_model_get_iter_first(GTK_TREE_MODEL(chat_list_tmp->user_model), &tmp_iter)==TRUE) {
+				while(valid) {
+					if(gtk_tree_selection_iter_is_selected(selection, &tmp_iter)) {
+						//Aggiungi alla lista di utenti a cui è rivolto il messaggio
+						gtk_tree_model_get(GTK_TREE_MODEL(chat_list_tmp->user_model), &tmp_iter, 1, &id, -1);
+						logger(INFO, "[send_text_message] id utente: %lld\n", atoll(id));
+						subset = g_list_prepend(subset, (gpointer)(servent_get(atoll(id))));
+						g_print("Utente selezionato: %s\n", (servent_get(atoll(id)))->nick);
+					}
+				valid = gtk_tree_model_iter_next(GTK_TREE_MODEL(chat_list_tmp->user_model), &tmp_iter); 
+				}
+				logger(INFO, "[send_text_message] sending message to subset; list length %d\n", g_list_length(subset)); 
+				if(controller_send_subset_users (chat_id,strlen(msg),msg, subset) >= 0) {
+					clear_buffer(GTK_TEXT_VIEW(widget));
+					time_t actual_time = time(NULL);
+					char *send_msg = prepare_msg(actual_time, servent_get_local()->nick, msg, strlen(msg));
+					add_msg_to_chat(chat_id, send_msg);
+				}
+				return TRUE;
+			}
+		}	
+		else { 
+		/*	GtkTextBuffer *buf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget));
+			g_print("Enter pressed...\n");
+			GtkTextIter start ;
+			gtk_text_buffer_get_start_iter(buf, &start);
+			g_print("Enter pressed...\n");
+			GtkTextIter end;
+			gtk_text_buffer_get_end_iter(buf, &end);
+			g_print("Enter pressed...\n");
+			char *msg = gtk_text_buffer_get_text(buf, &start, &end, TRUE);
+			logger(INFO, "[send_text_message]Msg: %s to %lld\n", msg, chat_id); */
+			if(controller_send_chat_users(chat_id, strlen(msg), msg)>=0) {
+				clear_buffer(GTK_TEXT_VIEW(widget));
+				time_t actual_time = time(NULL);
+				char *send_msg = prepare_msg(actual_time, servent_get_local()->nick, msg, strlen(msg));
+				add_msg_to_chat(chat_id, send_msg);
+				//tree_model *model_str = get_tree_model(chat_id);
+				//add_to_buffer_new_message(GTK_TEXT_VIEW(model_str->text_area), msg);
+			}
+			return TRUE;
 		}
-		return TRUE;
 	}
 	return (FALSE);
 }
 
-gint send_pm_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata) //Prova per il pm, dà seg fault
+gint send_pm_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata) 
 {
 
 	if(event->type == GDK_KEY_PRESS && event->keyval == GDK_Return) {
 		g_print("Enter pressed...\n");
-		//Controlla se sono selezionati utenti a cui inviare
-		//...
-		//Altrimenti invia a tutti
+		
 		u_int8 user_id = atoll((char*)gdata);
 		GtkTextBuffer *buf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget));
 		g_print("Enter pressed...\n");
@@ -449,13 +490,11 @@ gint send_pm_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata) //Pr
 		g_print("Enter pressed...\n");
 		char *msg = gtk_text_buffer_get_text(buf, &start, &end, TRUE);
 		logger(INFO, "[send_pm_message]Msg: %s to %lld\n", msg, user_id);
-		if(controller_send_pm(strlen(msg), msg, user_id)>=0) { //qui c'è il seg_fault, l'hash table è null
+		if(controller_send_pm(strlen(msg), msg, user_id)>=0) { 
 			clear_buffer(GTK_TEXT_VIEW(widget));
 			time_t actual_time = time(NULL);
 			char *send_msg = prepare_msg(actual_time, servent_get_local()->nick, msg, strlen(msg));
-			add_msg_pm(user_id, send_msg); //sostituire con la text view corretta
-			//tree_model *model_str = get_tree_model(chat_id);
-			//add_to_buffer_new_message(GTK_TEXT_VIEW(model_str->text_area), msg);
+			add_msg_pm(user_id, send_msg); 
 		}
 		return TRUE;
 	}
@@ -560,6 +599,7 @@ GtkWidget *create_users_list(u_int8 index )
 	}
 
 	logger(INFO, "[create_users_list]chat ID: %lld\n", index);
+	model_str->tree_view = tree_view; //PROVA
 	g_hash_table_insert(tree_model_hashtable, (gpointer)to_string(index), (gpointer)model_str);
 
 	return scrolled_window;

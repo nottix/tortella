@@ -350,7 +350,7 @@ void *servent_responde(void *parm) {
 							UNLOCK(id);
 							add_user(conn_servent->id, conn_servent->nick, conn_servent->ip, conn_servent->port);
 							printf("[servent_responde]Old PING, nick: %s, status: %c\n", conn_servent->nick, conn_servent->status);
-							
+							controller_manipulating_status(id, conn_servent->status);
 							status = HTTP_STATUS_OK;
 						}
 						else {

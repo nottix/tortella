@@ -19,7 +19,7 @@ extern GHashTable *chatclient_hashtable;
 
 int controller_change_status(u_int1 status); 
 
-int controller_manipulating_status(u_int8 user_id, char *status); 
+int controller_manipulating_status(u_int8 user_id, u_int1 status); 
 
 //Aggiunto il flag subset per vedere se il messaggio è da mandare solo a determinati  utenti, userslist contiene la lista degli utenti a cui inviare il messaggio
 int controller_send_chat_users(u_int8 chat_id, u_int4 msg_len, char *msg);
