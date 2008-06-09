@@ -279,3 +279,18 @@ u_int4 get_dest_port(int socket) {
 	logger(SOCK_INFO, "[get_dest_port]Peer's port is: %d\n", (int) ntohs(peer.sin_port));
 	return (u_int4) ntohs(peer.sin_port);
 }
+
+int shutdown_socket(int sock_descriptor)
+{
+	if (sock_descriptor < 0) {
+		logger(SOCK_INFO, "[shutdown_socket]SocketDescriptor error: [%d]", sock_descriptor);
+		return -1;
+	}
+
+	// if( shutdown(sock_descriptor, SHUT_RDWR) < 0)
+	if (shutdown(sock_descriptor, SHUT_RDWR) < 0) {
+		logger(SOCK_INFO, "[shutdown_socket]Socket shutdown error");
+		return -1;
+	}
+	return 0;
+}	

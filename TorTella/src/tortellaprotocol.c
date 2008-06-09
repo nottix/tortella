@@ -122,7 +122,7 @@ char *tortella_get_data(const char *buffer) {
 	if(buffer==NULL)
 		return NULL;
 	tortella_header *header = tortella_get_header(buffer);
-	char *data = (char*)calloc(header->data_len, 1);
+	char *data = (char*)calloc(header->data_len+1, 1);
 	memcpy(data, buffer+sizeof(tortella_header)+header->desc_len, header->data_len);
 
 	return data;
