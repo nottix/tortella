@@ -293,7 +293,7 @@ int controller_send_bye()
 int controller_receive_bye(u_int8 id)
 {
    pm_data *pm;
-   if(pm = g_hash_table_lookup(pm_data_hashtable,(gconstpointer)id) != NULL) {
+   if((pm = g_hash_table_lookup(pm_data_hashtable, (gconstpointer)to_string(id))) != NULL) {
    	//leave_pm(); //QUI BISOGNA PASSARE I PARAMETRI IN MODO CORRETTO?
    }
    return 0;
@@ -326,7 +326,6 @@ int controller_exit() {
 int controller_init_gui(void) {
 
 	/*-- Declare the GTK Widgets used in the program --*/
-	GtkWidget *window;
 	GtkWidget *menu;
 	GtkWidget *vbox;
 	GtkWidget *handlebox;  

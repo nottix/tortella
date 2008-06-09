@@ -219,18 +219,18 @@ gint add_to_buffer_new_message(GtkTextView *widget, gchar *msg)
 	int len = first-msg;
 	char *tmp = calloc(len+1, 1);
 	strncpy(tmp, msg, len);  
-	gtk_text_buffer_insert_with_tags_by_name(text, &iter, tmp, -1, "blue_fg", "lmarg",  NULL); //lmarg dà un warning
-	//gtk_text_buffer_insert(text,&iter,tmp,-1);
+	//gtk_text_buffer_insert_with_tags_by_name(text, &iter, tmp, -1, "blue_fg", "lmarg",  NULL); //lmarg dà un warning
+	gtk_text_buffer_insert(text,&iter,tmp,-1);
 	msg+=len;
 	gtk_text_buffer_get_end_iter(text,&iter),
 	gtk_text_buffer_insert(text,&iter,msg,-1); 
 	// PROVA PER LO SCROLLING FINO AL  RETURN
-	GtkTextIter new_iter;
-	text = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget));
-	gtk_text_buffer_get_end_iter(text, &new_iter);
-	GtkTextMark *mark = gtk_text_mark_new(NULL,FALSE);
-	gtk_text_buffer_add_mark(text,mark,&new_iter);
-	gtk_text_view_scroll_to_mark(GTK_TEXT_VIEW(widget), mark, 0.0, FALSE, 0 ,0);  //Perchè crasha a na certa???
+//	GtkTextIter new_iter;
+//	text = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget));
+//	gtk_text_buffer_get_end_iter(text, &new_iter);
+//	GtkTextMark *mark = gtk_text_mark_new(NULL,FALSE);
+//	gtk_text_buffer_add_mark(text,mark,&new_iter);
+//	gtk_text_view_scroll_to_mark(GTK_TEXT_VIEW(widget), mark, 0.0, FALSE, 0 ,0);  //Perchè crasha a na certa???
 	return (FALSE);
 }
 

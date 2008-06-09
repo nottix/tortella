@@ -12,10 +12,12 @@
 
 pthread_t gtk_main_thread;
 
+GtkWidget *window;
+
 //EXTERN
 //extern GHashTable *servent_hashtable;
-extern GHashTable *chat_hashtable;
-extern GHashTable *chatclient_hashtable;
+//extern GHashTable *chat_hashtable;
+//extern GHashTable *chatclient_hashtable;
 
 int controller_change_status(u_int1 status); 
 

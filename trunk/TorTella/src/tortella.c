@@ -16,6 +16,8 @@ int main(int argc, char *argv[])
 		controller_init(argv[1], argv[2]);
 	}
 	
+	g_thread_init(NULL);
+	gdk_threads_init();
 	/*--  Initialize GTK --*/
 	gtk_init (&argc, &argv);
 	
