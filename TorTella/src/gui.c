@@ -214,13 +214,13 @@ gint add_to_buffer_new_message(GtkTextView *widget, gchar *msg)
 	GtkTextBuffer *text = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget));
 	GtkTextIter iter;
 	gtk_text_buffer_get_end_iter(text,&iter);
-	gtk_text_buffer_create_tag(text, "blue_fg", "foreground", "blue", NULL);
+	//gtk_text_buffer_create_tag(text, "blue_fg", "foreground", "blue", NULL); //dava Warning, spostata nel create text
 	char *first = strstr(msg, "\n");
 	int len = first-msg;
 	char *tmp = calloc(len+1, 1);
-	strncpy(tmp, msg, len);
-	gtk_text_buffer_insert_with_tags_by_name(text, &iter, tmp, -1, "blue_fg", "lmarg",  NULL);
-	//gtk_text_buffer_insert(text,&iter,tmp,-1);
+	strncpy(tmp, msg, len);  
+	gtk_text_buffer_insert_with_tags_by_name(text, &iter, tmp, -1, "blue_fg", "lmarg",  NULL); //lmarg dà un warning
+	gtk_text_buffer_insert(text,&iter,tmp,-1);
 	msg+=len;
 	gtk_text_buffer_get_end_iter(text,&iter),
 	gtk_text_buffer_insert(text,&iter,msg,-1); 
@@ -793,6 +793,7 @@ GtkWidget *create_text(u_int8 chat_id, int type, int msg_type)
 	else if (type == TOP){
 		if(msg_type == CHAT) {
 			gtk_text_view_set_editable(GTK_TEXT_VIEW(view),FALSE);
+			gtk_text_buffer_create_tag(buffer, "blue_fg", "foreground", "blue", NULL);
 			tree_model *model_str = get_tree_model(chat_id);
 			if(model_str!=NULL) {
 				logger(INFO, "[create_text]OK\n");
@@ -810,6 +811,7 @@ GtkWidget *create_text(u_int8 chat_id, int type, int msg_type)
 				pm = calloc(1, sizeof(pm_data));
 				pm->text_area = GTK_TEXT_VIEW(view);
 				gtk_text_view_set_editable(GTK_TEXT_VIEW(pm->text_area),FALSE);
+				gtk_text_buffer_create_tag(buffer, "blue_fg", "foreground", "blue", NULL);
 				logger(INFO, "[create_text]Allocating\n");
 				g_hash_table_insert(pm_data_hashtable, (gpointer)to_string(chat_id), (gpointer)pm);
 				logger(INFO, "[create_text]Allocated\n");
