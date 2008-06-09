@@ -224,6 +224,13 @@ gint add_to_buffer_new_message(GtkTextView *widget, gchar *msg)
 	msg+=len;
 	gtk_text_buffer_get_end_iter(text,&iter),
 	gtk_text_buffer_insert(text,&iter,msg,-1); 
+	// PROVA PER LO SCROLLING FINO AL  RETURN
+	GtkTextIter new_iter;
+	text = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget));
+	gtk_text_buffer_get_end_iter(text, &new_iter);
+	GtkTextMark *mark = gtk_text_mark_new(NULL,FALSE);
+	gtk_text_buffer_add_mark(text,mark,&new_iter);
+	gtk_text_view_scroll_to_mark(GTK_TEXT_VIEW(widget), mark, 0.0, FALSE, 0 ,0);  //Perchè crasha a na certa???
 	return (FALSE);
 }
 
@@ -467,6 +474,7 @@ gint send_text_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata)
 				time_t actual_time = time(NULL);
 				char *send_msg = prepare_msg(actual_time, servent_get_local()->nick, msg, strlen(msg));
 				add_msg_to_chat(chat_id, send_msg);
+						
 				//tree_model *model_str = get_tree_model(chat_id);
 				//add_to_buffer_new_message(GTK_TEXT_VIEW(model_str->text_area), msg);
 			}
@@ -509,6 +517,7 @@ int add_msg_to_chat(u_int8 chat_id, char *msg) {
 	if(model_str==NULL)
 		return -1;
 	add_to_buffer_new_message(GTK_TEXT_VIEW(model_str->text_area), msg);
+	
 	return 0;
 }
 
@@ -762,9 +771,12 @@ GtkWidget *create_text(u_int8 chat_id, int type, int msg_type)
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
 			GTK_POLICY_AUTOMATIC,
 			GTK_POLICY_AUTOMATIC);
-
+	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(view), TRUE);
+	//gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled_window), view);
 	gtk_container_add (GTK_CONTAINER (scrolled_window), view);
-
+	/*GtkAdjustment *vadj;
+	vadj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scrolled_window));
+	gtk_adjustment_set_value(vadj, vadj->lower);*/
 	//insert_text (buffer);
 	if(type == BOTTOM) {
 		gtk_text_view_set_editable(GTK_TEXT_VIEW(view),TRUE);
