@@ -225,7 +225,7 @@ servent_data *servent_pop_queue(servent_data *sd) {
 		return NULL;
 	}
 	while((servent = (servent_data*)g_queue_pop_head(sd->queue))==NULL) {
-		usleep(10000);
+		usleep(100000);
 	}
 	return servent;
 }
@@ -617,7 +617,7 @@ void *servent_responde(void *parm) {
 						
 							printf("[servent_responde]Sending SEARCHHITS packet to searching peer\n");
 						
-							/********Perchè manca il TTL nel descriptor del search????********/
+							/********Perchè manca il TTL nel descriptor del list????********/
 						/*	if(GET_LIST(h_packet->data)->ttl>0) {
 								printf("[servent_responde]TTL > 0\n");
 								int i;
@@ -701,7 +701,11 @@ void *servent_responde(void *parm) {
 						//Sconnetti dalla chat
 						logger(SYS_INFO, "[servent_responde]Deleting user\n");
 						//QUI BISOGNEREBBE RIMUOVERE L'UTENTE COMPLETAMENTE
-						//controller_rem_user_from_chat(chat_id, conn_servent->id);
+						//Di seguito  commentate le due remove dalla hashtable, ce ne sono altre? 
+						/*********************************************************************
+						g_hash_table_remove(servent_hashtable, (gconstpointer)conn_servent->id);
+						g_hash_table_remove(chatclient_hashtable, (gconstpointer)conn_servent->id);
+						***********************************************************************/
 						logger(SYS_INFO, "[servent_responde]Deleted user: %lld\n", conn_servent->id);
 					}  		/* FINE PROVA LIST, LISTHITS, BYE	*/
 					
