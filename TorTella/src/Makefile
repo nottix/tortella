@@ -3,7 +3,7 @@ CFLAGS = -g -Wall
 OBJECTS = tortellaprotocol.o httpmanager.o socketmanager.o packetmanager.o servent.o supernodedata.o logger.o utils.o init.o routemanager.o confmanager.o controller.o gui.o
 INCFLAGS = -I./ `pkg-config --cflags glib-2.0` `pkg-config --cflags gtk+-2.0`
 LDFLAGS = -Wl,-rpath,/usr/local/lib
-LIBS = -lpthread `pkg-config --libs glib-2.0` `pkg-config --libs gtk+-2.0`
+LIBS = -lpthread `pkg-config --libs glib-2.0` `pkg-config --libs gtk+-2.0` `pkg-config --libs gthread-2.0`
 BIN = ../bin
 
 all: tortella

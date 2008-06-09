@@ -451,6 +451,7 @@ void *servent_responde(void *parm) {
 					}
 					else if(h_packet->data->header->desc_id==MESSAGE_ID) {
 						printf("[servent_responde]MESSAGE ricevuto\n");
+						//controller_emit();
 						
 						servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
 
@@ -464,11 +465,15 @@ void *servent_responde(void *parm) {
 						u_int8 chat_id = GET_MESSAGE(h_packet->data)->chat_id;
 						if(chat_id==0) {
 							logger(SYS_INFO, "[servent_responde]PM\n");
+							gdk_threads_enter();
 							controller_add_msg(h_packet->data->header->sender_id, send_msg);
+							gdk_threads_leave();
 						}
 						else {
 							logger(SYS_INFO, "[servent_responde]CHAT\n");
+							gdk_threads_enter();
 							controller_add_msg_to_chat(chat_id, send_msg);
+							gdk_threads_leave();
 						}
 						printf("[servent_responde]msg: %s, msg_len: %d\n", conn_servent->msg, conn_servent->msg_len);
 						
