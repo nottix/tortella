@@ -176,6 +176,10 @@ int send_packet(int sock_descriptor, char *buffer, int len)
 		logger(SOCK_INFO, "[send_packet]Socket descriptor not valid, sock_descriptor = %d", sock_descriptor);
 		return -1;
 	}
+	if(buffer==NULL) {
+		logger(SOCK_INFO, "[send_packet]Buffer non valido, sock_descriptor = %d", sock_descriptor);
+		return -3;
+	}
 	// Questa blocco si potrebbe ritentare per n volte, dove n e' un
 	// parametro di configurazione.
 	if ((char_write=write(sock_descriptor, buffer, len)) != len) {

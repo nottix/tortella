@@ -154,7 +154,7 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 				+strlen(header_request->user_agent)+strlen(HTTP_AGENT)+2\
 				+strlen(HTTP_CONTENT_LEN)+strlen(to_string(header_request->content_len))+2\
 				+strlen(HTTP_CONNECTION)+strlen(header_request->connection)+2+2\
-				+sizeof(tortella_header)+packet->data->header->desc_len+packet->data->header->data_len+1, 1);
+				+sizeof(tortella_header)+packet->data->header->desc_len+packet->data->header->data_len+1+1, 1); //TODO: memory leak
 
 			sprintf(buffer, "%s\r\nUser-Agent: %s\r\nContent-Length: %d\r\nConnection: %s\r\n\r\n", header_request->request,\
 				header_request->user_agent, header_request->content_len, header_request->connection);
@@ -235,7 +235,7 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 				printf("[http_bin_to_char](header_response->content_type): %s\n", (header_response->content_type));
 				printf("[http_bin_to_char](HTTP_CONTENT_LEN): %s\n", (HTTP_CONTENT_LEN));*/
 			
-				buffer = calloc(*len, 1);
+				buffer = calloc((*len)+1, 1);
 				
 				snprintf(buffer, (*len)+1, "%s\r\nServer: %s\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n", header_response->response, header_response->server, header_response->content_type, \
 					header_response->content_len);

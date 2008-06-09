@@ -424,7 +424,7 @@ char *chatlist_to_char(GList *chat_list, int *len) {
 		}
 		strcat(ret, "|");
 	}
-	ret = realloc(ret, cur);
+	//ret = realloc(ret, cur);
 	*len = cur;
 	
 	return ret;
