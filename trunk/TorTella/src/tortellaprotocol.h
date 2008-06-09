@@ -28,6 +28,7 @@
 #define SEARCH_ID		0x09
 #define SEARCHHITS_ID	0x10
 #define BYE_ID			0x11
+#define CLOSE_ID 		0x12
 
 //Status ID
 #define ONLINE_ID	0x80

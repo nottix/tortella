@@ -697,15 +697,21 @@ void *servent_responde(void *parm) {
 						conn_servent->timestamp = h_packet->data->header->timestamp;
 						UNLOCK(h_packet->data->header->sender_id);
 						
-						status = HTTP_STATUS_OK;
+						status = HTTP_OK;
+						send_post_response_packet(fd, status, 0, NULL);
+						status = 0;
+						servent_data *sd;
+						COPY_SERVENT(conn_servent, sd);
+						sd->post_type= CLOSE_ID;
+						//VANNO IMPOSTATI ALTRI CAMPI?
+						servent_send_packet(sd);
 						//Sconnetti dalla chat
 						logger(SYS_INFO, "[servent_responde]Deleting user\n");
 						//QUI BISOGNEREBBE RIMUOVERE L'UTENTE COMPLETAMENTE
 						//Di seguito  commentate le due remove dalla hashtable, ce ne sono altre? 
-						/*********************************************************************
+						
 						g_hash_table_remove(servent_hashtable, (gconstpointer)conn_servent->id);
 						g_hash_table_remove(chatclient_hashtable, (gconstpointer)conn_servent->id);
-						***********************************************************************/
 						logger(SYS_INFO, "[servent_responde]Deleted user: %lld\n", conn_servent->id);
 					}  		/* FINE PROVA LIST, LISTHITS, BYE	*/
 					
@@ -844,6 +850,9 @@ void *servent_connect(void *parm) {
 			}
 			else if(post_type==BYE_ID) {
 				send_bye_packet(fd, local_servent->id, id_dest);
+			}
+			else if(post_type == CLOSE_ID) {
+				shutdown_socket(fd);
 			}
 			else if(post_type==LEAVE_ID) {
 				send_leave_packet(fd, local_servent->id, id_dest, chat_id_req);

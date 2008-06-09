@@ -20,7 +20,7 @@
 void destroyapp (GtkWidget *widget, gpointer gdata)
 {
 	g_print ("Quitting...\n");
-	//controller_send_bye(); //Per ora commentato perchè c'è da gestire tutto nel servent responde
+	controller_send_bye(); //Per ora commentato perchè c'è da gestire tutto nel servent responde
 	controller_exit();
 	gtk_main_quit();
 	exit(0);
@@ -220,7 +220,7 @@ gint add_to_buffer_new_message(GtkTextView *widget, gchar *msg)
 	char *tmp = calloc(len+1, 1);
 	strncpy(tmp, msg, len);  
 	gtk_text_buffer_insert_with_tags_by_name(text, &iter, tmp, -1, "blue_fg", "lmarg",  NULL); //lmarg dà un warning
-	gtk_text_buffer_insert(text,&iter,tmp,-1);
+	//gtk_text_buffer_insert(text,&iter,tmp,-1);
 	msg+=len;
 	gtk_text_buffer_get_end_iter(text,&iter),
 	gtk_text_buffer_insert(text,&iter,msg,-1); 

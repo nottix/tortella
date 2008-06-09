@@ -58,4 +58,6 @@ char *get_dest_ip(int socket);
 
 u_int4 get_dest_port(int socket);
 
+int shutdown_socket(int sock_descriptor);
+
 #endif //SOCKETMANAGER_H
