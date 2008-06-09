@@ -380,13 +380,13 @@ int controller_init_gui(void) {
 
 
 	/*-- Display the widgets --*/
-	gtk_widget_show(handlebox);
-	gtk_widget_show(vbox);
-	//gtk_widget_show(menuitem);
-	gtk_widget_show(searchbar);   
-	gtk_widget_show(menu);
-	gtk_widget_show(window);
-	gtk_widget_show(list);
+//	gtk_widget_show(handlebox);
+//	gtk_widget_show(vbox);
+//	//gtk_widget_show(menuitem);
+//	gtk_widget_show(searchbar);   
+//	gtk_widget_show(menu);
+	gtk_widget_show_all(window);
+	//gtk_widget_show(list);
 
 	/*-- Start the GTK event loop --*/
 	
