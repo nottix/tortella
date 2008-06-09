@@ -37,6 +37,8 @@ int controller_connect_users(GList *users);
 
 int controller_send_bye(); 
 
+int controller_receive_bye();
+
 int controller_init(const char *filename, const char *cache);
 
 int controller_exit();
