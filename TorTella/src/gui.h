@@ -24,7 +24,7 @@
 #include <gdk/gdkkeysyms.h>
 #include "utils.h"
 #include "controller.h"
-#include "supernodedata.h"
+#include "datamanager.h"
 #include "tortellaprotocol.h"
 
 #define TOP		0x01

@@ -15,7 +15,7 @@
  */
 
 #include <string.h> 
-#include "supernodedata.h"
+#include "datamanager.h"
 /*
  * Scrive la struttura dati 'chat' in un file, nel seguente modo:
  * chat_id;chat_title;
