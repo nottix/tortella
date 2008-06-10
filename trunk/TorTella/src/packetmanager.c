@@ -264,7 +264,7 @@ int send_bye_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id) {
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
 	
 	header->id = generate_id();
-	header->desc_id = LEAVE_ID;
+	header->desc_id = BYE_ID;
 	header->sender_id = sender_id;
 	header->recv_id = recv_id;
 	header->timestamp = time(NULL);

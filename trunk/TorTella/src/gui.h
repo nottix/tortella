@@ -55,6 +55,7 @@ struct tree_model
 typedef struct tree_model tree_model;
 
 struct pm_data {
+	GtkWindow *window;
 	GtkTextView *text_area;
 };
 typedef struct pm_data pm_data;
@@ -125,6 +126,8 @@ tree_model *get_tree_model(u_int8 chat_id);
 int add_msg_to_chat(u_int8 chat_id, char *msg);
 
 int add_msg_pm(u_int8 sender_id, char *msg);
+
+pm_data *pm_data_get(u_int8 id);
 
 //void set_searching(void);
 //

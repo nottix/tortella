@@ -253,6 +253,8 @@ int controller_connect_users(GList *users) {
 	if(users!=NULL) {
 		int i;
 		chatclient *client;
+		servent_data *peer, *sd;
+		char *ret;
 		for(i=0; i<g_list_length(users); i++) {
 			client = (chatclient*)g_list_nth_data(users, i);
 			logger(CTRL_INFO, "[controller_connect_users]Connecting to client: %s\n", client->nick);
@@ -262,6 +264,28 @@ int controller_connect_users(GList *users) {
 			else
 				logger(CTRL_INFO, "[controller_connect_users]Già connesso\n");
 		}
+		
+		for(i=0; i<g_list_length(users); i++) {
+			client = (chatclient*)g_list_nth_data(users, i);
+			if(client!=NULL) {
+				peer = servent_get(client->id);
+				logger(CTRL_INFO, "[controller_connect_users]pop response %lld\n", client->id);
+				if(peer!=NULL && peer->id!=servent_get_local()->id) {
+					COPY_SERVENT(peer, sd);
+					//WLOCK(peer->id);
+
+					//UNLOCK(peer->id);
+					ret = servent_pop_response(peer);
+					if(strcmp(ret, TIMEOUT)==0)
+						return peer->id;
+					printf("RECEIVED OK %s\n", ret);
+					//del_user_from_chat(chat_id, client->id);
+					//remove_user_from_chat_list(chat_id, client->id);
+					//add_user_to_chat(chat_elem->id, client->id, client->nick, client->ip, client->port);
+					//add_user_to_chat_list(chat_elem->id, client->id, client->nick, peer->status);
+				}
+			}
+		}
 		return 0;
 	}
 	
@@ -270,7 +294,9 @@ int controller_connect_users(GList *users) {
 
 int controller_send_bye() 
 {
-	servent_data *tmp, *peer;
+	chatclient *client;
+	servent_data *tmp, *peer, *sd;
+	char *ret;
 	if(servent_get_local () == NULL) {
 		logger(CTRL_INFO,"[controller_send_bye] local_servent NULL\n");
 	    return -1;
@@ -282,9 +308,36 @@ int controller_send_bye()
 	int i=0;
 	for(; i < g_list_length(users); i++) {
 		peer = g_list_nth_data(users, i);
-		peer->post_type = BYE_ID;
-		peer->packet_id = generate_id();
-		servent_send_packet(peer);
+		if(peer!=NULL && peer->id!=servent_get_local()->id) {
+			COPY_SERVENT(peer, tmp);
+			tmp->post_type = BYE_ID;
+			tmp->packet_id = generate_id();
+			servent_send_packet(tmp);
+			logger(CTRL_INFO, "[controller_send_bye] sent\n");
+		}
+	}
+	
+	for(i=0; i<g_list_length(users); i++) {
+		client = (chatclient*)g_list_nth_data(users, i);
+		if(client!=NULL) {
+			peer = servent_get(client->id);
+			logger(CTRL_INFO, "[controller_send_bye]pop response %lld\n", client->id);
+			if(peer!=NULL && peer->id!=servent_get_local()->id) {
+				COPY_SERVENT(peer, sd);
+				//WLOCK(peer->id);
+
+				//UNLOCK(peer->id);
+				ret = servent_pop_response(sd);
+				logger(CTRL_INFO, "[controller_send_bye]ret: %s\n", ret);
+				if(strcmp(ret, TIMEOUT)==0)
+					return sd->id;
+				printf("RECEIVED OK %s\n", ret);
+				//del_user_from_chat(chat_id, client->id);
+				//remove_user_from_chat_list(chat_id, client->id);
+				//add_user_to_chat(chat_elem->id, client->id, client->nick, client->ip, client->port);
+				//add_user_to_chat_list(chat_elem->id, client->id, client->nick, peer->status);
+			}
+		}
 	}
 	
 	return 0;
@@ -293,7 +346,7 @@ int controller_send_bye()
 int controller_receive_bye(u_int8 id)
 {
    pm_data *pm;
-   if((pm = g_hash_table_lookup(pm_data_hashtable, (gconstpointer)to_string(id))) != NULL) {
+   if((pm = pm_data_get(id)) != NULL) {
    	//leave_pm(); //QUI BISOGNA PASSARE I PARAMETRI IN MODO CORRETTO?
    }
    return 0;
@@ -326,6 +379,7 @@ int controller_exit() {
 int controller_init_gui(void) {
 
 	/*-- Declare the GTK Widgets used in the program --*/
+	GtkWidget *window;
 	GtkWidget *menu;
 	GtkWidget *vbox;
 	GtkWidget *handlebox;  
