@@ -34,7 +34,7 @@ void gui_close_event (GtkWidget *widget, gpointer gdata)
 {
 	g_print ("Quitting...\n");
 	controller_leave_all_chat();
-	controller_send_bye(); //Per ora commentato perchè c'è da gestire tutto nel servent responde
+	controller_send_bye();
 	sleep(1);
 	controller_exit();
 	gtk_main_quit();
