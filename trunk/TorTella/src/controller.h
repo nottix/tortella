@@ -4,7 +4,7 @@
 #include "servent.h"
 #include "common.h"
 #include "socketmanager.h"
-#include "supernodedata.h"
+#include "datamanager.h"
 #include "confmanager.h"
 #include <glib.h>
 #include "gui.h"
