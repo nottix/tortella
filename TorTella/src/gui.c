@@ -20,10 +20,12 @@
 void destroyapp (GtkWidget *widget, gpointer gdata)
 {
 	g_print ("Quitting...\n");
+	controller_leave_all_chat();
 	controller_send_bye(); //Per ora commentato perchè c'è da gestire tutto nel servent responde
+	sleep(1);
 	controller_exit();
 	gtk_main_quit();
-	exit(0);
+	//exit(0);
 }
 
 gint destroywindow(GtkWidget *widget, gpointer gdata)
@@ -295,6 +297,7 @@ void view_onRowActivated (GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewC
 			controller_connect_users(g_hash_table_get_values(elem->users));
 			sleep(1);//FIXIT
 			controller_join_chat(elem->id);
+			controller_request_list(elem->id); //PROVA
 		}
 		g_free(name);
 	}
@@ -619,7 +622,7 @@ GtkWidget *create_users_list(u_int8 index )
 	}
 
 	logger(INFO, "[create_users_list]chat ID: %lld\n", index);
-	model_str->tree_view = tree_view; //PROVA
+	model_str->tree_view = GTK_TREE_VIEW(tree_view); //PROVA
 	g_hash_table_insert(tree_model_hashtable, (gpointer)to_string(index), (gpointer)model_str);
 
 	return scrolled_window;

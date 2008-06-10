@@ -213,7 +213,7 @@ int recv_sized_packet(int sock_descriptor, char **buf, int max_len)
 		logger(SOCK_INFO, "[recv_sized_packet]Socket descriptor not valid, sock_descriptor = %d", sock_descriptor);
 		return -1;
 	}
-	logger(SOCK_INFO, "[recv_sized_packet]Receiving from %d", sock_descriptor);
+	logger(SOCK_INFO, "[recv_sized_packet]Receiving from %d\n", sock_descriptor);
 	while(!flag) {
 		char_read = read(sock_descriptor, tmp, max_len);
 		//char_read = recv(sock_descriptor, tmp, max_len, MSG_PEEK);

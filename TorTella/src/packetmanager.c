@@ -259,7 +259,6 @@ int send_listhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int4 use
 }
 
 int send_bye_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id) {
-	
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
 	
@@ -273,7 +272,7 @@ int send_bye_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id) {
 	bye_desc *bye = (bye_desc*)malloc(sizeof(bye_desc));
 	packet->desc = (char*)bye;
 
-	header->desc_len = sizeof(leave_desc);
+	header->desc_len = sizeof(bye_desc);
 		
 	packet->header = header;
 	packet->data = NULL;
