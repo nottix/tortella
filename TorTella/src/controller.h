@@ -12,8 +12,6 @@
 
 pthread_t gtk_main_thread;
 
-GtkWidget *window;
-
 //EXTERN
 //extern GHashTable *servent_hashtable;
 //extern GHashTable *chat_hashtable;

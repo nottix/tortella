@@ -42,7 +42,7 @@ gint leave_chat(GtkWidget *widget, gpointer gdata)
 	//g_print("Closing chat %lld\n", chat_id);
 	controller_leave_chat(val);
 	//gtk_widget_destroy(widget);
-	//Aggiungere il leave dalla chat o dalla conversazione privata
+	//Aggiungere il leave dalla chat
 	return(FALSE);
 }
 
@@ -50,7 +50,11 @@ gint leave_pm(GtkWidget *widget, gpointer gdata)
 {
 	u_int8 val = atoll((char*)gdata);
 	g_print("Closing pm %lld\n", val);
-	g_hash_table_remove(pm_data_hashtable, (gconstpointer)to_string(val));
+	pm_data *pm;
+	if((pm = g_hash_table_lookup(pm_data_hashtable, (gconstpointer)to_string(val)))!=NULL) {
+		gtk_widget_destroy(GTK_WIDGET(pm->window)); //TODO: DA CONTROLLARE
+		g_hash_table_remove(pm_data_hashtable, (gconstpointer)to_string(val));
+	}
 	return (FALSE);
 }
 
@@ -141,15 +145,19 @@ gint remove_user_from_chat_list(u_int8 chat_id, u_int8 user_id)
 	if(gtk_tree_model_get_iter_first(GTK_TREE_MODEL(mod->user_model), &iter)==TRUE) {
 		while(valid) {
 
+			logger(INFO, "[remove_user_from_chat_list]start\n");
 			gtk_tree_model_get(GTK_TREE_MODEL(mod->user_model), &iter, 1, &id, -1);
 			logger(INFO, "[remove_user_from_chat_list]ID to remove: %s\n", id);
 
 			if(atoll(id)==user_id) {
 				logger(INFO, "[remove_user_from_chat_list]Removing: %s\n", id);
-				gtk_list_store_remove(GTK_LIST_STORE(mod->user_model), &iter);
+				gtk_list_store_remove(mod->user_model, &iter);
+				logger(INFO, "[remove_user_from_list]Removed\n");
+				return TRUE;
 			}
 
-			valid = gtk_tree_model_iter_next(GTK_TREE_MODEL(mod->user_model), &iter); 
+			valid = gtk_tree_model_iter_next(GTK_TREE_MODEL(mod->user_model), &iter);
+			logger(INFO, "[remove_user_from_chat_list]next\n");
 
 		}
 	}
@@ -214,23 +222,23 @@ gint add_to_buffer_new_message(GtkTextView *widget, gchar *msg)
 	GtkTextBuffer *text = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget));
 	GtkTextIter iter;
 	gtk_text_buffer_get_end_iter(text,&iter);
-	//gtk_text_buffer_create_tag(text, "blue_fg", "foreground", "blue", NULL); //dava Warning, spostata nel create text
 	char *first = strstr(msg, "\n");
 	int len = first-msg;
 	char *tmp = calloc(len+1, 1);
 	strncpy(tmp, msg, len);  
-	//gtk_text_buffer_insert_with_tags_by_name(text, &iter, tmp, -1, "blue_fg", "lmarg",  NULL); //lmarg dà un warning
-	gtk_text_buffer_insert(text,&iter,tmp,-1);
+	gtk_text_buffer_insert_with_tags_by_name(text, &iter, tmp, -1, "blue_fg", NULL);
+	//gtk_text_buffer_insert(text,&iter,tmp,-1);
 	msg+=len;
 	gtk_text_buffer_get_end_iter(text,&iter),
 	gtk_text_buffer_insert(text,&iter,msg,-1); 
-	// PROVA PER LO SCROLLING FINO AL  RETURN
-//	GtkTextIter new_iter;
-//	text = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget));
-//	gtk_text_buffer_get_end_iter(text, &new_iter);
-//	GtkTextMark *mark = gtk_text_mark_new(NULL,FALSE);
-//	gtk_text_buffer_add_mark(text,mark,&new_iter);
-//	gtk_text_view_scroll_to_mark(GTK_TEXT_VIEW(widget), mark, 0.0, FALSE, 0 ,0);  //Perchè crasha a na certa???
+	
+	// Scrolling
+	GtkTextIter new_iter;
+	text = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget));
+	gtk_text_buffer_get_end_iter(text, &new_iter);
+	GtkTextMark *mark = gtk_text_mark_new(NULL,FALSE);
+	gtk_text_buffer_add_mark(text,mark,&new_iter);
+	gtk_text_view_scroll_to_mark(GTK_TEXT_VIEW(widget), mark, 0.0, FALSE, 0 ,0);
 	return (FALSE);
 }
 
@@ -982,11 +990,16 @@ int open_pm_gui(u_int8 user_id, gchar *nickname) {
 	gtk_widget_show (chat);
 	gtk_widget_show(menu);      
 	gtk_widget_show(window);
-	
+
 	logger(INFO, "[open_pm_gui]Here\n");
 	/*-- Connect the window to the destroyapp function  --*/
-		g_signal_connect(GTK_OBJECT(window), "destroy", G_CALLBACK(leave_pm), (gpointer)to_string(user_id));
-	
+	g_signal_connect(GTK_OBJECT(window), "destroy", G_CALLBACK(leave_pm), (gpointer)to_string(user_id));
+
+	pm_data *pm = (pm_data*)g_hash_table_lookup(pm_data_hashtable, (gconstpointer)to_string(user_id));
+	logger(INFO, "[open_pm_gui]Checking\n");
+	if(pm!=NULL) {
+		pm->window = GTK_WINDOW(window);
+	}
 	/*-- Start the GTK event loop --*/
 	//gtk_main();
 
@@ -1019,6 +1032,13 @@ GtkWidget *create_searchbar(void) {
 	gtk_widget_show(bar_button);
 
 	return bar_container;
+}
+
+pm_data *pm_data_get(u_int8 id) {
+	if(pm_data_hashtable!=NULL)
+		return g_hash_table_lookup(pm_data_hashtable, (gconstpointer)to_string(id));
+	else
+		return NULL;
 }
 
 //void set_searching(void) {

@@ -446,7 +446,9 @@ void *servent_responde(void *parm) {
 						status = HTTP_STATUS_OK;
 						//Sconnetti dalla chat
 						logger(SYS_INFO, "[servent_responde]Deleting user\n");
+						gdk_threads_enter();
 						controller_rem_user_from_chat(chat_id, conn_servent->id);
+						gdk_threads_leave();
 						logger(SYS_INFO, "[servent_responde]Deleted user: %lld\n", conn_servent->id);
 					}
 					else if(h_packet->data->header->desc_id==MESSAGE_ID) {
@@ -547,7 +549,7 @@ void *servent_responde(void *parm) {
 						printf("[servent_responde]SEARCHHITS ricevuto\n");
 						
 						GList *chat_list = char_to_chatlist(tortella_get_data(h_packet->data_string), h_packet->data->header->data_len);
-						add_all_to_chat(chat_list); //TODO: deve ricercare anche in locale!!!
+						add_all_to_chat(chat_list);
 						
 						route_entry *entry = get_route_entry(h_packet->data->header->id, route_hashtable);
 						if(entry!=NULL) {
@@ -557,7 +559,6 @@ void *servent_responde(void *parm) {
 							
 							COPY_SERVENT(conn_servent, sd);
 							sd->packet_id = h_packet->data->header->id;
-		//COMMENTATA SEG FAULT					printf("[servent_responde]list size: %d, users: %d\n", g_list_length(chat_list), g_hash_table_size(((chat*)g_list_nth_data(chat_list, 0))->users));
 							sd->chat_res = chat_list;
 							sd->post_type = SEARCHHITS_ID; 
 							UNLOCK(entry->sender_id);
@@ -702,23 +703,29 @@ void *servent_responde(void *parm) {
 						conn_servent->timestamp = h_packet->data->header->timestamp;
 						UNLOCK(h_packet->data->header->sender_id);
 						
-						status = HTTP_OK;
+						status = HTTP_STATUS_OK;
 						send_post_response_packet(fd, status, 0, NULL);
+						printf("[servent_responde]Sending post response\n");
 						status = 0;
 						servent_data *sd;
 						COPY_SERVENT(conn_servent, sd);
 						sd->post_type= CLOSE_ID;
-						//VANNO IMPOSTATI ALTRI CAMPI?
+						//Chiusura thread connessione
 						servent_send_packet(sd);
-						//Sconnetti dalla chat
 						logger(SYS_INFO, "[servent_responde]Deleting user\n");
 						//QUI BISOGNEREBBE RIMUOVERE L'UTENTE COMPLETAMENTE
 						//Di seguito  commentate le due remove dalla hashtable, ce ne sono altre? 
 						
-						g_hash_table_remove(servent_hashtable, (gconstpointer)conn_servent->id);
-						g_hash_table_remove(chatclient_hashtable, (gconstpointer)conn_servent->id);
+						//Chiusura eventuali finestre PM
+						gdk_threads_enter();
+						controller_receive_bye(conn_servent->id);
+						gdk_threads_leave();
+
+						//Rimozione dalle strutture dati
+						g_hash_table_remove(servent_hashtable, (gconstpointer)to_string(conn_servent->id));
+						del_user(conn_servent->id);
 						logger(SYS_INFO, "[servent_responde]Deleted user: %lld\n", conn_servent->id);
-					}  		/* FINE PROVA LIST, LISTHITS, BYE	*/
+					}
 					
 					//Invio la conferma di ricezione
 					if(status>0) {
@@ -856,8 +863,10 @@ void *servent_connect(void *parm) {
 			else if(post_type==BYE_ID) {
 				send_bye_packet(fd, local_servent->id, id_dest);
 			}
-			else if(post_type == CLOSE_ID) {
+			else if(post_type==CLOSE_ID) {
 				shutdown_socket(fd);
+				//RIMUOVI DALLE LISTE TUTTO
+				return;
 			}
 			else if(post_type==LEAVE_ID) {
 				send_leave_packet(fd, local_servent->id, id_dest, chat_id_req);
