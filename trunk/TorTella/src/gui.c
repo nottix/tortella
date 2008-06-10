@@ -292,8 +292,9 @@ void gui_open_chat_event (GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewC
 			gui_open_chatroom(elem->id);
 			usleep(200);
 			controller_connect_users(g_hash_table_get_values(elem->users));
-			sleep(1);//FIXIT
-			controller_request_list(elem->id); //PROVA
+			
+			controller_request_list(elem->id);
+			//TODO: Attendere che i risultati siano arrivati
 			sleep(1);
 			controller_join_chat(elem->id);
 		}

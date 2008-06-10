@@ -22,7 +22,6 @@
 #include "common.h"
 #include "packetmanager.h"
 #include "utils.h"
-#include "list.h"
 #include "datamanager.h"
 #include "init.h"
 #include "routemanager.h"
@@ -34,8 +33,6 @@
 #include "logger.h"
 #include "confmanager.h"
 #include <time.h>
-#include <sys/ipc.h>
-#include <sys/msg.h>
 #include <sys/stat.h>
 #include <string.h>
 
@@ -85,24 +82,21 @@ static GHashTable *servent_hashtable;
 
 static GHashTable *search_packet_hashtable = NULL;
 
-static GHashTable *list_packet_hashtable = NULL; //prova
+static GHashTable *list_packet_hashtable = NULL;
 
 static servent_data *local_servent;
-
-static u_int1 last_request_type = 0;
-static u_int4 server_connection_num = 0;
 
 static u_int8 new_connection_counter = 10000;
 
 static pthread_t *timer_thread;
 
-static GSList *client_fd;
-static GSList *server_fd;
-static GSList *server_connection_fd;
+static GList *client_fd;
+static GList *server_fd;
+static GList *server_connection_fd;
 
-static GSList *client_thread;
-static GSList *server_thread;
-static GSList *server_connection_thread;
+static GList *client_thread;
+static GList *server_thread;
+static GList *server_connection_thread;
 
 #define WLOCK(servent)			logger(SYS_INFO, "[WLOCK]Try locking %lld\n", servent); \
 								if(servent_get(servent)!=NULL) { \
@@ -122,7 +116,8 @@ static GSList *server_connection_thread;
 									pthread_rwlock_unlock( &((servent_get(servent)->rwlock_data))); \
 								}
 
-#define UNLOCK_F(servent)		pthread_rwlock_unlock( &(((servent)->rwlock_data)));
+#define UNLOCK_F(servent)		pthread_rwlock_unlock( &(((servent)->rwlock_data)) ); \
+								logger(SYS_INFO, "[UNLOCK_F]Unlock %lld\n", servent->id);
 
 #define COPY_SERVENT(servent, copy)			copy=calloc(1, sizeof(servent_data)); \
 											memcpy(copy, servent, sizeof(servent_data))

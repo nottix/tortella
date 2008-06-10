@@ -20,7 +20,6 @@
 #include "common.h"
 #include "packetmanager.h"
 #include "utils.h"
-#include "list.h"
 #include "datamanager.h"
 #include "init.h"
 #include "routemanager.h"

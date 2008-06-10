@@ -37,8 +37,8 @@ int servent_start_server(char *local_ip, u_int4 local_port) {
 	pthread_t *serthread = (pthread_t*)malloc(sizeof(pthread_t));
 	pthread_create(serthread, NULL, servent_listen, (void*)serfd);
 	
-	server_fd = g_slist_prepend(server_fd, (gpointer)serfd);
-	server_thread = g_slist_prepend(server_thread, (gpointer)serthread);
+	server_fd = g_list_prepend(server_fd, (gpointer)serfd);
+	server_thread = g_list_prepend(server_thread, (gpointer)serthread);
 	
 	return 0;
 }
@@ -60,7 +60,7 @@ int servent_start_client(char *dest_ip, u_int4 dest_port) {
 	servent->post_type=PING_ID;
 	g_hash_table_insert(servent_hashtable, (gpointer)to_string(cliid), (gpointer)servent);
 	pthread_create(clithread, NULL, servent_connect, (void*)&cliid);
-	client_thread = g_slist_prepend(client_thread, (gpointer)(*clithread));
+	client_thread = g_list_prepend(client_thread, (gpointer)(*clithread));
 	
 	return 0;
 }
@@ -114,17 +114,17 @@ int servent_init_connection(GList *init_servent) {
 void servent_close_all(void) {
 	
 	int i;
-	for(i=0; i<g_slist_length(server_fd); i++) {
-		logger(SYS_INFO, "[servent_close_all]Closing server %d\n", (int)g_slist_nth_data(server_fd, i));
-		delete_socket((int)g_slist_nth_data(server_fd, i));
+	for(i=0; i<g_list_length(server_fd); i++) {
+		logger(SYS_INFO, "[servent_close_all]Closing server %d\n", (int)g_list_nth_data(server_fd, i));
+		delete_socket((int)g_list_nth_data(server_fd, i));
 	}
-	for(i=0; i<g_slist_length(client_fd); i++) {
-		logger(SYS_INFO, "[servent_close_all]Closing client %d\n", (int)g_slist_nth_data(client_fd, i));
-		delete_socket((int)g_slist_nth_data(client_fd, i));
+	for(i=0; i<g_list_length(client_fd); i++) {
+		logger(SYS_INFO, "[servent_close_all]Closing client %d\n", (int)g_list_nth_data(client_fd, i));
+		delete_socket((int)g_list_nth_data(client_fd, i));
 	}
-	for(i=0; i<g_slist_length(server_connection_fd); i++) {
-		logger(SYS_INFO, "[servent_close_all]Closing server_connection %d\n", (int)g_slist_nth_data(server_connection_fd, i));
-		delete_socket((int)g_slist_nth_data(server_connection_fd, i));
+	for(i=0; i<g_list_length(server_connection_fd); i++) {
+		logger(SYS_INFO, "[servent_close_all]Closing server_connection %d\n", (int)g_list_nth_data(server_connection_fd, i));
+		delete_socket((int)g_list_nth_data(server_connection_fd, i));
 	}
 	
 }
@@ -136,14 +136,14 @@ void kill_all_thread(int sig) {
 	servent_close_all();
 
 	int i;
-	for(i=0; i<g_slist_length(server_thread); i++) {
-		pthread_kill((pthread_t)g_slist_nth_data(server_thread, i), SIGKILL);
+	for(i=0; i<g_list_length(server_thread); i++) {
+		pthread_kill((pthread_t)g_list_nth_data(server_thread, i), SIGKILL);
 	}
-	for(i=0; i<g_slist_length(client_thread); i++) {
-		pthread_kill((pthread_t)g_slist_nth_data(client_thread, i), SIGKILL);
+	for(i=0; i<g_list_length(client_thread); i++) {
+		pthread_kill((pthread_t)g_list_nth_data(client_thread, i), SIGKILL);
 	}
-	for(i=0; i<g_slist_length(server_connection_thread); i++) {
-		pthread_kill((pthread_t)g_slist_nth_data(server_connection_thread, i), SIGKILL);
+	for(i=0; i<g_list_length(server_connection_thread); i++) {
+		pthread_kill((pthread_t)g_list_nth_data(server_connection_thread, i), SIGKILL);
 	}
 	
 	if(timer_thread!=NULL)
@@ -294,10 +294,10 @@ void *servent_listen(void *parm) {
 		printf("[servent_listen]Connessione ricevuta, socket: %d\n", connFd);
 		if(connFd!=0) {
 			thread = (pthread_t*)calloc(1, sizeof(pthread_t));
-			server_connection_fd = g_slist_prepend(server_connection_fd, (gpointer)connFd);
+			server_connection_fd = g_list_prepend(server_connection_fd, (gpointer)connFd);
 			
 			pthread_create(thread, NULL, servent_responde, (void*)connFd);
-			server_connection_thread = g_slist_prepend(server_connection_thread, (gpointer)(*thread));
+			server_connection_thread = g_list_prepend(server_connection_thread, (gpointer)(*thread));
 			
 		}
 	}
@@ -409,7 +409,7 @@ void *servent_responde(void *parm) {
 								
 								pthread_t *cli_thread = (pthread_t*)malloc(sizeof(pthread_t));
 								pthread_create(cli_thread, NULL, servent_connect, (void*)&id);
-								client_thread = g_slist_prepend(client_thread, (gpointer)(*cli_thread));
+								client_thread = g_list_prepend(client_thread, (gpointer)(*cli_thread));
 							}
 							else {
 								status = HTTP_STATUS_OK;
@@ -616,8 +616,7 @@ void *servent_responde(void *parm) {
 						printf("[servent_responde]LIST ricevuto\n");
 						if(get_list_packet(h_packet->data->header->id) == NULL) {
 							new_list_packet(h_packet->data->header->id);
-						
-							GList *res;
+
 							GList *servent_list;
 							servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
 							if(conn_servent==NULL) {
@@ -631,8 +630,7 @@ void *servent_responde(void *parm) {
 								RLOCK(conn_servent->id);
 								COPY_SERVENT(conn_servent, sd);
 								UNLOCK(conn_servent->id);
-							
-								//COMPILA MA POTREBBE NON FUNZIONARE la chat_tmp->users è NULL
+
 								printf("[servent_responde]Searching list %lld\n", GET_LIST(h_packet->data)->chat_id);
 								chat *chat_tmp = data_get_chat(GET_LIST(h_packet->data)->chat_id);
 								printf("[servent_responde] dopo chat_tmp\n");
@@ -640,8 +638,6 @@ void *servent_responde(void *parm) {
 									logger(SYS_INFO, "[servent_responde] chat_tmp NULL\n");
 								}
 								logger(SYS_INFO, "[servent_responde] chat tmp varie %s e %lld\n", chat_tmp->title, chat_tmp->id); 
-								int len;
-								//char *users_list = data_userlist_to_char (g_hash_table_get_values(chat_tmp->users), &len);
 				
 								logger(SYS_INFO, "[servent_responde]Sending to ID: %lld\n", sd->id);
 								sd->user_res = g_hash_table_get_values(chat_tmp->users);
@@ -758,6 +754,11 @@ void *servent_responde(void *parm) {
 						g_hash_table_remove(servent_hashtable, (gconstpointer)to_string(conn_servent->id));
 						data_del_user(conn_servent->id);
 						logger(SYS_INFO, "[servent_responde]Deleted user: %lld\n", conn_servent->id);
+						
+						shutdown_socket(fd);
+						server_fd = g_list_remove(server_fd, (gconstpointer)fd);
+						server_connection_thread = g_list_remove(server_connection_thread, (gconstpointer)pthread_self());
+						pthread_exit(NULL);
 					}
 					
 					//Invio la conferma di ricezione
@@ -789,8 +790,8 @@ void *servent_responde(void *parm) {
 		else {
 			printf("[servent_responde]Client disconnected\n");
 			delete_socket(fd);
-			server_connection_fd = g_slist_remove(server_connection_fd, (gconstpointer)fd);
-			server_connection_thread = g_slist_remove(server_connection_thread, (gconstpointer)(pthread_self()));
+			server_connection_fd = g_list_remove(server_connection_fd, (gconstpointer)fd);
+			server_connection_thread = g_list_remove(server_connection_thread, (gconstpointer)(pthread_self()));
 			pthread_exit(NULL);
 		}
 	}
@@ -817,7 +818,7 @@ void *servent_connect(void *parm) {
 	
 	int fd = servent_create_client(ip_dest, port_dest);
 
-	client_fd = g_slist_prepend(client_fd, (gpointer)fd);
+	client_fd = g_list_prepend(client_fd, (gpointer)fd);
 
 	servent_peer->queue = g_queue_new();
 	servent_peer->res_queue = g_queue_new();
@@ -845,11 +846,11 @@ void *servent_connect(void *parm) {
 		logger(SYS_INFO, "[servent_connect]Waiting\n");
 		if(servent_peer==NULL) {
 			logger(SYS_INFO, "[servent_connect] Peer NULL\n");
-			break;
+			pthread_exit(NULL);
 			//servent_peer = servent_get(id_dest);
 		}
-		id_dest = servent_peer->id;
 		servent_queue = servent_pop_queue(servent_peer);
+		id_dest = servent_peer->id;
 		if(servent_queue==NULL) {
 			logger(SYS_INFO, "[servent_connect] Queue NULL\n");
 			continue;
@@ -898,8 +899,9 @@ void *servent_connect(void *parm) {
 			}
 			else if(post_type==CLOSE_ID) {
 				shutdown_socket(fd);
-				//RIMUOVI DALLE LISTE TUTTO
-				return;
+				client_fd = g_list_remove(client_fd, (gconstpointer)fd);
+				client_thread = g_list_remove(client_thread, (gconstpointer)pthread_self());
+				pthread_exit(NULL);
 			}
 			else if(post_type==LEAVE_ID) {
 				send_leave_packet(fd, local_servent->id, id_dest, chat_id_req);
@@ -946,28 +948,6 @@ void *servent_connect(void *parm) {
 				if(h_packet!=NULL && h_packet->type==HTTP_RES_POST) {
 					if(strcmp(h_packet->header_response->response, HTTP_OK)==0) {
 						printf("[servent_connect]OK POST received\n");
-						/*if(post_type==PING_ID && id_dest<conf_get_gen_start()) {
-							printf("[servent_connect]Responding to PING\n");
-							if(servent_peer!=NULL) {
-								printf("[servent_connect]Removing old %s\n", to_string(id_dest));
-								servent_data *tmp;
-								COPY_SERVENT(servent_peer, tmp);
-								g_hash_table_remove(servent_hashtable, (gconstpointer)to_string(id_dest));
-								printf("[servent_connect]Removed old ID: %lld\n", servent_peer->id);
-								printf("[servent_connect]Converting %s, len: %d\n", h_packet->data_string, h_packet->data_len);
-								char *buf = calloc(h_packet->data_len+1, 1);
-								sprintf(buf, "%s", strndup(h_packet->data_string, h_packet->data_len));
-								printf("[servent_connect]buf: %s.\n", buf);
-								id_dest = strtoull(buf, NULL, 10);
-								printf("[servent_connect]New ID: %lld.\n", id_dest);
-								COPY_SERVENT(tmp, servent_peer);
-								servent_peer->id = id_dest;
-								g_hash_table_insert(servent_hashtable, (gpointer)to_string(id_dest), (gpointer)servent_peer);
-							}
-							else
-								printf("[servent_connect]Data isn't present\n");
-						}*/
-						
 					}
 					else {
 						printf("[servent_connect]Error\n");
@@ -978,7 +958,8 @@ void *servent_connect(void *parm) {
 				logger(SYS_INFO, "[servent_connect]Appending response\n");
 				if(servent_peer==NULL) {
 					logger(SYS_INFO, "[servent_connect] Peer response NULL\n");
-					servent_peer = servent_get(id_dest);
+					pthread_exit(NULL);
+					//servent_peer = servent_get(id_dest);
 				}
 				if(id_dest >= conf_get_gen_start() /*&& (servent_peer->post_type == SEARCH_ID && servent_peer->post_type == SEARCHHITS_ID && servent_peer->post_type==LIST_ID && servent_peer->post_type ==LISTHITS_ID && servent_peer->post_type == CLOSE_ID)*/) {
 					servent_append_response(servent_peer, h_packet->header_response->response);
@@ -989,9 +970,9 @@ void *servent_connect(void *parm) {
 				logger(SYS_INFO, "[servent_connect]Appending response TIMEOUT\n");
 				servent_append_response(servent_peer, TIMEOUT);
 			}
-			UNLOCK_F(servent_peer); 
-			UNLOCK(local_servent->id); 
 		}
+		UNLOCK_F(servent_peer); 
+		UNLOCK(local_servent->id);
 	}
 	pthread_exit(NULL);
 }

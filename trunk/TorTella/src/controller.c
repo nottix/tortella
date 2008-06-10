@@ -2,7 +2,7 @@
 
 int controller_change_status(u_int1 status) 
 {
-	servent_data *tmp, *peer, *sd;
+	servent_data *peer, *sd;
 	char *ret;
 	if(servent_get_local () == NULL) {
 		logger(CTRL_INFO,"[controller_change_status] local_servent NULL\n");
@@ -366,6 +366,27 @@ int controller_connect_users(GList *users) {
 				servent_start_client(client->ip, client->port);
 			else
 				logger(CTRL_INFO, "[controller_connect_users]Già connesso\n");
+		}
+		
+		for(i=0; i<g_list_length(users); i++) {
+			client = (chatclient*)g_list_nth_data(users, i);
+			if(client!=NULL) {
+				peer = servent_get(client->id);
+				logger(CTRL_INFO, "[controller_connect_users]pop response %lld\n", client->id);
+				if(peer!=NULL && peer->id!=servent_get_local()->id) {
+					RLOCK(peer->id);
+					COPY_SERVENT(peer, sd);
+					UNLOCK(peer->id);
+
+					ret = servent_pop_response(sd);
+					logger(CTRL_INFO, "[controller_connect_users]ret: %s\n", ret);
+					if(strcmp(ret, TIMEOUT)==0) {
+						logger(CTRL_INFO, "[controller_connect_users]TIMEOUT\n");
+						return sd->id;
+					}
+					logger(CTRL_INFO, "[controller_connect_users]RECEIVED OK %s\n", ret);
+				}
+			}
 		}
 		
 		return 0;
