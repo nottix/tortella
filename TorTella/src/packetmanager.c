@@ -190,7 +190,7 @@ int send_ping_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, char *nick, u_
 	return send_packet(fd, buffer, len);
 }
 
-int send_list_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id) {
+int send_list_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 ttl, u_int1 hops, u_int8 chat_id) {
 	
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
@@ -204,6 +204,8 @@ int send_list_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id
 	
 	list_desc *list = (list_desc*)malloc(sizeof(list_desc));
 	list->chat_id = chat_id;
+	list->ttl = ttl;
+	list->hops = hops;
 	packet->desc = (char*)list;
 
 	header->desc_len = sizeof(list_desc);
@@ -225,7 +227,7 @@ int send_list_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id
 	return send_packet(fd, buffer, len);
 }
 
-int send_listhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int4 user_num, u_int4 res_len, char *res) {
+int send_listhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int4 user_num, u_int4 res_len, char *res, u_int8 chat_id) {
 	
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
@@ -239,6 +241,7 @@ int send_listhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int4 use
 	
 	listhits_desc *listhits = (listhits_desc*)malloc(sizeof(listhits_desc));
 	listhits->user_num = user_num;
+	listhits->chat_id = chat_id;
 	packet->desc = (char*)listhits;
 
 	header->desc_len = sizeof(listhits_desc);

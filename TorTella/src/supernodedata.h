@@ -84,6 +84,8 @@ int add_user(u_int8 id, const char *nick, const char *ip, u_int4 port);
 
 int add_exist_user_to_chat(u_int8 chat_id, u_int8 id);
 
+int add_users_to_chat(u_int8 chat_id, GList *users);
+
 int add_user_to_chat(u_int8 chat_id, u_int8 id, const char *nick, const char *ip, u_int4 port);
 
 int del_user(u_int8 id);

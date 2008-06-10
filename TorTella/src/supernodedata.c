@@ -238,6 +238,17 @@ int add_exist_user_to_chat(u_int8 chat_id, u_int8 id) {
 	return 0;
 }
 
+int add_users_to_chat(u_int8 chat_id, GList *users) {
+	int i=0;
+	for(; i < g_list_length(users); i++) {
+		chatclient *user = g_list_nth_data(users, i);
+		if(user == NULL) {
+			logger(SYS_INFO, "[add_users_to_chat] users null\n");
+		}
+		add_user_to_chat (chat_id, user->id, user->nick, user->ip, user->port);
+	}
+}
+
 int add_user_to_chat(u_int8 chat_id, u_int8 id, const char *nick, const char *ip, u_int4 port) {
 	
 	if(chat_hashtable==NULL)

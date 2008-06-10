@@ -641,7 +641,8 @@ void *servent_responde(void *parm) {
 								logger(SYS_INFO, "[servent_responde]Sending to ID: %lld\n", sd->id);
 								sd->user_res = users_list;
 								sd->packet_id = h_packet->data->header->id;
-								sd->post_type = LISTHITS_ID;								
+								sd->post_type = LISTHITS_ID;
+								sd->chat_id_req = chat_tmp->id;
 								servent_send_packet(sd); 
 							/*	char *ret = servent_pop_response (sd);
 								if(strcmp(ret,TIMEOUT) == 0) {
@@ -690,6 +691,7 @@ void *servent_responde(void *parm) {
 					else if(h_packet->data->header->desc_id == LISTHITS_ID) {
 						printf("[servent_responde]LISTHITS ricevuto\n");
 						GList *user_list = char_to_userlist(tortella_get_data(h_packet->data_string), h_packet->data->header->data_len);
+						add_users_to_chat(GET_LISTHITS(h_packet->data)->chat_id, user_list);
 						
 						route_entry *entry = get_route_entry(h_packet->data->header->id, list_route_hashtable);
 						if(entry!=NULL) {
@@ -900,7 +902,7 @@ void *servent_connect(void *parm) {
 				send_message_packet(fd, local_servent->id, id_dest, chat_id_req, msg_len, msg);
 			}
 			else if(post_type==LIST_ID) {
-				send_list_packet(fd, local_servent->id, id_dest, chat_id_req);
+				send_list_packet(fd, local_servent->id, id_dest, ttl, hops, chat_id_req);
 			}
 			else if(post_type==LISTHITS_ID) {
 				int length;
@@ -911,7 +913,7 @@ void *servent_connect(void *parm) {
 				else {
 					logger(SYS_INFO, "[servent_connect]Results converted in buffer: %s\n", buf);
 				}
-				send_listhits_packet(fd, local_servent->id, id_dest, g_list_length(servent_queue->user_res), length, buf);
+				send_listhits_packet(fd, local_servent->id, id_dest, g_list_length(servent_queue->user_res), length, buf, chat_id_req);
 			}
 			else if(post_type==SEARCH_ID) {
 				send_search_packet(fd, packet_id, local_servent->id, id_dest, ttl, hops, title_len, title);

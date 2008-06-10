@@ -70,6 +70,7 @@ struct listhits_desc {
 	u_int4 user_num;	//Numero di utenti nel campo data
 	u_int1 ttl;
 	u_int1 hops;
+	u_int8 chat_id;
 	//Campo dati: elenco utenti della chat
 };
 typedef struct listhits_desc listhits_desc;
