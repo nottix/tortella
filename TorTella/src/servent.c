@@ -246,8 +246,10 @@ char *servent_pop_response(servent_data *sd) {
 	
 	int counter = 0;
 	while((buf = (char*)g_queue_pop_head(sd->res_queue))==NULL) {
-		if(counter>10) //Serve per il timeout
+		if(counter>10) { //Serve per il timeout
+			buf = TIMEOUT;
 			break;
+		}
 		usleep(200000);
 		counter++;
 	}
@@ -636,10 +638,10 @@ void *servent_responde(void *parm) {
 								}
 								logger(SYS_INFO, "[servent_responde] chat tmp varie %s e %lld\n", chat_tmp->title, chat_tmp->id); 
 								int len;
-								char *users_list = userlist_to_char (g_hash_table_get_values(chat_tmp->users), &len);
+								//char *users_list = userlist_to_char (g_hash_table_get_values(chat_tmp->users), &len);
 				
 								logger(SYS_INFO, "[servent_responde]Sending to ID: %lld\n", sd->id);
-								sd->user_res = users_list;
+								sd->user_res = g_hash_table_get_values(chat_tmp->users);
 								sd->packet_id = h_packet->data->header->id;
 								sd->post_type = LISTHITS_ID;
 								sd->chat_id_req = chat_tmp->id;
@@ -669,8 +671,9 @@ void *servent_responde(void *parm) {
 										COPY_SERVENT(conn_servent, sd);
 										sd->ttl = GET_LIST(h_packet->data)->ttl-1;
 										sd->hops = GET_LIST(h_packet->data)->hops+1;
-										sd->title = tortella_get_data(h_packet->data_string);
-										sd->title_len = h_packet->data->header->data_len;
+										//sd->title = tortella_get_data(h_packet->data_string);
+										//sd->title_len = h_packet->data->header->data_len;
+										sd->chat_id_req = GET_LIST(h_packet->data)->chat_id;
 										sd->packet_id = h_packet->data->header->id;
 										sd->post_type = LIST_ID;
 										UNLOCK(conn_servent->id);

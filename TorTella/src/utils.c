@@ -208,18 +208,18 @@ char *get_mac_addr(void) {
 	IFR = ifc.ifc_req;
 	
 	i = (ifc.ifc_len / sizeof(struct ifreq));
-	printf("ok i: %d\n", i);
+	//printf("ok i: %d\n", i);
 	for (; i >= 0;) {
 
-		printf("ok1\n");
+		//printf("ok1\n");
 		strcpy(ifr.ifr_name, IFR->ifr_name);
-		printf("ok2\n");
+		//printf("ok2\n");
 		if (ioctl(s, SIOCGIFFLAGS, &ifr) == 0) {
-			printf("ok3\n");
+			//printf("ok3\n");
 			if (! (ifr.ifr_flags & IFF_LOOPBACK)) {
-				printf("ok4\n");
+				//printf("ok4\n");
 				if (ioctl(s, SIOCGIFHWADDR, &ifr) == 0) {
-					printf("ok5\n");
+					//printf("ok5\n");
 					ok = 1;
 					break;
 				}

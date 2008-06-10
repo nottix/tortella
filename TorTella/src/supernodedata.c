@@ -239,6 +239,10 @@ int add_exist_user_to_chat(u_int8 chat_id, u_int8 id) {
 }
 
 int add_users_to_chat(u_int8 chat_id, GList *users) {
+	if(users==NULL) {
+		logger(SYS_INFO, "[add_users_to_chat]Users NULL\n");
+		return -1;
+	}
 	int i=0;
 	for(; i < g_list_length(users); i++) {
 		chatclient *user = g_list_nth_data(users, i);
@@ -247,6 +251,7 @@ int add_users_to_chat(u_int8 chat_id, GList *users) {
 		}
 		add_user_to_chat (chat_id, user->id, user->nick, user->ip, user->port);
 	}
+	return 0;
 }
 
 int add_user_to_chat(u_int8 chat_id, u_int8 id, const char *nick, const char *ip, u_int4 port) {
@@ -494,9 +499,10 @@ char *userlist_to_char(GList *user_list, int *len) {
 		printf("[userlist_to_char]user_list NULL\n");
 		return NULL;
 	}
-	if(g_list_length(user_list)==0)
+	if(g_list_length(user_list)==0) {
 		printf("[userlist_to_char] length zero\n");
 		return NULL;
+	}
 	
 	printf("[userlist_to_char] initializing\n");
 	chatclient *chatclient_elem;
@@ -531,7 +537,7 @@ char *userlist_to_char(GList *user_list, int *len) {
 /*
  * Converte una stringa in una lista di utenti
  */
-GList *char_to_userlist(const char *buffer,int len) {
+GList *char_to_userlist(const char *buffer, int len) {
 	char *saveptr, *saveptr2;
 	char *buffer2 = strdup(buffer);
 	char *token;
@@ -545,7 +551,7 @@ GList *char_to_userlist(const char *buffer,int len) {
 		chat_client->nick=strdup(strtok_r(NULL, ";", &saveptr2));
 		chat_client->ip=strdup(strtok_r(NULL, ";", &saveptr2));
 		chat_client->port= atoi(strtok_r(NULL, ";", &saveptr2));
-		g_hash_table_insert(user_list, (gpointer)to_string(chat_client->id),(gpointer)chat_client);
+		user_list = g_list_append(user_list, (gpointer)chat_client);
 		buffer2 = NULL;
 	}
 	return user_list;
