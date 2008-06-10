@@ -601,7 +601,9 @@ void *servent_responde(void *parm) {
 								for(; j<g_list_length(local_chat); j++) {
 								chat *tmp = (chat*)g_list_nth_data(local_chat, j);
 								logger(SYS_INFO, "[servent_responde] title chat %s\n", tmp->title);
-								add_chat_to_list(tmp->id, tmp->title);
+								gdk_threads_enter();
+								gui_add_chat(tmp->id, tmp->title);
+								gdk_threads_leave();
 								}
 							}
 						}

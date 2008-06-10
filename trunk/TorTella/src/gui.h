@@ -63,76 +63,72 @@ typedef struct pm_data pm_data;
 
 //FUNZIONI PER LA CREAZIONE DELLE GUI
 
-void destroyapp (GtkWidget *widget, gpointer gdata);
+gint gui_close_window_event(GtkWidget *widget, gpointer gdata);
 
-void view_onRowActivated (GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn  *col, gpointer userdata);
+gint gui_close_app_window_event (GtkWidget *widget, gpointer gdata);
 
-gint destroywindow(GtkWidget *widget, gpointer gdata);
+void gui_close_event (GtkWidget *widget, gpointer gdata);
 
-gint leave_chat(GtkWidget *widget, gpointer gdata);
+void gui_open_chat_event (GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn  *col, gpointer userdata);
 
-gint leave_pm(GtkWidget *widget, gpointer gdata);
+gint gui_leave_chat_event(GtkWidget *widget, gpointer gdata);
 
-gint ClosingAppWindow (GtkWidget *widget, gpointer gdata);
+gint gui_leave_pm_event(GtkWidget *widget, gpointer gdata);
 
-gint add_chat_to_list(u_int8 chat_id, char *chat_name);
+gint gui_add_chat(u_int8 chat_id, char *chat_name);
 
-gint clear_chat_list();
+gint gui_clear_chat_list();
 
-gint clear_buffer(GtkTextView *widget);
+gint gui_clear_buffer(GtkTextView *widget);
 
-gint add_to_buffer_new_message(GtkTextView *widget, gchar *msg);
+gint gui_add_message(GtkTextView *widget, gchar *msg);
 
-gint add_user_to_chat_list(u_int8 chat_id, u_int8 id, char *user, u_int1 status);
+gint gui_add_user_to_chat(u_int8 chat_id, u_int8 id, char *user, u_int1 status);
 
-gint remove_user_from_chat_list(u_int8 chat_id, u_int8 user_id);
+gint gui_del_user_from_chat(u_int8 chat_id, u_int8 user_id);
 
-gint manipulating_status(u_int8 user_id, char *status); 
+gint gui_change_status(u_int8 user_id, char *status); 
 
-gint open_chat(GtkWidget *widget, GdkEventButton *event, gpointer func_data);
+gint gui_open_chat_button_event(GtkWidget *widget, GdkEventButton *event, gpointer func_data);
 
-gint open_conversation(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn  *col, gpointer userdata);
+gint gui_open_conversation_event(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn  *col, gpointer userdata);
 
-gint open_about(GtkWidget *widget, gpointer gdata);
+gint gui_open_about_event(GtkWidget *widget, gpointer gdata);
 
-gint set_to_online(GtkWidget *widget, gpointer gdata);
+gint gui_set_to_online_event(GtkWidget *widget, gpointer gdata);
 
-gint set_to_busy(GtkWidget *widget, gpointer gdata);
+gint gui_set_to_busy_event(GtkWidget *widget, gpointer gdata);
 
-gint set_to_away(GtkWidget *widget, gpointer gdata);
+gint gui_set_to_away_event(GtkWidget *widget, gpointer gdata);
 
-gint search_chat_button(GtkWidget *widget, gpointer gdata);
+gint gui_search_chat_event(GtkWidget *widget, gpointer gdata);
 
-gint send_text_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata);
+gint gui_send_text_message_event(GtkWidget *widget, GdkEventKey *event, gpointer gdata);
 
-gint send_pm_message(GtkWidget *widget, GdkEventKey *event, gpointer gdata);
+gint gui_send_pm_message_event(GtkWidget *widget, GdkEventKey *event, gpointer gdata);
 
-GtkWidget *create_users_list(u_int8 index);
+GtkWidget *gui_create_users_list(u_int8 index);
 
-GtkWidget *create_chat_list(u_int8 index);
+GtkWidget *gui_create_chat_list(u_int8 index);
 
-GtkWidget *create_menu(void);
+GtkWidget *gui_create_menu(void);
 
-GtkWidget *create_text(u_int8 chat_id, int type, int msg_type);
+GtkWidget *gui_create_text(u_int8 chat_id, int type, int msg_type);
 
-GtkWidget *create_searchbar(void);
+GtkWidget *gui_create_searchbar(void);
 
-gint create_chat_button(GtkWidget *widget, gpointer gdata);
+gint gui_create_chat_button(GtkWidget *widget, gpointer gdata);
 
-int open_chatroom_gui(u_int8);
+int gui_open_chatroom(u_int8);
 
-int open_pm_gui(u_int8 user_id, gchar *nickname);
+int gui_open_pm(u_int8 user_id, gchar *nickname);
 
-tree_model *get_tree_model(u_int8 chat_id);
+tree_model *gui_get_tree_model(u_int8 chat_id);
 
-int add_msg_to_chat(u_int8 chat_id, char *msg);
+int gui_add_msg_to_chat(u_int8 chat_id, char *msg);
 
-int add_msg_pm(u_int8 sender_id, char *msg);
+int gui_add_msg_pm(u_int8 sender_id, char *msg);
 
-pm_data *pm_data_get(u_int8 id);
-
-//void set_searching(void);
-//
-//void reset_searching(void);
+pm_data *gui_pm_data_get(u_int8 id);
 
 #endif //GUI_H

@@ -34,15 +34,15 @@
 
   /*-- Create the vbox --*/
   vbox = gtk_vbox_new(FALSE, 5);
-  list = create_chat_list(0);
+  list = gui_create_chat_list(0);
   /*-- Create the handlebox --*/
   handlebox = gtk_handle_box_new();
 
   /*-- Create the menu bar --*/
-  menu = create_menu();
+  menu = gui_create_menu();
 
-  /*-- Connect the window to the destroyapp function  --*/
-  gtk_signal_connect(GTK_OBJECT(window), "delete_event", GTK_SIGNAL_FUNC(destroyapp), NULL);
+  /*-- Connect the window to the gui_close_event function  --*/
+  gtk_signal_connect(GTK_OBJECT(window), "delete_event", GTK_SIGNAL_FUNC(gui_close_event), NULL);
 
   
 
@@ -54,7 +54,7 @@
    *-- or the menu will get larger as the window is enlarged
    */
 	
-	searchbar = create_searchbar();
+	searchbar = gui_create_searchbar();
 	
 	gtk_box_pack_start(GTK_BOX(vbox), handlebox, FALSE, TRUE, 5);
 	gtk_box_pack_start(GTK_BOX(vbox), searchbar, FALSE, TRUE, 5);

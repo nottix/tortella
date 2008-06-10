@@ -56,7 +56,7 @@ int controller_manipulating_status(u_int8 user_id, u_int1 status)
 		status_tmp = BUSY;
 	else if(status == AWAY_ID)
 		status_tmp = AWAY;
-	manipulating_status(user_id, status_tmp);
+	gui_change_status(user_id, status_tmp);
 	return 0;
 }
 
@@ -264,11 +264,11 @@ int controller_join_chat(u_int8 chat_id) {
 						printf("RECEIVED %s\n", ret);
 						add_user_to_chat(chat_elem->id, client->id, client->nick, client->ip, client->port);
 	
-						add_user_to_chat_list(chat_elem->id, client->id, client->nick, peer->status);
+						gui_add_user_to_chat(chat_elem->id, client->id, client->nick, peer->status);
 					}
 				}
 			}
-			add_user_to_chat_list(chat_elem->id, servent_get_local()->id, servent_get_local()->nick, servent_get_local()->status);
+			gui_add_user_to_chat(chat_elem->id, servent_get_local()->id, servent_get_local()->nick, servent_get_local()->status);
 			add_user_to_chat(chat_elem->id, servent_get_local()->id, servent_get_local()->nick, servent_get_local()->ip, servent_get_local()->port);
 			return 0;
 		}
@@ -435,8 +435,8 @@ int controller_receive_bye(u_int8 id)
 {
    pm_data *pm;
    logger(CTRL_INFO, "[controller_receive_bye] id utente %lld\n", id);
-   if((pm = pm_data_get(id)) != NULL) {
-   	leave_pm(pm->window, (gpointer)to_string(id)); //QUI BISOGNA PASSARE I PARAMETRI IN MODO CORRETTO?
+   if((pm = gui_pm_data_get(id)) != NULL) {
+   	gui_leave_pm_event(pm->window, (gpointer)to_string(id)); //QUI BISOGNA PASSARE I PARAMETRI IN MODO CORRETTO?
    }
    return 0;
 }
@@ -542,15 +542,15 @@ int controller_init_gui(void) {
 
 	/*-- Create the vbox --*/
 	vbox = gtk_vbox_new(FALSE, 5);
-	list = create_chat_list(0);
+	list = gui_create_chat_list(0);
 	/*-- Create the handlebox --*/
 	handlebox = gtk_handle_box_new();
 
 	/*-- Create the menu bar --*/
-	menu = create_menu();
+	menu = gui_create_menu();
 
-	/*-- Connect the window to the destroyapp function  --*/
-	gtk_signal_connect(GTK_OBJECT(window), "delete_event", GTK_SIGNAL_FUNC(destroyapp), NULL);
+	/*-- Connect the window to the gui_close_event function  --*/
+	gtk_signal_connect(GTK_OBJECT(window), "delete_event", GTK_SIGNAL_FUNC(gui_close_event), NULL);
 
 	/*-- Add the menubar to the handlebox --*/
 	gtk_container_add(GTK_CONTAINER(handlebox), menu);
@@ -560,7 +560,7 @@ int controller_init_gui(void) {
 	 *-- or the menu will get larger as the window is enlarged
 	 */
 
-	searchbar = create_searchbar();
+	searchbar = gui_create_searchbar();
 
 	gtk_box_pack_start(GTK_BOX(vbox), handlebox, FALSE, TRUE, 5);
 	gtk_box_pack_start(GTK_BOX(vbox), searchbar, FALSE, TRUE, 5);
@@ -798,10 +798,10 @@ int controller_create(const char *title) {
 	local->chat_list = g_list_append(local->chat_list, (gpointer)test);
 	printf("chat created with ID: %lld\n", test->id);
 	
-	open_chatroom_gui(chat_id);
+	gui_open_chatroom(chat_id);
 	
 	add_exist_user_to_chat(chat_id, servent_get_local()->id);
-	add_user_to_chat_list(chat_id, local->id, local->nick, local->status);
+	gui_add_user_to_chat(chat_id, local->id, local->nick, local->status);
 	return 0;
 }
 
@@ -815,13 +815,13 @@ int controller_add_user_to_chat(u_int8 chat_id, u_int8 id) {
 		logger(CTRL_INFO, "[controller_add_user_to_chat] AWAY\n");
 	else if(servent->status == BUSY_ID)
 		logger(CTRL_INFO, "[controller_add_user_to_chat] BUSY\n");
-	add_user_to_chat_list(chat_id, servent->id, servent->nick, servent->status);
+	gui_add_user_to_chat(chat_id, servent->id, servent->nick, servent->status);
 	
 	return 0;
 }
 
 int controller_rem_user_from_chat(u_int8 chat_id, u_int8 id) {
-	remove_user_from_chat_list(chat_id, id);
+	gui_del_user_from_chat(chat_id, id);
 	del_user_from_chat(chat_id, id);
 	return 0;
 }
@@ -834,7 +834,7 @@ int controller_add_msg_to_chat(u_int8 chat_id, char *msg) {
 	}
 	
 	if(chat_id>0) {
-		if(add_msg_to_chat(chat_id, msg)<0) {
+		if(gui_add_msg_to_chat(chat_id, msg)<0) {
 			logger(CTRL_INFO, "[controller_add_msg_to_chat]Msg error\n");
 			return -2;
 		}
@@ -852,7 +852,7 @@ int controller_add_msg(u_int8 sender_id, char *msg) {
 	}
 	
 	if(sender_id>0) {
-		if(add_msg_pm(sender_id, msg)<0) {
+		if(gui_add_msg_pm(sender_id, msg)<0) {
 			logger(CTRL_INFO, "[controller_add_msg]Msg pm error\n");
 			return -2;
 		}
