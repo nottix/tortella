@@ -417,7 +417,7 @@ void *servent_responde(void *parm) {
 								int i=0;
 								logger(SYS_INFO, "[servent_responde]Changing ID\n");
 								for(;i<g_list_length(users);i++) {
-									servent_data *tmp = (servent_data*)g_list_nth_data(users,i);
+									servent_data *tmp = (servent_data*)g_list_nth_data(users, i);
 									
 									char *nick = tmp->nick;
 									char *tmp_ip = tmp->ip;
@@ -427,13 +427,14 @@ void *servent_responde(void *parm) {
 									logger(SYS_INFO, "[servent_responde]nick: %s, ip: %s, port: %d\n", nick, get_dest_ip(fd), GET_PING(h_packet->data)->port);
 									if((strcmp(tmp_ip, get_dest_ip(fd))==0) && (tmp_port == GET_PING(h_packet->data)->port)) {
 										logger(SYS_INFO, "[servent_responde]Changing old ID: %lld with new ID: %lld\n", tmp->id, h_packet->data->header->sender_id);
+										g_hash_table_remove(servent_hashtable, (gpointer)to_string(tmp->id)); //TODO: meglio toglierlo per evitare segfault
+										
 										tmp->id = h_packet->data->header->sender_id;
 										tmp->status = GET_PING(h_packet->data)->status;
 										tmp->timestamp = h_packet->data->header->timestamp;
 										tmp->nick = h_packet->data->data;
 										data_add_user(tmp->id, tmp->nick, tmp->ip, tmp->port);
 										
-										g_hash_table_remove(servent_hashtable, (gpointer)tmp); //TODO: meglio toglierlo per evitare segfault
 										g_hash_table_insert(servent_hashtable, (gpointer)to_string(tmp->id),(gpointer)tmp);
 									}
 								}

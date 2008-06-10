@@ -390,6 +390,7 @@ int controller_send_bye()
 	int i=0;
 	for(; i < g_list_length(users); i++) {
 		peer = g_list_nth_data(users, i);
+		logger(CTRL_INFO,"[controller_send_bye] sending packet to %lld from %lld\n", peer->id, servent_get_local()->id);
 		if(peer!=NULL && peer->id!=servent_get_local()->id) {
 			COPY_SERVENT(peer, tmp);
 			tmp->post_type = BYE_ID;
@@ -407,18 +408,18 @@ int controller_send_bye()
 			peer = servent_get(client->id);
 			logger(CTRL_INFO, "[controller_send_bye]pop response %lld\n", client->id);
 			if(peer!=NULL && peer->id!=servent_get_local()->id) {
+				RLOCK(peer->id);
 				COPY_SERVENT(peer, sd);
-				//WLOCK(peer->id);
-
-				//UNLOCK(peer->id);
-				while(strcmp(ret,TIMEOUT)!=0) {
+				UNLOCK(peer->id);
+				
+				//while(strcmp(ret,TIMEOUT)!=0) {
 				ret = servent_pop_response(sd);
 				logger(CTRL_INFO, "[controller_send_bye]ret: %s\n", ret);
 				if(strcmp(ret, TIMEOUT)==0) {
 					logger(CTRL_INFO, "[controller_send_bye]TIMEOUT\n");
 					return sd->id;
 				}
-				}
+				//}
 				logger(CTRL_INFO, "[controller_send_bye]RECEIVED OK %s\n", ret);
 				//data_del_user_from_chat(chat_id, client->id);
 				//remove_user_from_chat_list(chat_id, client->id);
