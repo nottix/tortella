@@ -296,8 +296,9 @@ void view_onRowActivated (GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewC
 			usleep(200);
 			controller_connect_users(g_hash_table_get_values(elem->users));
 			sleep(1);//FIXIT
-			controller_join_chat(elem->id);
 			controller_request_list(elem->id); //PROVA
+
+			controller_join_chat(elem->id);
 		}
 		g_free(name);
 	}

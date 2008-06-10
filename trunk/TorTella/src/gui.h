@@ -55,7 +55,7 @@ struct tree_model
 typedef struct tree_model tree_model;
 
 struct pm_data {
-	GtkWindow *window;
+	GtkWidget *window;
 	GtkTextView *text_area;
 };
 typedef struct pm_data pm_data;

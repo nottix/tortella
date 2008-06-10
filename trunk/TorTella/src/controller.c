@@ -296,7 +296,7 @@ int controller_leave_chat(u_int8 chat_id) {
 						WLOCK(peer->id);
 						peer->chat_id_req = chat_id;
 						peer->post_type = LEAVE_ID;
-						peer->chat_list = g_list_remove(sd->chat_list, (gconstpointer)chat_elem); //PROVA
+						peer->chat_list = g_list_remove(peer->chat_list, (gconstpointer)chat_elem); //PROVA
 						UNLOCK(peer->id);
 						//pthread_cond_signal(&peer->cond);
 						servent_send_packet(peer); //PROVA
