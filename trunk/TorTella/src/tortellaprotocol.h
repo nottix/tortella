@@ -61,11 +61,15 @@ typedef struct ping_desc ping_desc;
 
 struct list_desc {
 	u_int8 chat_id;	//ID della chat di cui si vuole la lista degli utenti
+	u_int1 ttl;
+	u_int1 hops;
 };
 typedef struct list_desc list_desc;
 
 struct listhits_desc {
 	u_int4 user_num;	//Numero di utenti nel campo data
+	u_int1 ttl;
+	u_int1 hops;
 	//Campo dati: elenco utenti della chat
 };
 typedef struct listhits_desc listhits_desc;

@@ -122,6 +122,8 @@ static GSList *server_connection_thread;
 									pthread_rwlock_unlock( &((servent_get(servent)->rwlock_data))); \
 								}
 
+#define UNLOCK_F(servent)		pthread_rwlock_unlock( &(((servent)->rwlock_data)));
+
 #define COPY_SERVENT(servent, copy)			copy=calloc(1, sizeof(servent_data)); \
 											memcpy(copy, servent, sizeof(servent_data))
 
@@ -174,6 +176,8 @@ void new_search_packet(u_int8 id);
 char *get_list_packet(u_int8 id); //PROVA
 
 void new_list_packet(u_int8 id); //PROVA
+
+void servent_add_to_chat_list(servent_data *sd, chat *chat_elem);
 
 //-----THREAD--------------
 

@@ -37,6 +37,8 @@ typedef struct route_entry route_entry;
 
 static GHashTable *route_hashtable = NULL;
 
+static GHashTable *list_route_hashtable = NULL;
+
 //--------------------------------
 
 /*

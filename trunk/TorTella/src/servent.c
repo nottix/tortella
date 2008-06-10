@@ -52,7 +52,7 @@ int servent_start_client(char *dest_ip, u_int4 dest_port) {
 	logger(SYS_INFO, "[servent_start_client]cliid: %lld\n", cliid);
 	servent->ip = dest_ip;
 	servent->port = dest_port;
-	
+	servent->chat_list = NULL;
 	pthread_mutex_init(&servent->mutex, NULL);
 	pthread_rwlock_init(&servent->rwlock_data, NULL);
 	pthread_cond_init(&servent->cond, NULL);
@@ -84,6 +84,7 @@ int servent_start(GList *init_servent) {
 			logger(SYS_INFO, "[servent_start]Errore nella connessione iniziale\n");
 			return -3;
 		}
+		
 	}
 
 	return 0;
@@ -158,7 +159,7 @@ int servent_init(char *ip, u_int4 port, u_int1 status) {
 	servent_hashtable = g_hash_table_new_full(g_str_hash, g_str_equal, free, NULL);
 	route_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
 	search_packet_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
-	
+	list_packet_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
 	local_servent = (servent_data*)calloc(1, sizeof(servent_data));
 	u_int8 id = local_servent->id = generate_id();
 	logger(SYS_INFO, "[servent_init]ID: %lld\n", local_servent->id);
@@ -215,7 +216,8 @@ servent_data *servent_get_local(void) {
 }
 
 void servent_send_packet(servent_data *sd) {
-	g_queue_push_tail(sd->queue, (gpointer)sd);
+	if(sd != NULL) 
+		g_queue_push_tail(sd->queue, (gpointer)sd);
 }
 
 servent_data *servent_pop_queue(servent_data *sd) {
@@ -231,7 +233,8 @@ servent_data *servent_pop_queue(servent_data *sd) {
 }
 
 void servent_append_response(servent_data *sd, const char *response) {
-	g_queue_push_tail(sd->res_queue,(gpointer)strdup(response));
+	if(sd != NULL)
+		g_queue_push_tail(sd->res_queue,(gpointer)strdup(response));
 }
 
 char *servent_pop_response(servent_data *sd) {
@@ -267,6 +270,10 @@ char *get_list_packet(u_int8 id) {
 
 void new_list_packet(u_int8 id) {
 	g_hash_table_insert(list_packet_hashtable, (gpointer)to_string(id),(gpointer)to_string(id));
+}
+
+void servent_add_to_chat_list(servent_data *sd, chat *chat_elem) {
+	sd->chat_list = g_list_append(sd->chat_list, (gpointer)chat_elem);
 }
 
 
@@ -424,7 +431,7 @@ void *servent_responde(void *parm) {
 										tmp->nick = h_packet->data->data;
 										add_user(tmp->id, tmp->nick, tmp->ip, tmp->port);
 										
-										//g_hash_table_remove(servent_hashtable, (gpointer)tmp); TODO: meglio toglierlo per evitare segfault
+										g_hash_table_remove(servent_hashtable, (gpointer)tmp); //TODO: meglio toglierlo per evitare segfault
 										g_hash_table_insert(servent_hashtable, (gpointer)to_string(tmp->id),(gpointer)tmp);
 									}
 								}
@@ -511,7 +518,12 @@ void *servent_responde(void *parm) {
 								sd->packet_id = h_packet->data->header->id;
 								sd->post_type = SEARCHHITS_ID;								
 								servent_send_packet(sd);
-						
+								
+							/*	char *ret = servent_pop_response (sd);
+								if(strcmp(ret,TIMEOUT) == 0) {
+									logger(SYS_INFO, "[servent_responde] TIMEOUT\n");
+								}*/
+									
 							}
 
 						
@@ -536,6 +548,10 @@ void *servent_responde(void *parm) {
 										sd->post_type = SEARCH_ID;
 										UNLOCK(conn_servent->id);
 										servent_send_packet(sd);
+								/*		char *ret = servent_pop_response (sd);
+										if(strcmp(ret,TIMEOUT) == 0) {
+											logger(SYS_INFO, "[servent_responde] TIMEOUT\n");
+										} */
 										//Aggiunta regola di routing alla tabella
 										add_route_entry(h_packet->data->header->id, h_packet->data->header->sender_id, conn_servent->id, route_hashtable);
 										printf("[servent_responde]Retrasmitting SEARCH packet to other peers\n");
@@ -563,6 +579,10 @@ void *servent_responde(void *parm) {
 							sd->post_type = SEARCHHITS_ID; 
 							UNLOCK(entry->sender_id);
 							servent_send_packet(sd);
+						/*	char *ret = servent_pop_response (sd);
+							if(strcmp(ret,TIMEOUT) == 0) {
+								logger(SYS_INFO, "[servent_responde] TIMEOUT\n");
+							} */
 							printf("[servent_responde]Routing packet from %lld to %lld\n", h_packet->data->header->sender_id, entry->sender_id);
 							del_route_entry(h_packet->data->header->id, route_hashtable);
 							printf("[servent_responde]Route entry %lld deleted\n", h_packet->data->header->id); 
@@ -607,24 +627,34 @@ void *servent_responde(void *parm) {
 								COPY_SERVENT(conn_servent, sd);
 								UNLOCK(conn_servent->id);
 							
-								//QUI VA AGGIUNTA LA RICERCA DEGLI UTENTI
-							/*	printf("[servent_responde]Searching list %s\n", tortella_get_data(h_packet->data_string));
-								res = search_all_chat(tortella_get_data(h_packet->data_string));
-								printf("[servent_responde]Results number %d\n", g_list_length(res)); */
+								//COMPILA MA POTREBBE NON FUNZIONARE la chat_tmp->users è NULL
+								printf("[servent_responde]Searching list %lld\n", GET_LIST(h_packet->data)->chat_id);
+								chat *chat_tmp = get_chat(GET_LIST(h_packet->data)->chat_id);
+								printf("[servent_responde] dopo chat_tmp\n");
+								if(chat_tmp == NULL) {
+									logger(SYS_INFO, "[servent_responde] chat_tmp NULL\n");
+								}
+								logger(SYS_INFO, "[servent_responde] chat tmp varie %s e %lld\n", chat_tmp->title, chat_tmp->id); 
+								int len;
+								char *users_list = userlist_to_char (g_hash_table_get_values(chat_tmp->users), &len);
 				
 								logger(SYS_INFO, "[servent_responde]Sending to ID: %lld\n", sd->id);
-								sd->chat_res = res;
+								sd->user_res = users_list;
 								sd->packet_id = h_packet->data->header->id;
 								sd->post_type = LISTHITS_ID;								
-								servent_send_packet(sd);
+								servent_send_packet(sd); 
+							/*	char *ret = servent_pop_response (sd);
+								if(strcmp(ret,TIMEOUT) == 0) {
+									logger(SYS_INFO, "[servent_responde] TIMEOUT\n");
+								}*/
 						
 							}
 
 						
 							printf("[servent_responde]Sending SEARCHHITS packet to searching peer\n");
 						
-							/********Perchè manca il TTL nel descriptor del list????********/
-						/*	if(GET_LIST(h_packet->data)->ttl>0) {
+							/********COMPILA MA POTREBBE NON FUNZIONARE********/
+							if(GET_LIST(h_packet->data)->ttl>0) {
 								printf("[servent_responde]TTL > 0\n");
 								int i;
 								servent_list = g_hash_table_get_values(servent_hashtable);
@@ -632,6 +662,7 @@ void *servent_responde(void *parm) {
 							
 									conn_servent = (servent_data*)g_list_nth_data(servent_list, i);
 									if(conn_servent->id!=h_packet->data->header->sender_id) {
+										logger(SYS_INFO, "[servent_responde] local vs remote %lld, %lld\n", h_packet->data->header->sender_id, conn_servent->id); 
 										RLOCK(conn_servent->id);
 										servent_data *sd;
 										COPY_SERVENT(conn_servent, sd);
@@ -643,12 +674,15 @@ void *servent_responde(void *parm) {
 										sd->post_type = LIST_ID;
 										UNLOCK(conn_servent->id);
 										servent_send_packet(sd);
-										//Aggiunta regola di routing alla tabella, bisogna usare un'altra tabella di routing????
-										add_route_entry(h_packet->data->header->id, h_packet->data->header->sender_id, conn_servent->id, route_hashtable);
-										printf("[servent_responde]Retrasmitting SEARCH packet to other peers\n");
+										char *ret = servent_pop_response (sd);
+										if(strcmp(ret,TIMEOUT) == 0) {
+											logger(SYS_INFO, "[servent_responde] TIMEOUT\n");
+										}
+										add_route_entry(h_packet->data->header->id, h_packet->data->header->sender_id, conn_servent->id, list_route_hashtable);
+										printf("[servent_responde]Retrasmitting LIST packet to other peers\n");
 									}
 								}		   
-							} */
+							} 
 							status = HTTP_STATUS_OK;
 						} 
 							
@@ -657,7 +691,7 @@ void *servent_responde(void *parm) {
 						printf("[servent_responde]LISTHITS ricevuto\n");
 						GList *user_list = char_to_userlist(tortella_get_data(h_packet->data_string), h_packet->data->header->data_len);
 						
-						route_entry *entry = get_route_entry(h_packet->data->header->id, route_hashtable);
+						route_entry *entry = get_route_entry(h_packet->data->header->id, list_route_hashtable);
 						if(entry!=NULL) {
 							RLOCK(entry->sender_id);
 							servent_data *sd;
@@ -665,31 +699,18 @@ void *servent_responde(void *parm) {
 							
 							COPY_SERVENT(conn_servent, sd);
 							sd->packet_id = h_packet->data->header->id;
-		//COMMENTATA SEG FAULT	printf("[servent_responde]list size: %d, users: %d\n", g_list_length(chat_list), g_hash_table_size(((chat*)g_list_nth_data(chat_list, 0))->users));
 							sd->chat_res = user_list;
 							sd->post_type = LISTHITS_ID; 
 							UNLOCK(entry->sender_id);
 							servent_send_packet(sd);
+						/*	char *ret = servent_pop_response (sd);
+							if(strcmp(ret,TIMEOUT) == 0) {
+								logger(SYS_INFO, "[servent_responde] TIMEOUT\n");
+							}*/
 							printf("[servent_responde]Routing packet from %lld to %lld\n", h_packet->data->header->sender_id, entry->sender_id);
-							del_route_entry(h_packet->data->header->id, route_hashtable);
+							del_route_entry(h_packet->data->header->id, list_route_hashtable);
 							printf("[servent_responde]Route entry %lld deleted\n", h_packet->data->header->id); 
 						}
-					/*	else {
-							int i=0;
-							chat *chat_val;
-							
-							for(; i<g_list_length(chat_list); i++) {
-								chat_val = (chat*)g_list_nth_data(chat_list, i);																
-								logger(SYS_INFO,"[servent_responde] title chat %s\n", chat_val->title);
-								GList *local_chat = search_all_local_chat(chat_val->title);
-								int j=0;
-								for(; j<g_list_length(local_chat); j++) {
-								chat *tmp = (chat*)g_list_nth_data(local_chat, j);
-								logger(SYS_INFO, "[servent_responde] title chat %s\n", tmp->title);
-								add_chat_to_list(tmp->id, tmp->title);
-								}
-							}
-						} */
 						
 						status = HTTP_STATUS_OK;
 						
@@ -712,6 +733,10 @@ void *servent_responde(void *parm) {
 						sd->post_type= CLOSE_ID;
 						//Chiusura thread connessione
 						servent_send_packet(sd);
+					/*	char *ret = servent_pop_response (sd);
+						if(strcmp(ret,TIMEOUT) == 0) {
+							logger(SYS_INFO, "[servent_responde] TIMEOUT\n");
+						}*/
 						logger(SYS_INFO, "[servent_responde]Deleting user\n");
 						//QUI BISOGNEREBBE RIMUOVERE L'UTENTE COMPLETAMENTE
 						//Di seguito  commentate le due remove dalla hashtable, ce ne sono altre? 
@@ -853,7 +878,6 @@ void *servent_connect(void *parm) {
 			//send_get_request_packet(fd, char *filename, u_int4 range_start, u_int4 range_end);
 		}
 		else {
-			
 			if(post_type==JOIN_ID) {
 				send_join_packet(fd, local_servent->id, id_dest, status, chat_id_req, nick);
 			}
@@ -861,6 +885,7 @@ void *servent_connect(void *parm) {
 				send_ping_packet(fd, local_servent->id, id_dest, nick, local_servent->port, status);
 			}
 			else if(post_type==BYE_ID) {
+				logger(SYS_INFO, "[servent_connect] sending bye packet\n");
 				send_bye_packet(fd, local_servent->id, id_dest);
 			}
 			else if(post_type==CLOSE_ID) {
@@ -947,14 +972,16 @@ void *servent_connect(void *parm) {
 					logger(SYS_INFO, "[servent_connect] Peer response NULL\n");
 					servent_peer = servent_get(id_dest);
 				}
-				servent_append_response(servent_peer, h_packet->header_response->response);
-				logger(SYS_INFO, "[servent_connect]Appended\n");
+				if(id_dest >= conf_get_gen_start() /*&& (servent_peer->post_type == SEARCH_ID && servent_peer->post_type == SEARCHHITS_ID && servent_peer->post_type==LIST_ID && servent_peer->post_type ==LISTHITS_ID && servent_peer->post_type == CLOSE_ID)*/) {
+					servent_append_response(servent_peer, h_packet->header_response->response);
+					logger(SYS_INFO, "[servent_connect]Appended\n");
+				}
 			}
 			else {
 				logger(SYS_INFO, "[servent_connect]Appending response TIMEOUT\n");
 				servent_append_response(servent_peer, TIMEOUT);
 			}
-			UNLOCK(id_dest); 
+			UNLOCK_F(servent_peer); 
 			UNLOCK(local_servent->id); 
 		}
 	}

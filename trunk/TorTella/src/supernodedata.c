@@ -484,8 +484,10 @@ char *userlist_to_char(GList *user_list, int *len) {
 		return NULL;
 	}
 	if(g_list_length(user_list)==0)
+		printf("[userlist_to_char] length zero\n");
 		return NULL;
 	
+	printf("[userlist_to_char] initializing\n");
 	chatclient *chatclient_elem;
 	int cur_size = 512;
 	int cur = 0;
@@ -493,6 +495,7 @@ char *userlist_to_char(GList *user_list, int *len) {
 	char *line = (char*)calloc(512, 1);
 	int i, j;
 	for(j=0; j<g_list_length(user_list); j++) {
+		printf("[userlist_to_char] entering for\n");
 		chatclient_elem = (chatclient*)g_list_nth_data(user_list, j);
 		sprintf(line, "%lld;%s;%s;%d;\n", chatclient_elem->id, chatclient_elem->nick, chatclient_elem->ip, chatclient_elem->port);
 		cur += strlen(line);

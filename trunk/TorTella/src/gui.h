@@ -71,6 +71,8 @@ gint destroywindow(GtkWidget *widget, gpointer gdata);
 
 gint leave_chat(GtkWidget *widget, gpointer gdata);
 
+gint leave_pm(GtkWidget *widget, gpointer gdata);
+
 gint ClosingAppWindow (GtkWidget *widget, gpointer gdata);
 
 gint add_chat_to_list(u_int8 chat_id, char *chat_name);

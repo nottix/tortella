@@ -2,7 +2,8 @@
 
 int controller_change_status(u_int1 status) 
 {
-	servent_data *tmp, *peer;
+	servent_data *tmp, *peer, *sd;
+	char *ret;
 	if(servent_get_local () == NULL) {
 		logger(CTRL_INFO,"[controller_change_status] local_servent NULL\n");
 	    return -1;
@@ -19,6 +20,27 @@ int controller_change_status(u_int1 status)
 		peer->packet_id = generate_id();
 		servent_send_packet(peer);
 	}
+	//////////////////////////////////////////////
+	for(i=0; i<g_list_length(users); i++) {
+		chatclient *client = (chatclient*)g_list_nth_data(users, i);
+		printf("eeee\n");
+		if(client!=NULL) {
+			peer = servent_get(client->id);
+			logger(CTRL_INFO, "[controller_leave_chat]pop response %lld\n", client->id);
+			if(peer!=NULL && peer->id!=servent_get_local()->id) {
+				COPY_SERVENT(peer, sd);
+						//WLOCK(peer->id);
+
+						//UNLOCK(peer->id);
+				ret = servent_pop_response(peer);
+				if(strcmp(ret, TIMEOUT)==0)
+					return peer->id;
+				printf("RECEIVED %s\n", ret);
+						
+			}
+		}
+	}		
+	
 	
 	return 0;
 }
@@ -41,9 +63,10 @@ int controller_manipulating_status(u_int8 user_id, u_int1 status)
 
 int controller_send_chat_users(u_int8 chat_id, u_int4 msg_len, char *msg) {
 	if(chat_id != 0) {
-		servent_data *data, *tmp;
+		servent_data *data, *tmp, *sd;
 		chatclient *user;
 		chat *chat_elem = get_chat(chat_id);
+		char *ret;
 		if(chat_elem==NULL) {
 			logger(CTRL_INFO, "[controller_send_chat_users]Chat %lld non presente\n", chat_id);
 			return -2;
@@ -76,12 +99,33 @@ int controller_send_chat_users(u_int8 chat_id, u_int4 msg_len, char *msg) {
 			else
 				logger(CTRL_INFO, "[controller_send_chat_users]Servent NULL\n");
 		}
+		///////////////////////////////////////////
+		for(i=0; i<g_list_length(users); i++) {
+			chatclient *client = (chatclient*)g_list_nth_data(users, i);
+			printf("eeee\n");
+			if(client!=NULL) {
+				data = servent_get(client->id);
+				logger(CTRL_INFO, "[controller_leave_chat]pop response %lld\n", client->id);
+				if(data!=NULL && data->id!=servent_get_local()->id) {
+					COPY_SERVENT(data, sd); //?????
+						//WLOCK(peer->id);
+
+						//UNLOCK(peer->id);
+					ret = servent_pop_response(data);
+					if(strcmp(ret, TIMEOUT)==0)
+						return data->id;
+				printf("RECEIVED %s\n", ret);
+						
+				}
+			}
+		}		
 		return 0;
 	}
 	return -1;
 }
 
 int controller_send_subset_users(u_int8 chat_id, u_int4 msg_len, char *msg, GList *users) { 
+	char *ret;
 	if(chat_id != 0) {
 		int i= 0;
 		logger(CTRL_INFO, "[controller_send_subset_users] chat id != 0\n");
@@ -105,6 +149,27 @@ int controller_send_subset_users(u_int8 chat_id, u_int4 msg_len, char *msg, GLis
 			servent_send_packet(data); //
 			//pthread_cond_signal(&data->cond);
 		}
+		//////////////////////////////////////////
+		servent_data *sd, *data;
+		for(i=0; i<g_list_length(users); i++) {
+			chatclient *client = (chatclient*)g_list_nth_data(users, i);
+			printf("eeee\n");
+			if(client!=NULL) {
+				data = servent_get(client->id);
+				logger(CTRL_INFO, "[controller_leave_chat]pop response %lld\n", client->id);
+				if(data!=NULL && data->id!=servent_get_local()->id) {
+					COPY_SERVENT(data, sd);
+						//WLOCK(peer->id);
+
+						//UNLOCK(peer->id);
+					ret = servent_pop_response(data);
+					if(strcmp(ret, TIMEOUT)==0)
+						return data->id;
+				printf("RECEIVED %s\n", ret);
+						
+				}
+			}
+		}		
 		return 0;
 	}
 	return -1;
@@ -112,7 +177,8 @@ int controller_send_subset_users(u_int8 chat_id, u_int4 msg_len, char *msg, GLis
 
 int controller_send_pm(u_int4 msg_len, char *msg, u_int8 recv_id) {
 	logger(CTRL_INFO, "[controller_send_pm] id destinatario %d\n", recv_id);
-	
+	char *ret;
+	servent_data *sd;
 	servent_data *data = (servent_data*)servent_get(recv_id);
 	
 	WLOCK(data->id);
@@ -124,6 +190,23 @@ int controller_send_pm(u_int4 msg_len, char *msg, u_int8 recv_id) {
 
 	UNLOCK(data->id);
     servent_send_packet(data); 
+	////////////////////////////////
+	printf("eeee\n");
+	servent_data *peer;
+	peer = servent_get(recv_id);
+	logger(CTRL_INFO, "[controller_leave_chat]pop response %lld\n", recv_id);
+	if(peer!=NULL && peer->id!=servent_get_local()->id) {
+			COPY_SERVENT(peer, sd);
+			//WLOCK(peer->id);
+			//UNLOCK(peer->id);
+			ret = servent_pop_response(peer);
+			if(strcmp(ret, TIMEOUT)==0)
+				return peer->id;
+			printf("RECEIVED %s\n", ret);
+						
+			
+	}
+		
 	return 0;
 }
 
@@ -150,6 +233,9 @@ int controller_join_chat(u_int8 chat_id) {
 						//WLOCK(peer->id);
 						sd->chat_id_req = chat_id;
 						sd->post_type = JOIN_ID;
+						
+						sd->chat_list = g_list_append(sd->chat_list, (gpointer)chat_elem); //
+						//servent_add_to_chat_list(sd, chat_elem); //Prova
 						//UNLOCK(peer->id);
 						servent_send_packet(sd);
 						//pthread_cond_signal(&peer->cond);
@@ -173,12 +259,7 @@ int controller_join_chat(u_int8 chat_id) {
 							return peer->id;
 						printf("RECEIVED %s\n", ret);
 						add_user_to_chat(chat_elem->id, client->id, client->nick, client->ip, client->port);
-	if(peer->status == ONLINE_ID)
-		logger(CTRL_INFO,"[controller_join_chat] ONLINE\n");
-	else if(peer->status == AWAY_ID)
-		logger(CTRL_INFO, "[controller_join_chat] AWAY\n");
-	else if(peer->status == BUSY_ID)
-		logger(CTRL_INFO, "[controller_join_chat] BUSY\n");
+	
 						add_user_to_chat_list(chat_elem->id, client->id, client->nick, peer->status);
 					}
 				}
@@ -215,6 +296,7 @@ int controller_leave_chat(u_int8 chat_id) {
 						WLOCK(peer->id);
 						peer->chat_id_req = chat_id;
 						peer->post_type = LEAVE_ID;
+						peer->chat_list = g_list_remove(sd->chat_list, (gconstpointer)chat_elem); //PROVA
 						UNLOCK(peer->id);
 						//pthread_cond_signal(&peer->cond);
 						servent_send_packet(peer); //PROVA
@@ -249,6 +331,23 @@ int controller_leave_chat(u_int8 chat_id) {
 	return -1;
 }
 
+int controller_leave_all_chat()
+{
+	servent_data *sd = servent_get_local();
+	if(sd == NULL) {
+		logger(CTRL_INFO, "[controller_leave_all_chat] servent NULL\n");
+		return -1;
+	}
+	GList *chat_list =  sd->chat_list;
+	int i=0;
+	logger(CTRL_INFO, "[controller_leave_all_chat] lunghezza lista %d\n", g_list_length(chat_list));
+	for(; i < g_list_length(chat_list); i++) {
+		chat *tmp =  (chat*)g_list_nth_data(chat_list, i);
+		controller_leave_chat(tmp->id);
+	}
+	return 0;
+}
+
 int controller_connect_users(GList *users) {
 	if(users!=NULL) {
 		int i;
@@ -265,27 +364,6 @@ int controller_connect_users(GList *users) {
 				logger(CTRL_INFO, "[controller_connect_users]Già connesso\n");
 		}
 		
-		for(i=0; i<g_list_length(users); i++) {
-			client = (chatclient*)g_list_nth_data(users, i);
-			if(client!=NULL) {
-				peer = servent_get(client->id);
-				logger(CTRL_INFO, "[controller_connect_users]pop response %lld\n", client->id);
-				if(peer!=NULL && peer->id!=servent_get_local()->id) {
-					COPY_SERVENT(peer, sd);
-					//WLOCK(peer->id);
-
-					//UNLOCK(peer->id);
-					ret = servent_pop_response(peer);
-					if(strcmp(ret, TIMEOUT)==0)
-						return peer->id;
-					printf("RECEIVED OK %s\n", ret);
-					//del_user_from_chat(chat_id, client->id);
-					//remove_user_from_chat_list(chat_id, client->id);
-					//add_user_to_chat(chat_elem->id, client->id, client->nick, client->ip, client->port);
-					//add_user_to_chat_list(chat_elem->id, client->id, client->nick, peer->status);
-				}
-			}
-		}
 		return 0;
 	}
 	
@@ -297,7 +375,7 @@ int controller_send_bye()
 	chatclient *client;
 	servent_data *tmp, *peer, *sd;
 	char *ret;
-	if(servent_get_local () == NULL) {
+	if(servent_get_local() == NULL) {
 		logger(CTRL_INFO,"[controller_send_bye] local_servent NULL\n");
 	    return -1;
 	}
@@ -311,9 +389,11 @@ int controller_send_bye()
 		if(peer!=NULL && peer->id!=servent_get_local()->id) {
 			COPY_SERVENT(peer, tmp);
 			tmp->post_type = BYE_ID;
+			logger(CTRL_INFO, "[controller_send_bye] checking post type %d\n", tmp->post_type);
 			tmp->packet_id = generate_id();
 			servent_send_packet(tmp);
 			logger(CTRL_INFO, "[controller_send_bye] sent\n");
+			
 		}
 	}
 	
@@ -327,11 +407,15 @@ int controller_send_bye()
 				//WLOCK(peer->id);
 
 				//UNLOCK(peer->id);
+				while(strcmp(ret,TIMEOUT)!=0) {
 				ret = servent_pop_response(sd);
 				logger(CTRL_INFO, "[controller_send_bye]ret: %s\n", ret);
-				if(strcmp(ret, TIMEOUT)==0)
+				if(strcmp(ret, TIMEOUT)==0) {
+					logger(CTRL_INFO, "[controller_send_bye]TIMEOUT\n");
 					return sd->id;
-				printf("RECEIVED OK %s\n", ret);
+				}
+				}
+				logger(CTRL_INFO, "[controller_send_bye]RECEIVED OK %s\n", ret);
 				//del_user_from_chat(chat_id, client->id);
 				//remove_user_from_chat_list(chat_id, client->id);
 				//add_user_to_chat(chat_elem->id, client->id, client->nick, client->ip, client->port);
@@ -346,10 +430,73 @@ int controller_send_bye()
 int controller_receive_bye(u_int8 id)
 {
    pm_data *pm;
+   logger(CTRL_INFO, "[controller_receive_bye] id utente %lld\n", id);
    if((pm = pm_data_get(id)) != NULL) {
-   	//leave_pm(); //QUI BISOGNA PASSARE I PARAMETRI IN MODO CORRETTO?
+   	leave_pm(pm->window, (gpointer)to_string(id)); //QUI BISOGNA PASSARE I PARAMETRI IN MODO CORRETTO?
    }
    return 0;
+}
+
+int controller_request_list(u_int8 chat_id) //PROVA
+{
+	GList *servents = servent_get_values();
+	logger(CTRL_INFO, "[controller_request_list]LIST\n");
+	if(servents==NULL) {
+		logger(CTRL_INFO, "[controller_request_list]Servents null\n");
+		return 0;
+	}
+	servent_data *servent, *tmp;
+	int i=0;
+	for(; i<g_list_length(servents); i++) {
+		servent = g_list_nth_data(servents, i);
+		logger(CTRL_INFO, "[controller_request_list]Servent ID: %lld\n", servent->id);
+		if(servent->id!=servent_get_local()->id && servent->id >= conf_get_gen_start ()) {
+			
+			if(servent->queue==NULL) {
+				logger(CTRL_INFO, "[controller_request_list]Coda Servent NULL\n");
+				continue;
+			}
+			RLOCK(servent->id);
+			logger(INFO, "[controller_request_list]Copy servent\n");
+			COPY_SERVENT(servent, tmp);
+			UNLOCK(servent->id);
+			if(tmp->queue==NULL || tmp->res_queue==NULL) {
+				logger(CTRL_INFO, "[controller_request_list]Coda NULL\n");
+				continue;
+			}
+			tmp->post_type = LIST_ID;
+			tmp->chat_id_req = chat_id;
+			tmp->ttl = 3;
+			tmp->hops = 0;
+			tmp->packet_id = generate_id(); //Se non ci fosse verrebbe riutilizzato l'ID di uno degli eventuali pacchetti SEARCH ritrasmessi
+			logger(INFO, "[controller_request_list]Send\n");
+			servent_send_packet(tmp);
+			logger(INFO, "[controller_request_list]Sent\n");
+		}
+		else
+			logger(INFO, "[controller_request_list]Local ID\n");
+		
+	}
+	//Da gestire i timeout
+	
+	char *ret;
+	for(i=0; i<g_list_length(servents); i++) {
+		servent = g_list_nth_data(servents, i);
+		if(servent->id!=servent_get_local()->id) {
+			ret = servent_pop_response(servent);
+			if(strcmp(ret, TIMEOUT)==0) {
+				logger(CTRL_INFO, "[controller_request_list]TIMEOUT\n");
+				return servent->id;
+			}
+			printf("RECEIVED %s\n", ret);
+		}
+		else
+			logger(INFO, "[controller_request_list]Local response");
+		
+	}
+	logger(INFO, "[controller_request_list]End");
+	
+	return 0;
 }
 
 int controller_init(const char *filename, const char *cache) {
@@ -581,7 +728,7 @@ u_int8 controller_search(const char *query) {
 	for(; i<g_list_length(servents); i++) {
 		servent = g_list_nth_data(servents, i);
 		logger(CTRL_INFO, "[controller_search]Servent ID: %lld\n", servent->id);
-		if(servent->id!=servent_get_local()->id) {
+		if(servent->id!=servent_get_local()->id && servent->id >= conf_get_gen_start ()) {
 			
 			if(servent->queue==NULL) {
 				logger(CTRL_INFO, "[controller_search]Coda Servent NULL\n");
@@ -643,8 +790,8 @@ int controller_create(const char *title) {
 	
 	servent_data *local = servent_get_local();
 	add_user_to_chat(chat_id, local->id, local->nick, local->ip, local->port);
-
 	chat *test = get_chat(chat_id);
+	local->chat_list = g_list_append(local->chat_list, (gpointer)test);
 	printf("chat created with ID: %lld\n", test->id);
 	
 	open_chatroom_gui(chat_id);
