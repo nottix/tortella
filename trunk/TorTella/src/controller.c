@@ -254,7 +254,11 @@ int controller_join_chat(u_int8 chat_id) {
 						//WLOCK(peer->id);
 
 						//UNLOCK(peer->id);
-						ret = servent_pop_response(peer);
+						ret = servent_pop_response(sd);
+						if(ret==NULL) {
+							logger(CTRL_INFO, "[controller_join_chat]Ret NULL\n");
+							return -1;
+						}
 						if(strcmp(ret, TIMEOUT)==0)
 							return peer->id;
 						printf("RECEIVED %s\n", ret);
