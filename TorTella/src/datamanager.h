@@ -74,41 +74,41 @@ int read_from_file(const char *filename);
 
 int read_all(void);
 
-int add_chat(u_int8 id, const char *title);
+int data_add_chat(u_int8 id, const char *title);
 
-int add_all_to_chat(GList *chats);
+int data_add_all_to_chat(GList *chats);
 
-int del_chat(u_int8 id);
+int data_del_chat(u_int8 id);
 
-int add_user(u_int8 id, const char *nick, const char *ip, u_int4 port);
+int data_add_user(u_int8 id, const char *nick, const char *ip, u_int4 port);
 
-int add_exist_user_to_chat(u_int8 chat_id, u_int8 id);
+int data_add_existing_user_to_chat(u_int8 chat_id, u_int8 id);
 
-int add_users_to_chat(u_int8 chat_id, GList *users);
+int data_add_users_to_chat(u_int8 chat_id, GList *users);
 
-int add_user_to_chat(u_int8 chat_id, u_int8 id, const char *nick, const char *ip, u_int4 port);
+int data_add_user_to_chat(u_int8 chat_id, u_int8 id, const char *nick, const char *ip, u_int4 port);
 
-int del_user(u_int8 id);
+int data_del_user(u_int8 id);
 
-int del_user_from_chat(u_int8 chat_id, u_int8 id);
+int data_del_user_from_chat(u_int8 chat_id, u_int8 id);
 
-chat *search_chat_local(const char *title);
+chat *data_search_chat_local(const char *title);
 
 /*
  * Cerca nella hashtable chat_table l'occorrenza della chat title
  * Ritorna la struttura dati della chat
  */
-chat *search_chat(const char *title);
+chat *data_search_chat(const char *title);
 
 /*
  * Cerca nella hashtable chat_table tutte le chat che hanno come titolo *title*
  * Ritorna le chat in una slist
  */
-GList *search_all_chat(const char *title);
+GList *data_search_all_chat(const char *title);
 
-GList *search_all_local_chat(const char *title);
+GList *data_search_all_local_chat(const char *title);
 
-chatclient *search_chatclient(const char *nick);
+chatclient *data_search_chatclient(const char *nick);
 
 /*
  * Converte la lista di chat in una stringa del tipo:
@@ -116,32 +116,32 @@ chatclient *search_chatclient(const char *nick);
  * 22;simone;127.0.0.1;2110;
  * 33;simon;127.0.0.1;2110;
  */
-char *chatlist_to_char(GList *chat_list, int *len);
+char *data_chatlist_to_char(GList *chat_list, int *len);
 
 /*
  * Converte una stringa in una lista di chat con i relativi utenti
  */
-GList *char_to_chatlist(const char *buffer,int len);
+GList *data_char_to_chatlist(const char *buffer,int len);
 
 /*
  * Converte la lista di utenti in una stringa del tipo:
  * 22;simone;127.0.0.1;2110;
  * 33;simon;127.0.0.1;2110;
  */
-char *userlist_to_char(GList *user_list, int *len);
+char *data_userlist_to_char(GList *user_list, int *len);
 
 /*
  * Converte una stringa in una lista di utenti
  */
-GList *char_to_userlist(const char *buffer,int len);
+GList *data_char_to_userlist(const char *buffer,int len);
 
 /*
  * Ritorna una lista di tutti i client della chat specificata
  */
-GList *get_chatclient_from_chat(const char *title);
+GList *data_get_chatclient_from_chat(u_int8 id);
 
-chat *get_chat(u_int8 chat_id);
+chat *data_get_chat(u_int8 chat_id);
 
-chatclient *get_chatclient(u_int8 id);
+chatclient *data_get_chatclient(u_int8 id);
 
 #endif //SUPERNODEDATA_H

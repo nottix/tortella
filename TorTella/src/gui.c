@@ -262,7 +262,7 @@ gint gui_open_chat_button_event(GtkWidget *widget, GdkEventButton *event, gpoint
 		//gpointer data = gtk_tree_selection_get_user_data(selection);
 		//printf("data: %s\n", (char*)data);
 
-		//if(search_chat_local())
+		//if(data_search_chat_local())
 		/* prende l'ID della chat e richiede la connessione al controller */
 		gui_open_chatroom(1); 
 	}
@@ -286,7 +286,7 @@ void gui_open_chat_event (GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewC
 
 		g_print ("Double-clicked row contains name %s\n", name);
 
-		chat *elem = get_chat(atoll(name));
+		chat *elem = data_get_chat(atoll(name));
 		if(elem!=NULL) {
 
 			gui_open_chatroom(elem->id);
@@ -325,7 +325,7 @@ gint gui_open_conversation_event(GtkTreeView *treeview, GtkTreePath *path, GtkTr
 
 		g_print ("Double-clicked row contains name %s\n", user_id);
 
-		//chat *elem = get_chat(atoll(name));
+		//chat *elem = data_get_chat(atoll(name));
 		if(user_id > 0 ) {
 			//g_hash_table_insert(tree_model_hashtable, (gpointer)user_id, (gpointer)model); //PROVA NELLA STESSA HASHTABLE
 			logger(INFO, "[open_conversation] nick length %d\n", strlen(name));
@@ -399,7 +399,7 @@ gint gui_search_chat_event(GtkWidget *widget, gpointer gdata)
 	//	int i=0, counter=6;
 	//	chat *chat_val;
 	//	while(counter--) { //TODO: trovare metodo migliore di stampa risultati
-	//		chats = search_all_local_chat(gtk_entry_get_text(GTK_ENTRY(bar_textfield)));
+	//		chats = data_search_all_local_chat(gtk_entry_get_text(GTK_ENTRY(bar_textfield)));
 	//		for(; i<g_list_length(chats); i++) {
 	//			chat_val = (chat*)g_list_nth_data(chats, i);
 	//			gui_add_chat(chat_val->id, chat_val->title);

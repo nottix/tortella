@@ -170,7 +170,7 @@ int servent_init(char *ip, u_int4 port, u_int1 status) {
 	local_servent->status = status;
 	local_servent->nick = conf_get_nick();
 	
-	add_user(local_servent->id, local_servent->nick, local_servent->ip, local_servent->port);
+	data_add_user(local_servent->id, local_servent->nick, local_servent->ip, local_servent->port);
 	
 	pthread_mutex_init(&local_servent->mutex, NULL);
 	pthread_rwlock_init(&local_servent->rwlock_data, NULL);
@@ -347,7 +347,7 @@ void *servent_responde(void *parm) {
 						WLOCK(id);
 						conn_servent->timestamp = h_packet->data->header->timestamp;
 						UNLOCK(id);
-						add_exist_user_to_chat(GET_JOIN(h_packet->data)->chat_id, id);
+						data_add_existing_user_to_chat(GET_JOIN(h_packet->data)->chat_id, id);
 						controller_add_user_to_chat(GET_JOIN(h_packet->data)->chat_id, id);
 						
 						status = HTTP_STATUS_OK;
@@ -365,7 +365,7 @@ void *servent_responde(void *parm) {
 							conn_servent->timestamp = h_packet->data->header->timestamp;
 							conn_servent->nick = h_packet->data->data;
 							UNLOCK(id);
-							add_user(conn_servent->id, conn_servent->nick, conn_servent->ip, conn_servent->port);
+							data_add_user(conn_servent->id, conn_servent->nick, conn_servent->ip, conn_servent->port);
 							printf("[servent_responde]Old PING, nick: %s, status: %c\n", conn_servent->nick, conn_servent->status);
 							controller_manipulating_status(id, conn_servent->status);
 							status = HTTP_STATUS_OK;
@@ -388,7 +388,7 @@ void *servent_responde(void *parm) {
 								conn_servent->nick = h_packet->data->data;
 								conn_servent->id = h_packet->data->header->sender_id;
 								
-								add_user(conn_servent->id, conn_servent->nick, conn_servent->ip, conn_servent->port);
+								data_add_user(conn_servent->id, conn_servent->nick, conn_servent->ip, conn_servent->port);
 								
 								//Si inizializzano il mutex e il cond
 								pthread_mutex_init(&conn_servent->mutex, NULL);
@@ -431,7 +431,7 @@ void *servent_responde(void *parm) {
 										tmp->status = GET_PING(h_packet->data)->status;
 										tmp->timestamp = h_packet->data->header->timestamp;
 										tmp->nick = h_packet->data->data;
-										add_user(tmp->id, tmp->nick, tmp->ip, tmp->port);
+										data_add_user(tmp->id, tmp->nick, tmp->ip, tmp->port);
 										
 										g_hash_table_remove(servent_hashtable, (gpointer)tmp); //TODO: meglio toglierlo per evitare segfault
 										g_hash_table_insert(servent_hashtable, (gpointer)to_string(tmp->id),(gpointer)tmp);
@@ -512,7 +512,7 @@ void *servent_responde(void *parm) {
 								UNLOCK(conn_servent->id);
 							
 								printf("[servent_responde]Searching %s\n", tortella_get_data(h_packet->data_string));
-								res = search_all_chat(tortella_get_data(h_packet->data_string));
+								res = data_search_all_chat(tortella_get_data(h_packet->data_string));
 								printf("[servent_responde]Results number %d\n", g_list_length(res));
 				
 								logger(SYS_INFO, "[servent_responde]Sending to ID: %lld\n", sd->id);
@@ -566,8 +566,8 @@ void *servent_responde(void *parm) {
 					else if(h_packet->data->header->desc_id==SEARCHHITS_ID) {
 						printf("[servent_responde]SEARCHHITS ricevuto\n");
 						
-						GList *chat_list = char_to_chatlist(tortella_get_data(h_packet->data_string), h_packet->data->header->data_len);
-						add_all_to_chat(chat_list);
+						GList *chat_list = data_char_to_chatlist(tortella_get_data(h_packet->data_string), h_packet->data->header->data_len);
+						data_add_all_to_chat(chat_list);
 						
 						route_entry *entry = get_route_entry(h_packet->data->header->id, route_hashtable);
 						if(entry!=NULL) {
@@ -596,7 +596,7 @@ void *servent_responde(void *parm) {
 							for(; i<g_list_length(chat_list); i++) {
 								chat_val = (chat*)g_list_nth_data(chat_list, i);																
 								logger(SYS_INFO,"[servent_responde] title chat %s\n", chat_val->title);
-								GList *local_chat = search_all_local_chat(chat_val->title);
+								GList *local_chat = data_search_all_local_chat(chat_val->title);
 								int j=0;
 								for(; j<g_list_length(local_chat); j++) {
 								chat *tmp = (chat*)g_list_nth_data(local_chat, j);
@@ -633,14 +633,14 @@ void *servent_responde(void *parm) {
 							
 								//COMPILA MA POTREBBE NON FUNZIONARE la chat_tmp->users è NULL
 								printf("[servent_responde]Searching list %lld\n", GET_LIST(h_packet->data)->chat_id);
-								chat *chat_tmp = get_chat(GET_LIST(h_packet->data)->chat_id);
+								chat *chat_tmp = data_get_chat(GET_LIST(h_packet->data)->chat_id);
 								printf("[servent_responde] dopo chat_tmp\n");
 								if(chat_tmp == NULL) {
 									logger(SYS_INFO, "[servent_responde] chat_tmp NULL\n");
 								}
 								logger(SYS_INFO, "[servent_responde] chat tmp varie %s e %lld\n", chat_tmp->title, chat_tmp->id); 
 								int len;
-								//char *users_list = userlist_to_char (g_hash_table_get_values(chat_tmp->users), &len);
+								//char *users_list = data_userlist_to_char (g_hash_table_get_values(chat_tmp->users), &len);
 				
 								logger(SYS_INFO, "[servent_responde]Sending to ID: %lld\n", sd->id);
 								sd->user_res = g_hash_table_get_values(chat_tmp->users);
@@ -695,8 +695,8 @@ void *servent_responde(void *parm) {
 					}
 					else if(h_packet->data->header->desc_id == LISTHITS_ID) {
 						printf("[servent_responde]LISTHITS ricevuto\n");
-						GList *user_list = char_to_userlist(tortella_get_data(h_packet->data_string), h_packet->data->header->data_len);
-						add_users_to_chat(GET_LISTHITS(h_packet->data)->chat_id, user_list);
+						GList *user_list = data_char_to_userlist(tortella_get_data(h_packet->data_string), h_packet->data->header->data_len);
+						data_add_users_to_chat(GET_LISTHITS(h_packet->data)->chat_id, user_list);
 						
 						route_entry *entry = get_route_entry(h_packet->data->header->id, list_route_hashtable);
 						if(entry!=NULL) {
@@ -755,7 +755,7 @@ void *servent_responde(void *parm) {
 
 						//Rimozione dalle strutture dati
 						g_hash_table_remove(servent_hashtable, (gconstpointer)to_string(conn_servent->id));
-						del_user(conn_servent->id);
+						data_del_user(conn_servent->id);
 						logger(SYS_INFO, "[servent_responde]Deleted user: %lld\n", conn_servent->id);
 					}
 					
@@ -911,7 +911,7 @@ void *servent_connect(void *parm) {
 			}
 			else if(post_type==LISTHITS_ID) {
 				int length;
-				char *buf = userlist_to_char(servent_queue->user_res, &length);
+				char *buf = data_userlist_to_char(servent_queue->user_res, &length);
 				if(buf==NULL) {
 					length=0;
 				}
@@ -925,7 +925,7 @@ void *servent_connect(void *parm) {
 			}
 			else if(post_type==SEARCHHITS_ID) {
 				int length;
-				char *buf = chatlist_to_char(servent_queue->chat_res, &length);
+				char *buf = data_chatlist_to_char(servent_queue->chat_res, &length);
 				if(buf==NULL) {
 					length=0;
 				}

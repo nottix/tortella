@@ -17,13 +17,13 @@
 #include "supernodedata.h"
 
 int main(void) {
-	/*add_chat(111, "test", &chat_hashtable);
+	/*data_add_chat(111, "test", &chat_hashtable);
 	
 	chat *test = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(111));
 	
 	printf("chat: %lld\n", test->id);
 	
-	add_user(111, 22, "simone", "127.0.0.1", 2110, chat_hashtable, &chatclient_hashtable);
+	data_add_user(111, 22, "simone", "127.0.0.1", 2110, chat_hashtable, &chatclient_hashtable);
 			 
 	chatclient *user = (chatclient*)g_hash_table_lookup(chatclient_hashtable, (gconstpointer)to_string(22));
 	
@@ -44,10 +44,10 @@ int main(void) {
 	
 	int len;
 	
-	char *buffer = chatlist_to_char(g_hash_table_get_values(chat_hashtable), &len);
+	char *buffer = data_chatlist_to_char(g_hash_table_get_values(chat_hashtable), &len);
 	
 	printf("buffer:\n%s\n", buffer);
-	GList *res = char_to_chatlist(buffer, len);
+	GList *res = data_char_to_chatlist(buffer, len);
 	printf("chat: \n%s", dump_data(buffer, len));
 	
 	printf("res: %s\n", ((chat*)g_list_nth_data(res, 0))->title);
