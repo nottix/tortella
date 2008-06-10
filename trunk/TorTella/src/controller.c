@@ -65,7 +65,7 @@ int controller_send_chat_users(u_int8 chat_id, u_int4 msg_len, char *msg) {
 	if(chat_id != 0) {
 		servent_data *data, *tmp, *sd;
 		chatclient *user;
-		chat *chat_elem = get_chat(chat_id);
+		chat *chat_elem = data_get_chat(chat_id);
 		char *ret;
 		if(chat_elem==NULL) {
 			logger(CTRL_INFO, "[controller_send_chat_users]Chat %lld non presente\n", chat_id);
@@ -213,7 +213,7 @@ int controller_send_pm(u_int4 msg_len, char *msg, u_int8 recv_id) {
 int controller_join_chat(u_int8 chat_id) {
 	if(chat_id>0) {
 		printf("eeee2\n");
-		chat *chat_elem = get_chat(chat_id);
+		chat *chat_elem = data_get_chat(chat_id);
 		char *ret;
 		if(chat_elem!=NULL) {
 			printf("eeee1\n");
@@ -262,14 +262,14 @@ int controller_join_chat(u_int8 chat_id) {
 						if(strcmp(ret, TIMEOUT)==0)
 							return peer->id;
 						printf("RECEIVED %s\n", ret);
-						add_user_to_chat(chat_elem->id, client->id, client->nick, client->ip, client->port);
+						data_add_user_to_chat(chat_elem->id, client->id, client->nick, client->ip, client->port);
 	
 						gui_add_user_to_chat(chat_elem->id, client->id, client->nick, peer->status);
 					}
 				}
 			}
 			gui_add_user_to_chat(chat_elem->id, servent_get_local()->id, servent_get_local()->nick, servent_get_local()->status);
-			add_user_to_chat(chat_elem->id, servent_get_local()->id, servent_get_local()->nick, servent_get_local()->ip, servent_get_local()->port);
+			data_add_user_to_chat(chat_elem->id, servent_get_local()->id, servent_get_local()->nick, servent_get_local()->ip, servent_get_local()->port);
 			return 0;
 		}
 	}
@@ -281,7 +281,7 @@ int controller_leave_chat(u_int8 chat_id) {
 	logger(CTRL_INFO,"[controller_leave_chat] chat_id %lld\n", chat_id); 
 	if(chat_id>0) {
 		logger(CTRL_INFO,"[controller_leave_chat] chat_id>0\n");
-		chat *chat_elem = get_chat(chat_id);
+		chat *chat_elem = data_get_chat(chat_id);
 		if(chat_elem!=NULL) {
 			logger(CTRL_INFO,"[controller_leave_chat] chat_elem !=NULL\n");
 			GList *clients = g_hash_table_get_values(chat_elem->users);
@@ -322,9 +322,9 @@ int controller_leave_chat(u_int8 chat_id) {
 						if(strcmp(ret, TIMEOUT)==0)
 							return peer->id;
 						printf("RECEIVED %s\n", ret);
-						//del_user_from_chat(chat_id, client->id);
+						//data_del_user_from_chat(chat_id, client->id);
 						//remove_user_from_chat_list(chat_id, client->id);
-						//add_user_to_chat(chat_elem->id, client->id, client->nick, client->ip, client->port);
+						//data_add_user_to_chat(chat_elem->id, client->id, client->nick, client->ip, client->port);
 						//add_user_to_chat_list(chat_elem->id, client->id, client->nick, peer->status);
 					}
 				}
@@ -420,9 +420,9 @@ int controller_send_bye()
 				}
 				}
 				logger(CTRL_INFO, "[controller_send_bye]RECEIVED OK %s\n", ret);
-				//del_user_from_chat(chat_id, client->id);
+				//data_del_user_from_chat(chat_id, client->id);
 				//remove_user_from_chat_list(chat_id, client->id);
-				//add_user_to_chat(chat_elem->id, client->id, client->nick, client->ip, client->port);
+				//data_add_user_to_chat(chat_elem->id, client->id, client->nick, client->ip, client->port);
 				//add_user_to_chat_list(chat_elem->id, client->id, client->nick, peer->status);
 			}
 		}
@@ -669,7 +669,7 @@ int controller_menu() {
 			scanf("%lld", &chat_id);
 			printf("Inserire titolo chat da creare: ");
 			scanf("%s", title);
-			add_chat(chat_id, title);
+			data_add_chat(chat_id, title);
 
 			chat *test = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(chat_id));
 			printf("chat created with ID: %lld\n", test->id);
@@ -790,17 +790,17 @@ int controller_create(const char *title) {
 	}
 	
 	u_int8 chat_id = generate_id();
-	add_chat(chat_id, title);
+	data_add_chat(chat_id, title);
 	
 	servent_data *local = servent_get_local();
-	add_user_to_chat(chat_id, local->id, local->nick, local->ip, local->port);
-	chat *test = get_chat(chat_id);
+	data_add_user_to_chat(chat_id, local->id, local->nick, local->ip, local->port);
+	chat *test = data_get_chat(chat_id);
 	local->chat_list = g_list_append(local->chat_list, (gpointer)test);
 	printf("chat created with ID: %lld\n", test->id);
 	
 	gui_open_chatroom(chat_id);
 	
-	add_exist_user_to_chat(chat_id, servent_get_local()->id);
+	data_add_existing_user_to_chat(chat_id, servent_get_local()->id);
 	gui_add_user_to_chat(chat_id, local->id, local->nick, local->status);
 	return 0;
 }
@@ -822,7 +822,7 @@ int controller_add_user_to_chat(u_int8 chat_id, u_int8 id) {
 
 int controller_rem_user_from_chat(u_int8 chat_id, u_int8 id) {
 	gui_del_user_from_chat(chat_id, id);
-	del_user_from_chat(chat_id, id);
+	data_del_user_from_chat(chat_id, id);
 	return 0;
 }
 

@@ -124,7 +124,7 @@ int read_from_file(const char *filename) {
 				buf = strdup(line);
 				chat_id = strtok_r(buf, ";",&saveptr);
 				title = strtok_r(NULL, ";",&saveptr);
-				add_chat(strtoull(chat_id, NULL, 10), strdup(title));
+				data_add_chat(strtoull(chat_id, NULL, 10), strdup(title));
 				memset(line, 0, 256);;
 				index=0;
 			}
@@ -134,7 +134,7 @@ int read_from_file(const char *filename) {
 				nick = strtok_r(NULL, ";",&saveptr);
 				ip = strtok_r(NULL, ";",&saveptr);
 				port = strtok_r(NULL, ";",&saveptr);
-				add_user_to_chat(strtoull(chat_id, NULL, 10), strtoull(id, NULL, 10), strdup(nick), strdup(ip), strtod(port, NULL));
+				data_add_user_to_chat(strtoull(chat_id, NULL, 10), strtoull(id, NULL, 10), strdup(nick), strdup(ip), strtod(port, NULL));
 				memset(line, 0, 256);
 				index=0;
 			}
@@ -169,7 +169,7 @@ int read_all(void) {
 	return 1;
 }
 
-int add_chat(u_int8 id, const char *title) {
+int data_add_chat(u_int8 id, const char *title) {
 	if(chat_hashtable==NULL) {
 		chat_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
 	}
@@ -190,7 +190,7 @@ int add_chat(u_int8 id, const char *title) {
 	return 0;
 }
 
-int add_all_to_chat(GList *chats) {
+int data_add_all_to_chat(GList *chats) {
 	if(chats==NULL) {
 		return -1;
 	}
@@ -201,20 +201,20 @@ int add_all_to_chat(GList *chats) {
 	GList *user_list;
 	for(; i<g_list_length(chats); i++) {
 		elem = (chat*)g_list_nth_data(chats, i);
-		add_chat(elem->id, elem->title);
+		data_add_chat(elem->id, elem->title);
 		if(elem->users!=NULL) {
 			logger(SYS_INFO, "[add_all_to_chat]Utenti presenti\n");
 			user_list = g_hash_table_get_values(elem->users);
 			for(j=0; j<g_list_length(user_list); j++) {
 				user = (chatclient*)g_list_nth_data(user_list, j);
-				add_user_to_chat(elem->id, user->id, user->nick, user->ip, user->port);
+				data_add_user_to_chat(elem->id, user->id, user->nick, user->ip, user->port);
 			}
 		}
 	}
 	return 0;
 }
 
-int del_chat(u_int8 id) {
+int data_del_chat(u_int8 id) {
 	if(chat_hashtable==NULL)
 		return -1;
 	
@@ -223,7 +223,7 @@ int del_chat(u_int8 id) {
 	return 0;
 }
 
-int add_exist_user_to_chat(u_int8 chat_id, u_int8 id) {
+int data_add_existing_user_to_chat(u_int8 chat_id, u_int8 id) {
 	if(chat_hashtable==NULL || chatclient_hashtable==NULL)
 		return -1;
 	
@@ -238,7 +238,7 @@ int add_exist_user_to_chat(u_int8 chat_id, u_int8 id) {
 	return 0;
 }
 
-int add_users_to_chat(u_int8 chat_id, GList *users) {
+int data_add_users_to_chat(u_int8 chat_id, GList *users) {
 	if(users==NULL) {
 		logger(SYS_INFO, "[add_users_to_chat]Users NULL\n");
 		return -1;
@@ -249,12 +249,12 @@ int add_users_to_chat(u_int8 chat_id, GList *users) {
 		if(user == NULL) {
 			logger(SYS_INFO, "[add_users_to_chat] users null\n");
 		}
-		add_user_to_chat (chat_id, user->id, user->nick, user->ip, user->port);
+		data_add_user_to_chat (chat_id, user->id, user->nick, user->ip, user->port);
 	}
 	return 0;
 }
 
-int add_user_to_chat(u_int8 chat_id, u_int8 id, const char *nick, const char *ip, u_int4 port) {
+int data_add_user_to_chat(u_int8 chat_id, u_int8 id, const char *nick, const char *ip, u_int4 port) {
 	
 	if(chat_hashtable==NULL)
 		return -1;
@@ -262,7 +262,7 @@ int add_user_to_chat(u_int8 chat_id, u_int8 id, const char *nick, const char *ip
 	if(chatclient_hashtable==NULL)
 		chatclient_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
 	
-	add_user(id, nick, ip, port);
+	data_add_user(id, nick, ip, port);
 	
 	chatclient *chatclient_str = (chatclient*)calloc(1, sizeof(chatclient));
 	chatclient_str->id = id;
@@ -287,7 +287,7 @@ int add_user_to_chat(u_int8 chat_id, u_int8 id, const char *nick, const char *ip
 	return 0;
 }
 
-int add_user(u_int8 id, const char *nick, const char *ip, u_int4 port) {
+int data_add_user(u_int8 id, const char *nick, const char *ip, u_int4 port) {
 	
 	if(chatclient_hashtable==NULL)
 		chatclient_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
@@ -302,7 +302,7 @@ int add_user(u_int8 id, const char *nick, const char *ip, u_int4 port) {
 	return 0;
 }
 
-int del_user(u_int8 id) {
+int data_del_user(u_int8 id) {
 	if(chatclient_hashtable==NULL)
 		return -1;
 	
@@ -311,7 +311,7 @@ int del_user(u_int8 id) {
 	return 0;
 }
 
-int del_user_from_chat(u_int8 chat_id, u_int8 id) {
+int data_del_user_from_chat(u_int8 chat_id, u_int8 id) {
 	if(chat_hashtable==NULL || chatclient_hashtable==NULL)
 		return -1;
 	
@@ -322,11 +322,11 @@ int del_user_from_chat(u_int8 chat_id, u_int8 id) {
 	return 0;
 }
 
-chat *search_chat_local(const char *title) {
-	return search_chat(title);
+chat *data_search_chat_local(const char *title) {
+	return data_search_chat(title);
 }
 
-chat *search_chat(const char *title) {
+chat *data_search_chat(const char *title) {
 	if(title==NULL || chat_hashtable==NULL)
 		return NULL;
 	
@@ -341,7 +341,7 @@ chat *search_chat(const char *title) {
 	return NULL;
 }
 
-GList *search_all_chat(const char *title) {
+GList *data_search_all_chat(const char *title) {
 	if(title==NULL) {
 		printf("[search_all_chat]title NULL\n");
 		return NULL;
@@ -369,11 +369,11 @@ GList *search_all_chat(const char *title) {
 	return listallchat;
 }
 
-GList *search_all_local_chat(const char *title) {
-	return search_all_chat(title);
+GList *data_search_all_local_chat(const char *title) {
+	return data_search_all_chat(title);
 }
 
-chatclient *search_chatclient(const char *nick) {
+chatclient *data_search_chatclient(const char *nick) {
 	if(nick==NULL || chatclient_hashtable==NULL) {
 		return NULL;
 	}
@@ -395,7 +395,7 @@ chatclient *search_chatclient(const char *nick) {
  * 22;simone;127.0.0.1;2110;
  * 33;simon;127.0.0.1;2110;
  */
-char *chatlist_to_char(GList *chat_list, int *len) {
+char *data_chatlist_to_char(GList *chat_list, int *len) {
 	if(chat_list==NULL) {
 		printf("[chatlist_to_char]chat_list NULL\n");
 		return NULL;
@@ -454,7 +454,7 @@ char *chatlist_to_char(GList *chat_list, int *len) {
  * |222;test;
  * 333;si.......
  */
-GList *char_to_chatlist(const char *buffer, int len) {
+GList *data_char_to_chatlist(const char *buffer, int len) {
 	char *saveptr, *saveptr2;
 	char *buffer2 = strdup(buffer);
 	char *token;
@@ -494,7 +494,7 @@ GList *char_to_chatlist(const char *buffer, int len) {
  * 22;simone;127.0.0.1;2110;
  * 33;simon;127.0.0.1;2110;
  */
-char *userlist_to_char(GList *user_list, int *len) {
+char *data_userlist_to_char(GList *user_list, int *len) {
 	if(user_list==NULL) {
 		printf("[userlist_to_char]user_list NULL\n");
 		return NULL;
@@ -510,7 +510,7 @@ char *userlist_to_char(GList *user_list, int *len) {
 	int cur = 0;
 	char *ret = (char*)calloc(cur_size, 1);
 	char *line = (char*)calloc(512, 1);
-	int i, j;
+	int j;
 	for(j=0; j<g_list_length(user_list); j++) {
 		printf("[userlist_to_char] entering for\n");
 		chatclient_elem = (chatclient*)g_list_nth_data(user_list, j);
@@ -537,12 +537,10 @@ char *userlist_to_char(GList *user_list, int *len) {
 /*
  * Converte una stringa in una lista di utenti
  */
-GList *char_to_userlist(const char *buffer, int len) {
+GList *data_char_to_userlist(const char *buffer, int len) {
 	char *saveptr, *saveptr2;
 	char *buffer2 = strdup(buffer);
 	char *token;
-	int i=0;
-	int line=-1;
 	
 	GList *user_list = NULL;	
 	while((token = strtok_r(buffer2, "\n", &saveptr))!=NULL) {
@@ -560,17 +558,17 @@ GList *char_to_userlist(const char *buffer, int len) {
 /*
  * Ritorna una lista di tutti i client della chat specificata
  */
-GList *get_chatclient_from_chat(const char *title) {
+GList *data_get_chatclient_from_chat(u_int8 id) {
 	chat *chatval;
-	if((chatval=search_chat(title))!=NULL)
+	if((chatval=data_get_chat(id))!=NULL)
 		return g_hash_table_get_values(chatval->users);
 	return NULL;
 }
 
-chat *get_chat(u_int8 chat_id) {
+chat *data_get_chat(u_int8 chat_id) {
 	return g_hash_table_lookup(chat_hashtable, to_string(chat_id));
 }
 
-chatclient *get_chatclient(u_int8 id) {
+chatclient *data_get_chatclient(u_int8 id) {
 	return g_hash_table_lookup(chatclient_hashtable, to_string(id));
 }
