@@ -1,0 +1,20 @@
+*Per generare il Makefile bisogna seguire i seguenti passi:*
+
+  #1 Posizionarsi nella radice del progetto;
+  #2 Eseguire il file `./autogen.sh`;
+  #3 Ora il Makefile è pronto, per compilare basta eseguire `make` dalla radice del progetto.
+
+*Esecuzione Programma*
+
+  *Il file di esecuzione si trova nella directory `src`;
+  *I file di configurazione in `src/conf`;
+  *I file di init in `src/data`;
+
+*Esempio di esecuzione*
+
+  #1 Posizionarsi in `src`;
+  #2 Eseguire `./tortella ./conf/tortella.conf`
+  #3 Posizionarsi in `src/temp` (crearla se non esiste);
+  #4 Eseguire `./tortella ../conf/tortella1.conf ../data/init_data`.
+
+Dedicato al Roscio e a Vibra
