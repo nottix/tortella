@@ -37,6 +37,8 @@ int controller_leave_all_chat();
 
 int controller_connect_users(GList *users);
 
+int controller_check_users_con(GList *users);
+
 int controller_send_bye(); 
 
 int controller_receive_bye();

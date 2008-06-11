@@ -24,7 +24,7 @@ AC_CHECK_HEADERS([arpa/inet.h fcntl.h netinet/in.h stdlib.h string.h sys/ioctl.h
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
-#AM_PROG_CC_C_O
+AM_PROG_CC_C_O
 
 # Checks for library functions.
 #AC_REPLACE_FUNCS

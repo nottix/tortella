@@ -43,9 +43,11 @@ int servent_start_server(char *local_ip, u_int4 local_port) {
 	return 0;
 }
 
-int servent_start_client(char *dest_ip, u_int4 dest_port) {
+servent_data *servent_start_client(char *dest_ip, u_int4 dest_port, u_int8 id) {
 	pthread_t *clithread = (pthread_t*)calloc(1, sizeof(pthread_t));
 	u_int8 cliid = new_connection_counter++;
+	if(id >= conf_get_gen_start())
+		cliid = id;
 	
 	servent_data *servent = (servent_data*)calloc(1, sizeof(servent_data));
 	servent->id = cliid;
@@ -53,16 +55,21 @@ int servent_start_client(char *dest_ip, u_int4 dest_port) {
 	servent->ip = dest_ip;
 	servent->port = dest_port;
 	servent->chat_list = NULL;
+	servent->queue = g_queue_new();
+	servent->res_queue = g_queue_new();
+	servent->is_online = 0;
 	pthread_mutex_init(&servent->mutex, NULL);
 	pthread_rwlock_init(&servent->rwlock_data, NULL);
 	pthread_cond_init(&servent->cond, NULL);
+	
+	data_add_user(servent->id, servent->nick, servent->ip, servent->port);
 
 	servent->post_type=PING_ID;
 	g_hash_table_insert(servent_hashtable, (gpointer)to_string(cliid), (gpointer)servent);
 	pthread_create(clithread, NULL, servent_connect, (void*)&cliid);
 	client_thread = g_list_prepend(client_thread, (gpointer)(*clithread));
 	
-	return 0;
+	return servent;
 }
 
 int servent_start(GList *init_servent) {
@@ -102,7 +109,7 @@ int servent_init_connection(GList *init_servent) {
 	for(i=0; i<g_list_length(init_servent); i++) {
 		peer = (init_data*)g_list_nth_data(init_servent, i);
 		logger(SOCK_INFO, "[servent_init_connection]ip: %s, port: %d\n", peer->ip, peer->port);
-		if(servent_start_client(peer->ip, peer->port)<0) {
+		if(servent_start_client(peer->ip, peer->port, 0)<0) {
 			logger(SYS_INFO, "[servent_init_connection]Errore connessione a peer conosciuti\n");
 			return -1;
 		}
@@ -169,6 +176,7 @@ int servent_init(char *ip, u_int4 port, u_int1 status) {
 	local_servent->res_queue = g_queue_new();
 	local_servent->status = status;
 	local_servent->nick = conf_get_nick();
+	local_servent->is_online = 1;
 	data_add_user(local_servent->id, local_servent->nick, local_servent->ip, local_servent->port);
 	
 	pthread_mutex_init(&local_servent->mutex, NULL);
@@ -363,6 +371,7 @@ void *servent_responde(void *parm) {
 							conn_servent->status = GET_PING(h_packet->data)->status;
 							conn_servent->timestamp = h_packet->data->header->timestamp;
 							conn_servent->nick = h_packet->data->data;
+							conn_servent->is_online = 1;
 							UNLOCK(id);
 							data_add_user(conn_servent->id, conn_servent->nick, conn_servent->ip, conn_servent->port);
 							printf("[servent_responde]Old PING, nick: %s, status: %c\n", conn_servent->nick, conn_servent->status);
@@ -381,6 +390,7 @@ void *servent_responde(void *parm) {
 								conn_servent->timestamp = h_packet->data->header->timestamp;
 								conn_servent->queue = g_queue_new();
 								conn_servent->res_queue = g_queue_new();
+								conn_servent->is_online = 1;
 								
 								conn_servent->status = GET_PING(h_packet->data)->status;
 								logger(SYS_INFO, "[servent_responde]Status recv: %c\n", conn_servent->status);
@@ -432,6 +442,7 @@ void *servent_responde(void *parm) {
 										tmp->status = GET_PING(h_packet->data)->status;
 										tmp->timestamp = h_packet->data->header->timestamp;
 										tmp->nick = h_packet->data->data;
+										tmp->is_online = 1;
 										data_add_user(tmp->id, tmp->nick, tmp->ip, tmp->port);
 										
 										g_hash_table_insert(servent_hashtable, (gpointer)to_string(tmp->id),(gpointer)tmp);
@@ -826,8 +837,10 @@ void *servent_connect(void *parm) {
 
 	client_fd = g_list_prepend(client_fd, (gpointer)fd);
 
-	servent_peer->queue = g_queue_new();
-	servent_peer->res_queue = g_queue_new();
+	if(servent_peer->queue==NULL)
+		servent_peer->queue = g_queue_new();
+	if(servent_peer->res_queue==NULL)
+		servent_peer->res_queue = g_queue_new();
 
 	//Aggiunta richiesta di PING nella coda del suddetto servent
 	servent_data *tmp;
@@ -967,7 +980,7 @@ void *servent_connect(void *parm) {
 					pthread_exit(NULL);
 					//servent_peer = servent_get(id_dest);
 				}
-				if(id_dest >= conf_get_gen_start() && !(servent_peer->post_type == SEARCH_ID || servent_peer->post_type == SEARCHHITS_ID || servent_peer->post_type==LIST_ID || servent_peer->post_type ==LISTHITS_ID || servent_peer->post_type == CLOSE_ID)) {
+				if(/*id_dest >= conf_get_gen_start() &&*/ !(servent_peer->post_type == SEARCH_ID || servent_peer->post_type == SEARCHHITS_ID || servent_peer->post_type==LIST_ID || servent_peer->post_type ==LISTHITS_ID || servent_peer->post_type == CLOSE_ID)) {
 					servent_append_response(servent_peer, h_packet->header_response->response);
 					logger(SYS_INFO, "[servent_connect]Appended\n");
 				}

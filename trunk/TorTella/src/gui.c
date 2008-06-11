@@ -289,13 +289,14 @@ void gui_open_chat_event (GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewC
 		chat *elem = data_get_chat(atoll(name));
 		if(elem!=NULL) {
 
-			gui_open_chatroom(elem->id);
-			usleep(200);
+			
+			//usleep(200000);
 			controller_connect_users(g_hash_table_get_values(elem->users));
 			
-			controller_request_list(elem->id);  //VA IN DEADLOCK
+			//controller_request_list(elem->id);  //VA IN DEADLOCK
 			//TODO: Attendere che i risultati siano arrivati
-			sleep(1);
+			//sleep(2);
+			gui_open_chatroom(elem->id);
 			controller_join_chat(elem->id);
 		}
 		g_free(name);

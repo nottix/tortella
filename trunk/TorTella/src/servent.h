@@ -67,6 +67,8 @@ struct servent_data {
 	u_int1 hops;	//hops da inviare
 	u_int8 packet_id;	//ID del pacchetto da ritrasmettere
 	
+	u_int1 is_online;	//Flag che indica se il peer è pronto a ricevere pacchetti (viene impostato alla ricezione del primo PING): 1 e 0
+	
 	//USATE SOLO IN LOCALE
 	u_int4 post_type;	//Tipo di pacchetto da inviare
 	
@@ -130,7 +132,7 @@ int servent_create_client(char *dst_ip, u_int4 dst_port);
 
 int servent_start_server(char *local_ip, u_int4 local_port);
 
-int servent_start_client(char *dest_ip, u_int4 dest_port);
+servent_data *servent_start_client(char *dest_ip, u_int4 dest_port, u_int8 id);
 
 int servent_start(GList *init_servent);
 
