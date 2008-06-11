@@ -2,7 +2,8 @@
 
   #1 Posizionarsi nella radice del progetto;
   #2 Eseguire il file `./autogen.sh`;
-  #3 Ora il Makefile è pronto, per compilare basta eseguire `make` dalla radice del progetto.
+  #3 Eseguire il ./configure sempre nella radice del progetto
+  #4 Ora il Makefile è pronto, per compilare basta eseguire `make` dalla radice del progetto.
 
 *Esecuzione Programma*
 
