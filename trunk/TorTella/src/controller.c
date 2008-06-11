@@ -234,7 +234,9 @@ int controller_join_chat(u_int8 chat_id) {
 						sd->chat_id_req = chat_id;
 						sd->post_type = JOIN_ID;
 						
-						sd->chat_list = g_list_append(sd->chat_list, (gpointer)chat_elem); //
+						logger(CTRL_INFO, "[controller_join_chat] chat %s\n", chat_elem->title);
+						servent_get_local()->chat_list = g_list_append(sd->chat_list, (gpointer)chat_elem); //OK???
+						//sd->chat_list = g_list_append(sd->chat_list, (gpointer)chat_elem); //
 						//servent_add_to_chat_list(sd, chat_elem); //Prova
 						//UNLOCK(peer->id);
 						servent_send_packet(sd);
