@@ -508,6 +508,7 @@ void *servent_responde(void *parm) {
 						
 							if(h_packet->data_len>0) {
 								servent_data *sd;
+								printf("[servent_responde] before deadlock\n");
 								RLOCK(conn_servent->id);
 								COPY_SERVENT(conn_servent, sd);
 								UNLOCK(conn_servent->id);
@@ -636,6 +637,7 @@ void *servent_responde(void *parm) {
 								printf("[servent_responde] dopo chat_tmp\n");
 								if(chat_tmp == NULL) {
 									logger(SYS_INFO, "[servent_responde] chat_tmp NULL\n");
+									continue;
 								}
 								logger(SYS_INFO, "[servent_responde] chat tmp varie %s e %lld\n", chat_tmp->title, chat_tmp->id); 
 				
@@ -823,7 +825,7 @@ void *servent_connect(void *parm) {
 	servent_peer->queue = g_queue_new();
 	servent_peer->res_queue = g_queue_new();
 
-	//Aggiunta richiesta di PING nella coda del sudddetto servent
+	//Aggiunta richiesta di PING nella coda del suddetto servent
 	servent_data *tmp;
 	COPY_SERVENT(servent_peer, tmp);
 	tmp->post_type = PING_ID;

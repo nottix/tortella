@@ -566,6 +566,8 @@ GList *data_get_chatclient_from_chat(u_int8 id) {
 }
 
 chat *data_get_chat(u_int8 chat_id) {
+	if(chat_hashtable == NULL) 
+		return NULL;
 	return g_hash_table_lookup(chat_hashtable, to_string(chat_id));
 }
 
