@@ -169,13 +169,12 @@ int servent_init(char *ip, u_int4 port, u_int1 status) {
 	local_servent->res_queue = g_queue_new();
 	local_servent->status = status;
 	local_servent->nick = conf_get_nick();
-	
 	data_add_user(local_servent->id, local_servent->nick, local_servent->ip, local_servent->port);
 	
 	pthread_mutex_init(&local_servent->mutex, NULL);
 	pthread_rwlock_init(&local_servent->rwlock_data, NULL);
 	pthread_cond_init(&local_servent->cond, NULL);
-	
+	logger(SYS_INFO, "[servent_init] id string %s\n", to_string(id));
 	g_hash_table_insert(servent_hashtable, (gpointer)to_string(id), (gpointer)local_servent);
 	
 	server_fd = NULL;
@@ -615,6 +614,7 @@ void *servent_responde(void *parm) {
 					}
 					else if(h_packet->data->header->desc_id == LIST_ID) {
 						printf("[servent_responde]LIST ricevuto\n");
+						status = HTTP_STATUS_OK;
 						if(get_list_packet(h_packet->data->header->id) == NULL) {
 							new_list_packet(h_packet->data->header->id);
 
@@ -637,6 +637,7 @@ void *servent_responde(void *parm) {
 								printf("[servent_responde] dopo chat_tmp\n");
 								if(chat_tmp == NULL) {
 									logger(SYS_INFO, "[servent_responde] chat_tmp NULL\n");
+									send_post_response_packet(fd, status, 0, NULL);
 									continue;
 								}
 								logger(SYS_INFO, "[servent_responde] chat tmp varie %s e %lld\n", chat_tmp->title, chat_tmp->id); 
@@ -687,22 +688,25 @@ void *servent_responde(void *parm) {
 										printf("[servent_responde]Retrasmitting LIST packet to other peers\n");
 									}
 								}		   
-							} 
+							}  
 							status = HTTP_STATUS_OK;
 						} 
+							
 							
 					}
 					else if(h_packet->data->header->desc_id == LISTHITS_ID) {
 						printf("[servent_responde]LISTHITS ricevuto\n");
 						GList *user_list = data_char_to_userlist(tortella_get_data(h_packet->data_string), h_packet->data->header->data_len);
+						printf("[servent_responde] dopo data_char_to_userlist\n");
 						data_add_users_to_chat(GET_LISTHITS(h_packet->data)->chat_id, user_list);
-						
+						printf("[servent_responde] dopo add users to chat\n");
 						route_entry *entry = get_route_entry(h_packet->data->header->id, list_route_hashtable);
+						printf("[servent_responde] dopo get_route_entry\n");
 						if(entry!=NULL) {
 							RLOCK(entry->sender_id);
 							servent_data *sd;
 							servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(entry->sender_id));
-							
+							printf("[servent_responde] dopo hash_table_lookup\n");
 							COPY_SERVENT(conn_servent, sd);
 							sd->packet_id = h_packet->data->header->id;
 							sd->chat_res = user_list;
@@ -963,7 +967,7 @@ void *servent_connect(void *parm) {
 					pthread_exit(NULL);
 					//servent_peer = servent_get(id_dest);
 				}
-				if(id_dest >= conf_get_gen_start() /*&& (servent_peer->post_type == SEARCH_ID && servent_peer->post_type == SEARCHHITS_ID && servent_peer->post_type==LIST_ID && servent_peer->post_type ==LISTHITS_ID && servent_peer->post_type == CLOSE_ID)*/) {
+				if(id_dest >= conf_get_gen_start() && !(servent_peer->post_type == SEARCH_ID || servent_peer->post_type == SEARCHHITS_ID || servent_peer->post_type==LIST_ID || servent_peer->post_type ==LISTHITS_ID || servent_peer->post_type == CLOSE_ID)) {
 					servent_append_response(servent_peer, h_packet->header_response->response);
 					logger(SYS_INFO, "[servent_connect]Appended\n");
 				}

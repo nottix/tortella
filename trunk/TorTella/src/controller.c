@@ -435,14 +435,14 @@ int controller_send_bye()
 				COPY_SERVENT(peer, sd);
 				UNLOCK(peer->id);
 				
-				//while(strcmp(ret,TIMEOUT)!=0) {
+			//	while(strcmp(ret,TIMEOUT)!=0) { //
 				ret = servent_pop_response(sd);
 				logger(CTRL_INFO, "[controller_send_bye]ret: %s\n", ret);
 				if(strcmp(ret, TIMEOUT)==0) {
 					logger(CTRL_INFO, "[controller_send_bye]TIMEOUT\n");
 					return sd->id;
 				}
-				//}
+			//	} //
 				logger(CTRL_INFO, "[controller_send_bye]RECEIVED OK %s\n", ret);
 				//data_del_user_from_chat(chat_id, client->id);
 				//remove_user_from_chat_list(chat_id, client->id);

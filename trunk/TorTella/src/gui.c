@@ -35,7 +35,7 @@ void gui_close_event (GtkWidget *widget, gpointer gdata)
 	g_print ("Quitting...\n");
 	controller_leave_all_chat();
 	controller_send_bye();
-	sleep(1);
+	//sleep(1);
 	controller_exit();
 	gtk_main_quit();
 	//exit(0);
@@ -293,7 +293,7 @@ void gui_open_chat_event (GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewC
 			usleep(200);
 			controller_connect_users(g_hash_table_get_values(elem->users));
 			
-			controller_request_list(elem->id);
+			controller_request_list(elem->id);  //VA IN DEADLOCK
 			//TODO: Attendere che i risultati siano arrivati
 			sleep(1);
 			controller_join_chat(elem->id);
