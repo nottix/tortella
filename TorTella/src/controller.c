@@ -356,45 +356,107 @@ int controller_leave_all_chat()
 
 int controller_connect_users(GList *users) {
 	if(users!=NULL) {
-		int i;
+		int i, counter = 3;
 		chatclient *client;
+		GList *users_orig = users;
 		servent_data *peer, *sd;
+		GList *response = NULL;
+		GList *timeout = NULL;
 		char *ret;
-		for(i=0; i<g_list_length(users); i++) {
-			client = (chatclient*)g_list_nth_data(users, i);
-			logger(CTRL_INFO, "[controller_connect_users]Connecting to client: %s\n", client->nick);
-			logger(CTRL_INFO, "[controller_connect_users]Get local status: %s\n", to_string(servent_get_local()->status));
-			if(servent_get(client->id)==NULL)
-				servent_start_client(client->ip, client->port);
-			else
-				logger(CTRL_INFO, "[controller_connect_users]Già connesso\n");
-		}
 		
-		for(i=0; i<g_list_length(users); i++) {
-			client = (chatclient*)g_list_nth_data(users, i);
-			if(client!=NULL) {
-				peer = servent_get(client->id);
-				logger(CTRL_INFO, "[controller_connect_users]pop response %lld\n", client->id);
-				if(peer!=NULL && peer->id!=servent_get_local()->id) {
-					RLOCK(peer->id);
-					COPY_SERVENT(peer, sd);
-					UNLOCK(peer->id);
+		while(counter--) {
+			
+			if(timeout!=NULL) {
+				users = timeout;
+				logger(CTRL_INFO, "[controller_connect_users]Retrying\n");
+			}
+			
+			for(i=0; i<g_list_length(users); i++) {
+				client = (chatclient*)g_list_nth_data(users, i);
+				logger(CTRL_INFO, "[controller_connect_users]Connecting to client: %s\n", client->nick);
+				logger(CTRL_INFO, "[controller_connect_users]Get local status: %s\n", to_string(servent_get_local()->status));
+				if(servent_get(client->id)==NULL) {
+					peer = servent_start_client(client->ip, client->port, 0);
+					response = g_list_append(response, (gpointer)peer);
+					
+					ret = servent_pop_response(peer);
+//					logger(CTRL_INFO, "[controller_connect_users]ret: %s\n", ret);
+//					if(strcmp(ret, TIMEOUT)==0) {
+//						logger(CTRL_INFO, "[controller_connect_users]TIMEOUT\n");
+//						timeout = g_list_append(timeout, (gpointer)client);
+//						//Aggiunge alla lista dei non connessi (per ritentare)
+//						break;
+//					}
+//					else {
+//						logger(CTRL_INFO, "[controller_connect_users]RECEIVED OK %s\n", ret);
+//						timeout = NULL;
+//					}
+				}
+				else
+					logger(CTRL_INFO, "[controller_connect_users]Già connesso\n");
+			}
 
-					ret = servent_pop_response(sd);
+			timeout = NULL;
+			for(i=0; i<g_list_length(response); i++) {
+				peer = (servent_data*)g_list_nth_data(response, i);
+				logger(CTRL_INFO, "[controller_connect_users]pop response %lld\n", peer->id);
+				if(peer!=NULL && peer->id!=servent_get_local()->id) {
+
+					ret = servent_pop_response(peer);
 					logger(CTRL_INFO, "[controller_connect_users]ret: %s\n", ret);
 					if(strcmp(ret, TIMEOUT)==0) {
 						logger(CTRL_INFO, "[controller_connect_users]TIMEOUT\n");
-						return sd->id;
+						timeout = g_list_append(timeout, (gpointer)client);
+						//Aggiunge alla lista dei non connessi (per ritentare)
 					}
-					logger(CTRL_INFO, "[controller_connect_users]RECEIVED OK %s\n", ret);
+					else {
+						logger(CTRL_INFO, "[controller_connect_users]RECEIVED OK %s\n", ret);
+					}
 				}
 			}
+			response = NULL;
+			
+			if(timeout==NULL) {
+				counter=-1; //connessioni avvenute con successo
+				logger(CTRL_INFO, "[controller_connect_users]Checking users connections\n");
+				controller_check_users_con(users_orig);
+				break;
+			}
 		}
-		
-		return 0;
+		if(counter==-1)
+			return 0;
 	}
 	
 	return -1;
+}
+
+int controller_check_users_con(GList *users) {
+	if(users==NULL)
+		return -1;
+	
+	servent_data *client;
+	chatclient *user;
+	logger(CTRL_INFO, "[controller_check_users_con]Init\n");
+	int counter=3, i;
+	while(counter--) {
+		logger(CTRL_INFO, "[controller_check_users_con]while counter: %d\n", counter);
+		for(i=0; i<g_list_length(users); i++) {
+			user = g_list_nth_data(users, i);
+			logger(CTRL_INFO, "[controller_check_users_con]User nick: %s\n", user->nick);
+			if(user!=NULL) {
+				client = servent_get(user->id);
+				logger(CTRL_INFO, "[controller_check_users_con]client nick: %s\n", client->nick);
+				if((client!=NULL) && (!client->is_online)) {
+					logger(CTRL_INFO, "[controller_check_users_con]Servent %lld non pronto, is_online %d\n", client->id, client->is_online);
+					usleep(200000);
+					continue;
+				}
+			}
+			counter=0;
+		}
+	}
+	
+	return 0;
 }
 
 int controller_send_bye() 
@@ -507,21 +569,21 @@ int controller_request_list(u_int8 chat_id) //PROVA
 	}
 	//Da gestire i timeout
 	
-	char *ret;
-	for(i=0; i<g_list_length(servents); i++) {
-		servent = g_list_nth_data(servents, i);
-		if(servent->id!=servent_get_local()->id) {
-			ret = servent_pop_response(servent);
-			if(strcmp(ret, TIMEOUT)==0) {
-				logger(CTRL_INFO, "[controller_request_list]TIMEOUT\n");
-				return servent->id;
-			}
-			printf("RECEIVED %s\n", ret);
-		}
-		else
-			logger(INFO, "[controller_request_list]Local response");
-		
-	}
+//	char *ret;
+//	for(i=0; i<g_list_length(servents); i++) {
+//		servent = g_list_nth_data(servents, i);
+//		if(servent->id!=servent_get_local()->id) {
+//			ret = servent_pop_response(servent);
+//			if(strcmp(ret, TIMEOUT)==0) {
+//				logger(CTRL_INFO, "[controller_request_list]TIMEOUT\n");
+//				return servent->id;
+//			}
+//			printf("RECEIVED %s\n", ret);
+//		}
+//		else
+//			logger(INFO, "[controller_request_list]Local response");
+//		
+//	}
 	logger(INFO, "[controller_request_list]End");
 	
 	return 0;
@@ -785,23 +847,22 @@ u_int8 controller_search(const char *query) {
 			logger(INFO, "[controller_search]Local ID\n");
 		
 	}
-	//Da gestire i timeout
 	
-	char *ret;
-	for(i=0; i<g_list_length(servents); i++) {
-		servent = g_list_nth_data(servents, i);
-		if(servent->id!=servent_get_local()->id) {
-			ret = servent_pop_response(servent);
-			if(strcmp(ret, TIMEOUT)==0) {
-				logger(CTRL_INFO, "[controller_search]TIMEOUT\n");
-				return servent->id;
-			}
-			printf("RECEIVED %s\n", ret);
-		}
-		else
-			logger(INFO, "[controller_search]Local response");
-		
-	}
+//	char *ret;
+//	for(i=0; i<g_list_length(servents); i++) {
+//		servent = g_list_nth_data(servents, i);
+//		if(servent->id!=servent_get_local()->id) {
+//			ret = servent_pop_response(servent);
+//			if(strcmp(ret, TIMEOUT)==0) {
+//				logger(CTRL_INFO, "[controller_search]TIMEOUT\n");
+//				return servent->id;
+//			}
+//			printf("[controller_search]RECEIVED %s\n", ret);
+//		}
+//		else
+//			logger(INFO, "[controller_search]Local response");
+//		
+//	}
 	logger(INFO, "[controller_search]End");
 	
 	return 0;
