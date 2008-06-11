@@ -541,17 +541,24 @@ GList *data_char_to_userlist(const char *buffer, int len) {
 	char *saveptr, *saveptr2;
 	char *buffer2 = strdup(buffer);
 	char *token;
-	
+	printf("Prima di prova \n");
 	GList *user_list = NULL;	
 	while((token = strtok_r(buffer2, "\n", &saveptr))!=NULL) {
+		printf("dentro while\n");
+		
 		chatclient *chat_client=(chatclient *)calloc(1, sizeof(chatclient));	
-		chat_client->id=atoll(strtok_r(buffer2, ";", &saveptr2));
+		chat_client->id=atoll(strtok_r(token, ";", &saveptr2));
+		printf("id: %lld\n",chat_client->id);
 		chat_client->nick=strdup(strtok_r(NULL, ";", &saveptr2));
+		printf("nick: %s\n",chat_client->nick);
 		chat_client->ip=strdup(strtok_r(NULL, ";", &saveptr2));
+		printf("ip: %s\n",chat_client->ip);
 		chat_client->port= atoi(strtok_r(NULL, ";", &saveptr2));
+		printf("port: %d\n",chat_client->port);
 		user_list = g_list_append(user_list, (gpointer)chat_client);
 		buffer2 = NULL;
 	}
+	printf("fuori while\n");
 	return user_list;
 }
 
