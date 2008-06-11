@@ -15,7 +15,7 @@ AC_PROG_LIBTOOL
 AC_PATH_XTRA
 PKG_PROG_PKG_CONFIG
 PKG_CHECK_MODULES([gtk], [gtk+-2.0 >= 2.12.0])
-PKG_CHECK_MODULES([gthread], [gthread >= 1.2.0])
+PKG_CHECK_MODULES([gthread], [gthread-2.0 >= 2.0])
 
 # Checks for header files.
 AC_HEADER_DIRENT
