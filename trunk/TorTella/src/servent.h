@@ -91,6 +91,7 @@ static servent_data *local_servent;
 static u_int8 new_connection_counter = 10000;
 
 static pthread_t *timer_thread;
+static pthread_t *list_thread;
 
 static GList *client_fd;
 static GList *server_fd;
@@ -137,6 +138,8 @@ servent_data *servent_start_client(char *dest_ip, u_int4 dest_port, u_int8 id);
 int servent_start(GList *init_servent);
 
 int servent_start_timer(void);
+
+int servent_start_list_flooding(void);
 
 int servent_init_connection(GList *init_servent);
 
@@ -186,5 +189,7 @@ void *servent_responde(void *parm);
 void *servent_connect(void *parm);
 
 void *servent_timer(void *parm);
+
+void *servent_list_flooding();
 
 #endif //SERVENT_H

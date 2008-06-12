@@ -93,13 +93,19 @@ int servent_start(GList *init_servent) {
 		}
 		
 	}
-
+	servent_start_list_flooding ();
 	return 0;
 }
 
 int servent_start_timer(void) {
 	timer_thread = (pthread_t*)calloc(1, sizeof(pthread_t));
 	pthread_create(timer_thread, NULL, servent_timer, NULL);
+	return 0;
+}
+
+int servent_start_list_flooding(void) {
+	list_thread = (pthread_t*)calloc(1, sizeof(pthread_t));
+	pthread_create(list_thread, NULL, servent_list_flooding, NULL);
 	return 0;
 }
 
@@ -194,6 +200,7 @@ int servent_init(char *ip, u_int4 port, u_int1 status) {
 	server_connection_thread = NULL;
 	
 	timer_thread = NULL;
+	list_thread = NULL;
 	
 	return 0;
 }
@@ -518,7 +525,6 @@ void *servent_responde(void *parm) {
 						
 							if(h_packet->data_len>0) {
 								servent_data *sd;
-								printf("[servent_responde] before deadlock\n");
 								RLOCK(conn_servent->id);
 								COPY_SERVENT(conn_servent, sd);
 								UNLOCK(conn_servent->id);
@@ -624,7 +630,7 @@ void *servent_responde(void *parm) {
 						
 					}
 					else if(h_packet->data->header->desc_id == LIST_ID) {
-						printf("[servent_responde]LIST ricevuto\n");
+						printf("[servent_responde]LIST ricevuto %lld\n", h_packet->data->header->sender_id);
 						status = HTTP_STATUS_OK;
 						if(get_list_packet(h_packet->data->header->id) == NULL) {
 							new_list_packet(h_packet->data->header->id);
@@ -644,20 +650,20 @@ void *servent_responde(void *parm) {
 								UNLOCK(conn_servent->id);
 
 								printf("[servent_responde]Searching list %lld\n", GET_LIST(h_packet->data)->chat_id);
-								chat *chat_tmp = data_get_chat(GET_LIST(h_packet->data)->chat_id);
+								chat *chat_tmp = data_get_chat(GET_LIST(h_packet->data)->chat_id); // nella search era li search_all_local_chat
 								printf("[servent_responde] dopo chat_tmp\n");
 								if(chat_tmp == NULL) {
 									logger(SYS_INFO, "[servent_responde] chat_tmp NULL\n");
-									send_post_response_packet(fd, status, 0, NULL);
+									send_post_response_packet(fd, status, 0, NULL); // Nella search non si fa xkè chat_tmp non è mai null
 									continue;
 								}
 								logger(SYS_INFO, "[servent_responde] chat tmp varie %s e %lld\n", chat_tmp->title, chat_tmp->id); 
 				
 								logger(SYS_INFO, "[servent_responde]Sending to ID: %lld\n", sd->id);
-								sd->user_res = g_hash_table_get_values(chat_tmp->users);
+								sd->user_res = g_hash_table_get_values(chat_tmp->users); //nella search era sd->chat_res
 								sd->packet_id = h_packet->data->header->id;
 								sd->post_type = LISTHITS_ID;
-								sd->chat_id_req = chat_tmp->id;
+								sd->chat_id_req = chat_tmp->id; //
 								servent_send_packet(sd); 
 							/*	char *ret = servent_pop_response (sd);
 								if(strcmp(ret,TIMEOUT) == 0) {
@@ -667,7 +673,7 @@ void *servent_responde(void *parm) {
 							}
 
 						
-							printf("[servent_responde]Sending SEARCHHITS packet to searching peer\n");
+							printf("[servent_responde]Sending LISTHITS packet to searching peer\n");
 						
 							/********COMPILA MA POTREBBE NON FUNZIONARE********/
 							if(GET_LIST(h_packet->data)->ttl>0) {
@@ -686,15 +692,15 @@ void *servent_responde(void *parm) {
 										sd->hops = GET_LIST(h_packet->data)->hops+1;
 										//sd->title = tortella_get_data(h_packet->data_string);
 										//sd->title_len = h_packet->data->header->data_len;
-										sd->chat_id_req = GET_LIST(h_packet->data)->chat_id;
+										sd->chat_id_req = GET_LIST(h_packet->data)->chat_id; 
 										sd->packet_id = h_packet->data->header->id;
 										sd->post_type = LIST_ID;
 										UNLOCK(conn_servent->id);
 										servent_send_packet(sd);
-										char *ret = servent_pop_response (sd);
-										if(strcmp(ret,TIMEOUT) == 0) {
-											logger(SYS_INFO, "[servent_responde] TIMEOUT\n");
-										}
+									/*	char *ret = servent_pop_response (sd);  //PERCHE' C'ERA IL POP RESPONSE?
+										if(strcmp(ret,TIMEOUT) == 0) {			//
+											logger(SYS_INFO, "[servent_responde] TIMEOUT\n"); //
+										} */ 
 										add_route_entry(h_packet->data->header->id, h_packet->data->header->sender_id, conn_servent->id, list_route_hashtable);
 										printf("[servent_responde]Retrasmitting LIST packet to other peers\n");
 									}
@@ -707,9 +713,20 @@ void *servent_responde(void *parm) {
 					}
 					else if(h_packet->data->header->desc_id == LISTHITS_ID) {
 						printf("[servent_responde]LISTHITS ricevuto\n");
-						GList *user_list = data_char_to_userlist(tortella_get_data(h_packet->data_string), h_packet->data->header->data_len);
+						GList *user_list = data_char_to_userlist(tortella_get_data(h_packet->data_string), h_packet->data->header->data_len); //
 						printf("[servent_responde] dopo data_char_to_userlist\n");
-						data_add_users_to_chat(GET_LISTHITS(h_packet->data)->chat_id, user_list);
+						data_add_users_to_chat(GET_LISTHITS(h_packet->data)->chat_id, user_list); //
+						//PROVA 
+						
+						int i = 0;
+						for(;i< g_list_length(user_list); i++) {
+							printf("[servent_responde] dentro for addiung user\n");
+							chatclient *tmp = (chatclient*)g_list_nth_data(user_list, i);
+							if(tmp == NULL) 
+								logger(SYS_INFO, "[servent_responde] tmp null\n");
+							controller_add_user_to_chat(GET_LISTHITS(h_packet->data)->chat_id, tmp->id);
+						}  
+						//FINE PROVA
 						printf("[servent_responde] dopo add users to chat\n");
 						route_entry *entry = get_route_entry(h_packet->data->header->id, list_route_hashtable);
 						printf("[servent_responde] dopo get_route_entry\n");
@@ -719,8 +736,9 @@ void *servent_responde(void *parm) {
 							servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(entry->sender_id));
 							printf("[servent_responde] dopo hash_table_lookup\n");
 							COPY_SERVENT(conn_servent, sd);
-							sd->packet_id = h_packet->data->header->id;
-							sd->chat_res = user_list;
+							sd->packet_id = h_packet
+								->data->header->id;
+							sd->user_res = user_list; 
 							sd->post_type = LISTHITS_ID; 
 							UNLOCK(entry->sender_id);
 							servent_send_packet(sd);
@@ -973,6 +991,7 @@ void *servent_connect(void *parm) {
 					}
 				}
 			}
+			
 			if(h_packet != NULL) {
 				logger(SYS_INFO, "[servent_connect]Appending response\n");
 				if(servent_peer==NULL) {
@@ -1017,6 +1036,55 @@ void *servent_timer(void *parm) {
 		}
 		
 		printf("[servent_timer]Sleeping\n");
+		sleep(timer_interval);
+	}
+}
+
+void *servent_list_flooding() { //PROVA, VA IN SGFAULT
+	logger(SYS_INFO, "[servent_list_flooding] --------------------------------------------------\n");
+	chat *chat_tmp;
+	servent_data *sd_tmp, *sd;
+	GList *users = NULL;
+	chatclient *chatclient_tmp;
+	
+	while(1) {
+		logger(SYS_INFO, "[servent_list_flooding] STO PER INVIARE UN LIST\n");
+		servent_data *data = servent_get_local();
+		GList *chat_list = data->chat_list;
+		logger(SYS_INFO, "[servent_list_flooding] lunghezza chat list %d\n", g_list_length(chat_list));
+		
+		int i=0;
+		for(i=0; i < g_list_length(chat_list); i++) {
+			chat_tmp = g_list_nth_data(chat_list, i);
+			logger(SYS_INFO, "[servent_list_flooding] sending list to chat_id %lld\n", chat_tmp->id);
+			users = g_hash_table_get_values(chat_tmp->users);
+			int j=0;
+			for(; j < g_list_length(users); j++) {
+				logger(SYS_INFO, "[servent_list_flooding] before chatclient\n");
+				chatclient_tmp = (chatclient*)(g_list_nth_data(users, j));
+
+				if(servent_hashtable == NULL) 
+					logger(SYS_INFO, "[servent_list_flooding] hashtable null\n");
+				if(chatclient_tmp == NULL)
+					logger(SYS_INFO, "[servent_list_flooding] chatclient NULL\n");
+				logger(SYS_INFO, "[servent_list_flooding] id chatclient %lld\n", chatclient_tmp->id);
+				sd_tmp = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(chatclient_tmp->id)); 
+				if(sd_tmp == NULL) {
+					logger(SYS_INFO, "[servent_list_flooding] sd_tmp NULL\n");
+					continue;
+				}
+				logger(SYS_INFO, "[servent_list_flooding] sending list to id %lld\n", sd_tmp->id);
+				if(sd_tmp->id != data->id) {
+					RLOCK(sd_tmp->id);
+					COPY_SERVENT(sd_tmp, sd);
+					UNLOCK(sd_tmp->id);
+					sd->post_type = LIST_ID;
+					servent_send_packet(sd);
+				}
+			}
+			
+			
+		}
 		sleep(timer_interval);
 	}
 }
