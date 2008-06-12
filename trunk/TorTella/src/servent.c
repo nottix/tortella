@@ -93,7 +93,6 @@ int servent_start(GList *init_servent) {
 		}
 		
 	}
-	servent_start_list_flooding ();
 	return 0;
 }
 
@@ -1018,6 +1017,7 @@ void *servent_connect(void *parm) {
 void *servent_timer(void *parm) {
 	GList *list;
 	servent_data *data, *tmp;
+	char *ret;
 	int i;
 	
 	while(1) {
@@ -1031,6 +1031,12 @@ void *servent_timer(void *parm) {
 				COPY_SERVENT(data, tmp);
 				tmp->post_type = PING_ID;
 				servent_send_packet(tmp);
+				ret = servent_pop_response(tmp);
+				if(ret!=NULL && strcmp(ret, TIMEOUT)==0) {
+					logger(SYS_INFO, "[servent_timer]Timer scaduto per %lld\n", data->id);
+					//Uccidere thread ed eliminare i dati
+				}
+				
 				printf("[servent_timer]Signaling %lld\n", data->id);
 			}
 		}

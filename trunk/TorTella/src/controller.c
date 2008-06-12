@@ -601,7 +601,9 @@ int controller_init(const char *filename, const char *cache) {
 	
 	servent_start(init_list);
 
-	//servent_start_timer();
+	servent_start_timer();
+	
+	//servent_start_list_flooding();
 	
 	return 0;
 } 
@@ -891,7 +893,7 @@ int controller_create(const char *title) {
 }
 
 int controller_add_user_to_chat(u_int8 chat_id, u_int8 id) {
-	logger(CTRL_INFO, "[controller_add_user_to_chat]\n"); //QUI CRASHA, NON SI DEVONO PRENDERE DA CHATCLIENT INVECE CHE SERVENT DATA?
+	logger(CTRL_INFO, "[controller_add_user_to_chat]\n"); //Devono essere presi da servent, perchè il peer deve essere prima connesso
 	servent_data *servent = servent_get(id);
 	logger(CTRL_INFO, "[controller_add_user_to_chat]Addingi user: %s, id: %lld, status: %c\n", servent->nick, servent->id, servent->status);
 	if(servent->status == ONLINE_ID)
