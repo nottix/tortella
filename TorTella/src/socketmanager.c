@@ -173,11 +173,11 @@ int send_packet(int sock_descriptor, char *buffer, int len)
 {
 	int char_write = 0;
 	if (sock_descriptor < 0) {
-		logger(SOCK_INFO, "[send_packet]Socket descriptor not valid, sock_descriptor = %d", sock_descriptor);
+		logger(SOCK_INFO, "[send_packet]Socket descriptor not valid, sock_descriptor = %d\n", sock_descriptor);
 		return -1;
 	}
 	if(buffer==NULL) {
-		logger(SOCK_INFO, "[send_packet]Buffer non valido, sock_descriptor = %d", sock_descriptor);
+		logger(SOCK_INFO, "[send_packet]Buffer non valido, sock_descriptor = %d\n", sock_descriptor);
 		return -3;
 	}
 	// Questa blocco si potrebbe ritentare per n volte, dove n e' un

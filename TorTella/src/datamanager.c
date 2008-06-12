@@ -249,6 +249,7 @@ int data_add_users_to_chat(u_int8 chat_id, GList *users) {
 		if(user == NULL) {
 			logger(SYS_INFO, "[add_users_to_chat] users null\n");
 		}
+		logger(SYS_INFO, "[data_add_users_to_chat] adding user %s\n", user->nick);
 		data_add_user_to_chat (chat_id, user->id, user->nick, user->ip, user->port);
 	}
 	return 0;

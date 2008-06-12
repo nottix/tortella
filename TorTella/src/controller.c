@@ -587,7 +587,7 @@ int controller_request_list(u_int8 chat_id) //PROVA
 	logger(INFO, "[controller_request_list]End");
 	
 	return 0;
-}
+} 
 
 int controller_init(const char *filename, const char *cache) {
 	
@@ -604,7 +604,7 @@ int controller_init(const char *filename, const char *cache) {
 	//servent_start_timer();
 	
 	return 0;
-}
+} 
 
 int controller_exit() {
 	kill_all_thread(0);
@@ -863,7 +863,7 @@ u_int8 controller_search(const char *query) {
 //			logger(INFO, "[controller_search]Local response");
 //		
 //	}
-	logger(INFO, "[controller_search]End");
+	logger(INFO, "[controller_search]End\n");
 	
 	return 0;
 }
@@ -891,7 +891,7 @@ int controller_create(const char *title) {
 }
 
 int controller_add_user_to_chat(u_int8 chat_id, u_int8 id) {
-	
+	logger(CTRL_INFO, "[controller_add_user_to_chat]\n"); //QUI CRASHA, NON SI DEVONO PRENDERE DA CHATCLIENT INVECE CHE SERVENT DATA?
 	servent_data *servent = servent_get(id);
 	logger(CTRL_INFO, "[controller_add_user_to_chat]Addingi user: %s, id: %lld, status: %c\n", servent->nick, servent->id, servent->status);
 	if(servent->status == ONLINE_ID)

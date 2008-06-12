@@ -100,6 +100,8 @@ gint gui_add_chat(u_int8 chat_id, char *chat_name)
 
 gint gui_add_user_to_chat(u_int8 chat_id, u_int8 id, char *user, u_int1 status)
 {
+	//TODO: CONTROLLO DUPLICATI,DOVREBBE ESSERE CORRETTO COSI'
+	logger(INFO, "[gui_add_user_to_chat] Adding user %lld\n", id);
 	gchar *msg = g_strdup_printf(user);
 	if(tree_model_hashtable==NULL) {
 		logger(INFO, "[add_user_to_chat_list]Hashtable NULL\n");
@@ -108,7 +110,73 @@ gint gui_add_user_to_chat(u_int8 chat_id, u_int8 id, char *user, u_int1 status)
 	tree_model *mod = (tree_model*)g_hash_table_lookup(tree_model_hashtable,(gconstpointer)to_string(chat_id));
 
 	if(mod!=NULL) {
-		logger(INFO, "[add_user_to_chat_list]Tree model non NULL\n");
+		GtkTreeIter iter, iter2;
+		gchar *id_tmp;
+		gboolean valid = TRUE;
+		gboolean valid2 = TRUE;
+		if(gtk_tree_model_get_iter_first(GTK_TREE_MODEL(mod->user_model), &iter)==TRUE) {			
+			gtk_tree_model_get_iter_first(GTK_TREE_MODEL(mod->user_model), &iter2);
+			valid2 = gtk_tree_model_iter_next(GTK_TREE_MODEL(mod->user_model), &iter2);
+			while(valid) {
+				logger(INFO, "[gui_add_user_to_chat] entering while\n");
+				gtk_tree_model_get(GTK_TREE_MODEL(mod->user_model), &iter, 1, &id_tmp, -1);
+				logger(INFO, "[gui_add_user_to_chat]ID: %s\n", id_tmp);
+				if(atoll(id_tmp) == id) {
+					logger(INFO, "[gui_add_user_to_chat] existing user\n");	
+					break;
+				}
+				if(atoll(id_tmp)!= id && valid2 == FALSE ) {
+					logger(INFO, "[add_user_to_chat_list]Tree model non NULL\n");
+					gtk_list_store_append(GTK_LIST_STORE(mod->user_model), &(mod->user_iter));
+					gtk_list_store_set(GTK_LIST_STORE(mod->user_model), &(mod->user_iter), 0, msg, -1);
+					g_free(msg);
+
+					msg = g_strdup_printf(to_string(id));
+					//gtk_list_store_append(GTK_LIST_STORE(mod->user_model), &(mod->user_iter));
+					gtk_list_store_set(GTK_LIST_STORE(mod->user_model), &(mod->user_iter), 1, msg, -1);
+					g_free(msg);
+
+					//msg = g_strdup_printf(to_string((u_int8)status));
+					if(status == ONLINE_ID)
+						msg = g_strdup_printf(ONLINE);
+					else if(status == BUSY_ID)
+						msg = g_strdup_printf(BUSY);
+					else if(status == AWAY_ID)
+						msg = g_strdup_printf(AWAY);
+					//gtk_list_store_append(GTK_LIST_STORE(mod->user_model), &(mod->user_iter));
+					gtk_list_store_set(GTK_LIST_STORE(mod->user_model), &(mod->user_iter), 2, msg, -1);
+					g_free(msg);
+				}
+
+				valid = gtk_tree_model_iter_next(GTK_TREE_MODEL(mod->user_model), &iter); 
+				if(valid2!= FALSE);
+					valid2 = gtk_tree_model_iter_next(GTK_TREE_MODEL(mod->user_model), &iter2);
+			}
+		}
+		else
+		{
+			logger(INFO, "inserting first user\n");
+			gtk_list_store_append(GTK_LIST_STORE(mod->user_model), &(mod->user_iter));
+					gtk_list_store_set(GTK_LIST_STORE(mod->user_model), &(mod->user_iter), 0, msg, -1);
+					g_free(msg);
+
+					msg = g_strdup_printf(to_string(id));
+					//gtk_list_store_append(GTK_LIST_STORE(mod->user_model), &(mod->user_iter));
+					gtk_list_store_set(GTK_LIST_STORE(mod->user_model), &(mod->user_iter), 1, msg, -1);
+					g_free(msg);
+
+					//msg = g_strdup_printf(to_string((u_int8)status));
+					if(status == ONLINE_ID)
+						msg = g_strdup_printf(ONLINE);
+					else if(status == BUSY_ID)
+						msg = g_strdup_printf(BUSY);
+					else if(status == AWAY_ID)
+						msg = g_strdup_printf(AWAY);
+					//gtk_list_store_append(GTK_LIST_STORE(mod->user_model), &(mod->user_iter));
+					gtk_list_store_set(GTK_LIST_STORE(mod->user_model), &(mod->user_iter), 2, msg, -1);
+					g_free(msg);
+		}
+		/*logger(INFO, "[add_user_to_chat_list]Tree model non NULL\n"); COMMENTATO PER PROVA
 		gtk_list_store_append(GTK_LIST_STORE(mod->user_model), &(mod->user_iter));
 		gtk_list_store_set(GTK_LIST_STORE(mod->user_model), &(mod->user_iter), 0, msg, -1);
 		g_free(msg);
@@ -127,7 +195,7 @@ gint gui_add_user_to_chat(u_int8 chat_id, u_int8 id, char *user, u_int1 status)
 			msg = g_strdup_printf(AWAY);
 		//gtk_list_store_append(GTK_LIST_STORE(mod->user_model), &(mod->user_iter));
 		gtk_list_store_set(GTK_LIST_STORE(mod->user_model), &(mod->user_iter), 2, msg, -1);
-		g_free(msg);
+		g_free(msg); */
 	}
 	else
 		return -2;
@@ -290,7 +358,8 @@ void gui_open_chat_event (GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewC
 		if(elem!=NULL) {
 
 			
-			//usleep(200000);
+			//controller_request_list(elem->id); COMMENTATO PER PROVA
+			usleep(200000);
 			controller_connect_users(g_hash_table_get_values(elem->users));
 			
 			//controller_request_list(elem->id);  //VA IN DEADLOCK
