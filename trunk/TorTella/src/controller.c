@@ -895,7 +895,7 @@ int controller_add_user_to_chat(u_int8 chat_id, u_int8 id) {
 	servent_data *servent = servent_get(id);
 	logger(CTRL_INFO, "[controller_add_user_to_chat]Addingi user: %s, id: %lld, status: %c\n", servent->nick, servent->id, servent->status);
 	if(servent->status == ONLINE_ID)
-		logger(CTRL_INFO,"[controller_add_user_to_chat] ONLINE\n");
+		logger(CTRL_INFO, "[controller_add_user_to_chat] ONLINE\n");
 	else if(servent->status == AWAY_ID)
 		logger(CTRL_INFO, "[controller_add_user_to_chat] AWAY\n");
 	else if(servent->status == BUSY_ID)

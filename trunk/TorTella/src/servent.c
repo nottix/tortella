@@ -718,14 +718,15 @@ void *servent_responde(void *parm) {
 						data_add_users_to_chat(GET_LISTHITS(h_packet->data)->chat_id, user_list); //
 						//PROVA 
 						
-						int i = 0;
-						for(;i< g_list_length(user_list); i++) {
-							printf("[servent_responde] dentro for addiung user\n");
-							chatclient *tmp = (chatclient*)g_list_nth_data(user_list, i);
-							if(tmp == NULL) 
-								logger(SYS_INFO, "[servent_responde] tmp null\n");
-							controller_add_user_to_chat(GET_LISTHITS(h_packet->data)->chat_id, tmp->id);
-						}  
+//						int i = 0;
+//						for(;i< g_list_length(user_list); i++) {
+//							printf("[servent_responde] dentro for adding user\n");
+//							chatclient *tmp = (chatclient*)g_list_nth_data(user_list, i);
+//							if(tmp == NULL) 
+//								logger(SYS_INFO, "[servent_responde] tmp null\n");
+//							//controller_add_user_to_chat(GET_LISTHITS(h_packet->data)->chat_id, tmp->id);
+//							controller_add_users_to_chat(GET_LISTHITS(h_packet->data)->chat_id, user_list);
+//						}  
 						//FINE PROVA
 						printf("[servent_responde] dopo add users to chat\n");
 						route_entry *entry = get_route_entry(h_packet->data->header->id, list_route_hashtable);
@@ -736,8 +737,7 @@ void *servent_responde(void *parm) {
 							servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(entry->sender_id));
 							printf("[servent_responde] dopo hash_table_lookup\n");
 							COPY_SERVENT(conn_servent, sd);
-							sd->packet_id = h_packet
-								->data->header->id;
+							sd->packet_id = h_packet->data->header->id;
 							sd->user_res = user_list; 
 							sd->post_type = LISTHITS_ID; 
 							UNLOCK(entry->sender_id);
@@ -1078,8 +1078,10 @@ void *servent_list_flooding() { //PROVA, VA IN SGFAULT
 					RLOCK(sd_tmp->id);
 					COPY_SERVENT(sd_tmp, sd);
 					UNLOCK(sd_tmp->id);
+					sd->chat_id_req = chat_tmp->id;
 					sd->post_type = LIST_ID;
 					servent_send_packet(sd);
+					servent_pop_response(sd);
 				}
 			}
 			
