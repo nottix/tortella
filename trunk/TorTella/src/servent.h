@@ -38,7 +38,7 @@
 
 #define TIMEOUT "timeout error"
 
-static u_int4 timer_interval = 5;
+static u_int4 timer_interval = 10;
 
 struct servent_data {
 	u_int8 id;
