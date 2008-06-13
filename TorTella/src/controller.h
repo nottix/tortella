@@ -31,6 +31,8 @@ int controller_send_pm(u_int4 msg_len, char *msg, u_int8 recv_id);
 
 int controller_join_chat(u_int8 chat_id);
 
+int controller_join_single_user(u_int8 chat_id, chatclient *user);
+
 int controller_leave_chat(u_int8 chat_id);
 
 int controller_leave_all_chat();
@@ -44,6 +46,8 @@ int controller_send_bye();
 int controller_receive_bye();
 
 int controller_request_list(u_int8 chat_id); //PROVA
+
+int controller_receive_listhits(u_int8 chat_id, GList *user_list);
 
 int controller_init(const char *filename, const char *cache);
 

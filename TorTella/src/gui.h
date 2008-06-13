@@ -131,6 +131,6 @@ int gui_add_msg_pm(u_int8 sender_id, char *msg);
 
 pm_data *gui_pm_data_get(u_int8 id);
 
-//GList *gui_get_chat_users(u_int8 chat_id);
+GList *gui_get_chat_users(u_int8 chat_id);
 
 #endif //GUI_H

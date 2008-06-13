@@ -278,6 +278,41 @@ int controller_join_chat(u_int8 chat_id) {
 	return -1;
 }
 
+int controller_join_single_user(u_int8 chat_id, chatclient *user) {
+	if(chat_id>0) {
+		printf("eeee2\n");
+		chat *chat_elem = data_get_chat(chat_id);
+		char *ret;
+		servent_data *peer, *sd;
+		if(chat_elem!=NULL) {
+			peer = servent_get(user->id);
+			if (peer != NULL) {
+				RLOCK(peer->id);
+				COPY_SERVENT(peer, sd);
+				UNLOCK(peer->id);
+				sd->chat_id_req = chat_id;
+				sd->post_type = JOIN_ID;
+				logger(CTRL_INFO, "[controller_join_single_user] chat %s e nnick %s\n", chat_elem->title, user->nick);
+				//servent_get_local()->chat_list = g_list_append(sd->chat_list, (gpointer)chat_elem); 
+				servent_send_packet(sd);
+				
+				ret = servent_pop_response(sd);
+				if(ret==NULL) {
+					logger(CTRL_INFO, "[controller_join_dingle_user]Ret NULL\n");
+					return -1;
+				}
+				if(strcmp(ret, TIMEOUT)==0)
+					return peer->id;
+				printf("RECEIVED %s\n", ret);
+				//data_add_user_to_chat(chat_elem->id, user->id, user->nick, user->ip, user->port);
+				gui_add_user_to_chat(chat_elem->id, user->id, user->nick, peer->status);
+				return 0;
+			}
+		}
+		
+	}
+	return -1;
+}
 int controller_leave_chat(u_int8 chat_id) {
 	char *ret;
 	logger(CTRL_INFO,"[controller_leave_chat] chat_id %lld\n", chat_id); 
@@ -355,6 +390,8 @@ int controller_leave_all_chat()
 }
 
 int controller_connect_users(GList *users) {
+	int result = 0;
+
 	if(users!=NULL) {
 		int i, counter = 3;
 		chatclient *client;
@@ -363,7 +400,6 @@ int controller_connect_users(GList *users) {
 		GList *response = NULL;
 		GList *timeout = NULL;
 		char *ret;
-		
 		while(counter--) {
 			
 			if(timeout!=NULL) {
@@ -394,6 +430,7 @@ int controller_connect_users(GList *users) {
 				}
 				else
 					logger(CTRL_INFO, "[controller_connect_users]Già connesso\n");
+					result = -2;
 			}
 
 			timeout = NULL;
@@ -424,10 +461,10 @@ int controller_connect_users(GList *users) {
 			}
 		}
 		if(counter==-1)
-			return 0;
+			return result;
 	}
 	
-	return -1;
+	return result;
 }
 
 int controller_check_users_con(GList *users) {
@@ -589,6 +626,37 @@ int controller_request_list(u_int8 chat_id) //PROVA
 	return 0;
 } 
 
+int controller_receive_listhits(u_int8 chat_id, GList *user_list) {
+	GList *id_list = gui_get_chat_users (chat_id);
+	GList *user_tmp = NULL;
+	int i=0;
+	int j=0;
+	for(i = 0; i < g_list_length(user_list); i++) {
+		chatclient *tmp = (chatclient*)g_list_nth_data(user_list, i);
+		logger(CTRL_INFO, "[controller_receive_listhits] list length id_list VS user_list %d, %d\n", g_list_length(id_list), g_list_length(user_list));
+			for(j = 0;j<g_list_length(id_list); j++) {
+				u_int8 user_id = atoll((char*)g_list_nth_data(id_list, j));
+
+				logger(CTRL_INFO, "[controller_receive_listhits] id_list VS tmp->id %lld,  %lld\n", user_id, tmp->id);
+				if(tmp->id == user_id) {
+					logger(CTRL_INFO, "[controller_receive_listhits] existing user\n");
+					break;
+				}
+				if(tmp->id != user_id && j== g_list_length(id_list)-1) {
+					//Da aggiungere Connect users e join single user
+					//chatclient *user_to_add = data_get_chatclient (tmp->id);
+					logger(CTRL_INFO, "[controller_receive_listhits] adding user %s\n", tmp->nick);
+					user_tmp = g_list_append(user_tmp, (gpointer)tmp);
+					int res = controller_connect_users(user_tmp);
+					//if(res != -2)
+						controller_join_single_user(chat_id, tmp);
+					break;	
+				}
+			}
+		user_tmp = NULL;
+	}
+}
+
 int controller_init(const char *filename, const char *cache) {
 	
 	conf_read(filename);
@@ -603,7 +671,7 @@ int controller_init(const char *filename, const char *cache) {
 
 	servent_start_timer();
 	
-	//servent_start_list_flooding();
+	servent_start_list_flooding();
 	
 	return 0;
 } 

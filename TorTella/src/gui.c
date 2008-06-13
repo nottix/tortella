@@ -168,6 +168,10 @@ gint gui_del_user_from_chat(u_int8 chat_id, u_int8 user_id)
 gint gui_change_status(u_int8 user_id, char *status) 
 {
 	logger(INFO, "[manipulating_status] Enter function\n");
+	if(tree_model_hashtable == NULL) {
+		logger(INFO, "[gui_change_status] tree_model_hashtable == NULL\n");
+		return (FALSE);
+	}
 	GList *chat_id_list = g_hash_table_get_keys(tree_model_hashtable);
 	int i=0;
 	char *id;
@@ -556,6 +560,9 @@ int gui_add_msg_pm(u_int8 sender_id, char *msg) {
 }
 
 tree_model *gui_get_tree_model(u_int8 chat_id) {
+	if(tree_model_hashtable == NULL) {	//PROVA
+		return NULL;
+	}
 	return (tree_model*)g_hash_table_lookup(tree_model_hashtable, to_string(chat_id));
 }
 
@@ -1039,4 +1046,32 @@ pm_data *gui_pm_data_get(u_int8 id) {
 		return g_hash_table_lookup(pm_data_hashtable, (gconstpointer)to_string(id));
 	else
 		return NULL;
+}
+
+GList *gui_get_chat_users(u_int8 chat_id) {
+	tree_model *mod = gui_get_tree_model(chat_id);
+	GList *id_list = NULL;
+
+	if(mod == NULL) {
+		logger(INFO, "[gui_get_chat_users] tree model NULL\n");
+		return id_list;
+	}
+	GtkTreeIter iter;
+	gchar *id;
+	gboolean valid = TRUE;
+	if(gtk_tree_model_get_iter_first(GTK_TREE_MODEL(mod->user_model), &iter)==TRUE) {			
+		logger(INFO, "[gui_get_chat_users] after get iter first\n");
+
+		while(valid) {
+			logger(INFO, "[gui_get_chat_users entering while\n");
+			gtk_tree_model_get(GTK_TREE_MODEL(mod->user_model), &iter, 1, &id, -1);
+			logger(INFO, "[gui_get_chat_users]ID: %s\n", id);
+			id_list = g_list_append(id_list, (gpointer)id);
+			
+
+			valid = gtk_tree_model_iter_next(GTK_TREE_MODEL(mod->user_model), &iter); 
+		}
+	}
+	
+	return id_list;
 }
