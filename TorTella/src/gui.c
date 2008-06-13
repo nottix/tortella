@@ -108,6 +108,7 @@ gint gui_add_user_to_chat(u_int8 chat_id, u_int8 id, char *user, u_int1 status)
 	tree_model *mod = (tree_model*)g_hash_table_lookup(tree_model_hashtable,(gconstpointer)to_string(chat_id));
 
 	if(mod!=NULL) {
+		//WLOCK(id);
 		logger(INFO, "[add_user_to_chat_list]Tree model non NULL\n");
 		gtk_list_store_append(GTK_LIST_STORE(mod->user_model), &(mod->user_iter));
 		gtk_list_store_set(GTK_LIST_STORE(mod->user_model), &(mod->user_iter), 0, msg, -1);
@@ -128,6 +129,7 @@ gint gui_add_user_to_chat(u_int8 chat_id, u_int8 id, char *user, u_int1 status)
 		//gtk_list_store_append(GTK_LIST_STORE(mod->user_model), &(mod->user_iter));
 		gtk_list_store_set(GTK_LIST_STORE(mod->user_model), &(mod->user_iter), 2, msg, -1);
 		g_free(msg);
+		//UNLOCK(id);
 	}
 	else
 		return -2;

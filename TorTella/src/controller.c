@@ -646,10 +646,12 @@ int controller_receive_listhits(u_int8 chat_id, GList *user_list) {
 					//Da aggiungere Connect users e join single user
 					//chatclient *user_to_add = data_get_chatclient (tmp->id);
 					logger(CTRL_INFO, "[controller_receive_listhits] adding user %s\n", tmp->nick);
+					//WLOCK(tmp->id);
 					user_tmp = g_list_append(user_tmp, (gpointer)tmp);
 					int res = controller_connect_users(user_tmp);
 					//if(res != -2)
 						controller_join_single_user(chat_id, tmp);
+					//UNLOCK(tmp->id);
 					break;	
 				}
 			}

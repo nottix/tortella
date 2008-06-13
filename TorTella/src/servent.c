@@ -566,7 +566,8 @@ void *servent_responde(void *parm) {
 										sd->packet_id = h_packet->data->header->id;
 										sd->post_type = SEARCH_ID;
 										UNLOCK(conn_servent->id);
-										servent_send_packet(sd);
+									//	if(sd->ttl > 0)  //PROVA
+											servent_send_packet(sd);
 								/*		char *ret = servent_pop_response (sd);
 										if(strcmp(ret,TIMEOUT) == 0) {
 											logger(SYS_INFO, "[servent_responde] TIMEOUT\n");
@@ -695,7 +696,8 @@ void *servent_responde(void *parm) {
 										sd->packet_id = h_packet->data->header->id;
 										sd->post_type = LIST_ID;
 										UNLOCK(conn_servent->id);
-										servent_send_packet(sd);
+									//	if(sd->ttl > 0)	//PROVA 
+											servent_send_packet(sd);
 									/*	char *ret = servent_pop_response (sd);  //PERCHE' C'ERA IL POP RESPONSE?
 										if(strcmp(ret,TIMEOUT) == 0) {			//
 											logger(SYS_INFO, "[servent_responde] TIMEOUT\n"); //
