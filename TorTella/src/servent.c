@@ -717,7 +717,7 @@ void *servent_responde(void *parm) {
 						GList *user_list = data_char_to_userlist(tortella_get_data(h_packet->data_string), h_packet->data->header->data_len); //
 						printf("[servent_responde] dopo data_char_to_userlist\n");
 						data_add_users_to_chat(GET_LISTHITS(h_packet->data)->chat_id, user_list); //
-						controller_receive_listhits(GET_LISTHITS(h_packet->data)->chat_id, user_list); //PROVA
+						//controller_receive_listhits(GET_LISTHITS(h_packet->data)->chat_id, user_list); //PROVA
 						//PROVA 
 						
 //						int i = 0;
