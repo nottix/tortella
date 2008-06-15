@@ -521,6 +521,55 @@ void *servent_responde(void *parm) {
 						controller_rem_user_from_chat(chat_id, conn_servent->id);
 						gdk_threads_leave();
 						logger(SYS_INFO, "[servent_responde]Deleted user: %lld\n", conn_servent->id);
+						
+					/*	printf("[servent_responde]LEAVE ricevuto\n");
+						printf("[servent_responde]LEAVE ricevuto packet_id: %lld\n", h_packet->data->header->id);
+						if(servent_get_leave_packet(h_packet->data->header->id) == NULL) {
+							servent_new_leave_packet(h_packet->data->header->id);
+							
+							GList *servent_list;
+							servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
+							if(conn_servent==NULL) {
+								printf("[servent_responde]conn_servent entry %lld doesn't found\n", h_packet->data->header->sender_id);
+								continue;
+							}
+							WLOCK(h_packet->data->header->sender_id);
+							conn_servent->timestamp = h_packet->data->header->timestamp;
+							UNLOCK(h_packet->data->header->sender_id);
+						
+							//Sconnetti dalla chat
+							logger(SYS_INFO, "[servent_responde]Deleting user\n");
+							gdk_threads_enter();
+							controller_rem_user_from_chat(chat_id, conn_servent->id);
+							gdk_threads_leave();
+							logger(SYS_INFO, "[servent_responde]Deleted user: %lld\n", conn_servent->id);
+							
+						
+							printf("[servent_responde]Sending JOIN packet to others peer\n");
+						 
+							if(GET_LEAVE(h_packet->data)->ttl>1) {
+								printf("[servent_responde]TTL > 1\n");
+								int i;
+								servent_list = g_hash_table_get_values(servent_hashtable);
+								for(i=0; i<g_list_length(servent_list); i++) {
+							
+									conn_servent = (servent_data*)g_list_nth_data(servent_list, i);
+									if(conn_servent->id!=h_packet->data->header->sender_id && conn_servent->id!=servent_get_local()->id) {
+										RLOCK(conn_servent->id);
+										servent_data *sd;
+										COPY_SERVENT(conn_servent, sd);
+										sd->ttl = GET_LEAVE(h_packet->data)->ttl-1;
+										sd->hops = GET_LEAVE(h_packet->data)->hops+1;
+										sd->packet_id = h_packet->data->header->id;
+										sd->user_id_req = GET_LEAVE(h_packet->data)->user_id;
+										sd->chat_id_req = GET_LEAVE(h_packet->data)->chat_id;
+										//sd->nick_req = tortella_get_data(h_packet->data_string);
+										sd->post_type = LEAVE_ID;
+										UNLOCK(conn_servent->id);
+										servent_send_packet(sd);
+										printf("[servent_responde]Retrasmitted LEAVE packet to other peers\n");
+									}
+								}	*/	   
 					}
 					else if(h_packet->data->header->desc_id==MESSAGE_ID) {
 						printf("[servent_responde]MESSAGE ricevuto\n");
