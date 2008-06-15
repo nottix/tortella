@@ -85,7 +85,7 @@ int send_searchhits_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8
 	return send_packet(fd, buffer, len);
 }
 
-int send_join_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int1 status, u_int8 chat_id, char *nick, u_int1 ttl, u_int1 hops) {
+int send_join_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int1 status, u_int8 user_id, u_int8 chat_id, char *nick, char *nick, u_int4 port, char *ip, u_int1 ttl, u_int1 hops) {
 	
 	printf("[send_join_packet]nick: %s\n", nick);
 	
@@ -101,7 +101,10 @@ int send_join_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_
 	
 	join_desc *join = (join_desc*)malloc(sizeof(join_desc));
 	join->status = status;
+	join->user_id = user_id;
 	join->chat_id = chat_id;
+	strcpy(join->ip, ip);
+	join->port = port;
 	join->ttl = ttl;
 	join->hops = hops;
 	packet->desc = (char*)join;
@@ -123,7 +126,7 @@ int send_join_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_
 	return send_packet(fd, buffer, len);
 }
 
-int send_leave_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id, u_int1 ttl, u_int1 hops) {
+int send_leave_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int8 user_id, u_int8 chat_id, char *nick, u_int4 port, char *ip, u_int1 ttl, u_int1 hops) {
 	
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
@@ -136,7 +139,10 @@ int send_leave_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv
 	header->data_len = 0;
 	
 	leave_desc *leave = (leave_desc*)malloc(sizeof(leave_desc));
+	leave->user_id = user_id;
 	leave->chat_id = chat_id;
+	strcpy(leave->ip, ip);
+	leave->port = port;
 	leave->ttl = ttl;
 	leave->hops = hops;
 	packet->desc = (char*)leave;

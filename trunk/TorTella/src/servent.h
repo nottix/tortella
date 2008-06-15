@@ -72,6 +72,7 @@ struct servent_data {
 	//USATE SOLO IN LOCALE
 	u_int4 post_type;	//Tipo di pacchetto da inviare
 	
+	u_int8 user_id_req;	//Utente che si vuole connettere alla chat chat_id_req (per il flooding)
 	u_int8 chat_id_req; //Chat a cui connettersi o creare
 	u_int1 status_req;	//Status per il redirect del join
 	

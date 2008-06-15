@@ -231,16 +231,17 @@ int controller_join_chat(u_int8 chat_id) {
 						logger(CTRL_INFO, "[controller_join_chat] peer not NULL\n");
 						COPY_SERVENT(peer, sd);
 						//WLOCK(peer->id);
+						sd->status_req = servent_get_local()->status;
 						sd->chat_id_req = chat_id;
+						sd->user_id_req = servent_get_local()->id;
+						sd->ttl =  3;
+						sd->hops = 0;
 						sd->post_type = JOIN_ID;
 						
 						logger(CTRL_INFO, "[controller_join_chat] chat %s\n", chat_elem->title);
-						servent_get_local()->chat_list = g_list_append(sd->chat_list, (gpointer)chat_elem); //OK???
-						//sd->chat_list = g_list_append(sd->chat_list, (gpointer)chat_elem); //
-						//servent_add_to_chat_list(sd, chat_elem); //Prova
+						servent_get_local()->chat_list = g_list_append(sd->chat_list, (gpointer)chat_elem);
 						//UNLOCK(peer->id);
 						servent_send_packet(sd);
-						//pthread_cond_signal(&peer->cond);
 					}
 				}
 			}
@@ -252,11 +253,7 @@ int controller_join_chat(u_int8 chat_id) {
 					peer = servent_get(client->id);
 					logger(CTRL_INFO, "[controller_join_chat]Sending join to %lld\n", client->id);
 					if(peer!=NULL) {
-						COPY_SERVENT(peer, sd);
-						//WLOCK(peer->id);
-
-						//UNLOCK(peer->id);
-						ret = servent_pop_response(sd);
+						ret = servent_pop_response(peer);
 						if(ret==NULL) {
 							logger(CTRL_INFO, "[controller_join_chat]Ret NULL\n");
 							return -1;
@@ -673,9 +670,7 @@ int controller_init(const char *filename, const char *cache) {
 	
 	servent_start(init_list);
 
-	servent_start_timer();
-	
-	//servent_start_list_flooding();
+	//servent_start_timer();
 	
 	return 0;
 } 
@@ -1101,6 +1096,12 @@ int controller_create(const char *title) {
 int controller_add_user_to_chat(u_int8 chat_id, u_int8 id) {
 	logger(CTRL_INFO, "[controller_add_user_to_chat]\n"); //Devono essere presi da servent, perchè il peer deve essere prima connesso
 	servent_data *servent = servent_get(id);
+	if(servent==NULL) {
+		GList *users = NULL;
+		chatclient *client = data_get_chatclient()
+		g_list_append(users, (gpointer))
+		controller_connect_users()
+	}
 	logger(CTRL_INFO, "[controller_add_user_to_chat]Addingi user: %s, id: %lld, status: %c\n", servent->nick, servent->id, servent->status);
 	if(servent->status == ONLINE_ID)
 		logger(CTRL_INFO, "[controller_add_user_to_chat] ONLINE\n");
