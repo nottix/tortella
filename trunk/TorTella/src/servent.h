@@ -38,7 +38,7 @@
 
 #define TIMEOUT "timeout error"
 
-static u_int4 timer_interval = 10;
+static u_int4 timer_interval = 20;
 
 struct servent_data {
 	u_int8 id;
@@ -73,6 +73,7 @@ struct servent_data {
 	u_int4 post_type;	//Tipo di pacchetto da inviare
 	
 	u_int8 chat_id_req; //Chat a cui connettersi o creare
+	u_int1 status_req;	//Status per il redirect del join
 	
 	char *title;	//Titolo chat da creare o ricercare
 	u_int4 title_len;	//Lunghezza del titolo
@@ -82,16 +83,21 @@ typedef struct servent_data servent_data;
 
 static GHashTable *servent_hashtable;
 
+//---Rounting Hashtables-----
+
 static GHashTable *search_packet_hashtable = NULL;
 
-static GHashTable *list_packet_hashtable = NULL;
+static GHashTable *join_packet_hashtable = NULL;
+
+static GHashTable *leave_packet_hashtable = NULL;
+
+//---------------------------
 
 static servent_data *local_servent;
 
 static u_int8 new_connection_counter = 10000;
 
 static pthread_t *timer_thread;
-static pthread_t *list_thread;
 
 static GList *client_fd;
 static GList *server_fd;
@@ -139,8 +145,6 @@ int servent_start(GList *init_servent);
 
 int servent_start_timer(void);
 
-int servent_start_list_flooding(void);
-
 int servent_init_connection(GList *init_servent);
 
 void servent_close_all(void);
@@ -169,15 +173,23 @@ void servent_append_response(servent_data *sd, const char *response);
 
 char *servent_pop_response(servent_data *sd);
 
-char *get_search_packet(u_int8 id);
-
-void new_search_packet(u_int8 id);
-
-char *get_list_packet(u_int8 id); //PROVA
-
-void new_list_packet(u_int8 id); //PROVA
-
 void servent_add_to_chat_list(servent_data *sd, chat *chat_elem);
+
+void servent_flush_data(void);
+
+//-----Routing-------------
+
+char *servent_get_search_packet(u_int8 id);
+
+void servent_new_search_packet(u_int8 id);
+
+char *servent_get_join_packet(u_int8 id);
+
+void servent_new_join_packet(u_int8 id);
+
+char *servent_get_leave_packet(u_int8 id);
+
+void servent_new_leave_packet(u_int8 id);
 
 //-----THREAD--------------
 
@@ -189,7 +201,5 @@ void *servent_responde(void *parm);
 void *servent_connect(void *parm);
 
 void *servent_timer(void *parm);
-
-void *servent_list_flooding();
 
 #endif //SERVENT_H
