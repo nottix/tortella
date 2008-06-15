@@ -74,6 +74,9 @@ struct servent_data {
 	
 	u_int8 user_id_req;	//Utente che si vuole connettere alla chat chat_id_req (per il flooding)
 	u_int8 chat_id_req; //Chat a cui connettersi o creare
+	u_int4 port_req;
+	char *nick_req;
+	char *ip_req;
 	u_int1 status_req;	//Status per il redirect del join
 	
 	char *title;	//Titolo chat da creare o ricercare

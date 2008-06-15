@@ -234,6 +234,9 @@ int controller_join_chat(u_int8 chat_id) {
 						sd->status_req = servent_get_local()->status;
 						sd->chat_id_req = chat_id;
 						sd->user_id_req = servent_get_local()->id;
+						sd->ip_req = servent_get_local()->ip;
+						sd->nick_req = servent_get_local()->nick;
+						sd->port_req = servent_get_local()->port;
 						sd->ttl =  3;
 						sd->hops = 0;
 						sd->post_type = JOIN_ID;
@@ -1096,12 +1099,12 @@ int controller_create(const char *title) {
 int controller_add_user_to_chat(u_int8 chat_id, u_int8 id) {
 	logger(CTRL_INFO, "[controller_add_user_to_chat]\n"); //Devono essere presi da servent, perchè il peer deve essere prima connesso
 	servent_data *servent = servent_get(id);
-	if(servent==NULL) {
-		GList *users = NULL;
-		chatclient *client = data_get_chatclient()
-		g_list_append(users, (gpointer))
-		controller_connect_users()
-	}
+//	if(servent==NULL) {
+//		GList *users = NULL;
+//		chatclient *client = data_get_chatclient()
+//		g_list_append(users, (gpointer))
+//		controller_connect_users()
+//	}
 	logger(CTRL_INFO, "[controller_add_user_to_chat]Addingi user: %s, id: %lld, status: %c\n", servent->nick, servent->id, servent->status);
 	if(servent->status == ONLINE_ID)
 		logger(CTRL_INFO, "[controller_add_user_to_chat] ONLINE\n");
