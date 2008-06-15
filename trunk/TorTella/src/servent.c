@@ -374,7 +374,7 @@ void *servent_responde(void *parm) {
 								continue;
 							}
 							
-							data_add_user()
+							data_add_user(GET_JOIN(h_packet->data)->user_id, tortella_get_data(h_packet->data_string), GET_JOIN(h_packet->data)->ip, GET_JOIN(h_packet->data)->port);
 							data_add_existing_user_to_chat(GET_JOIN(h_packet->data)->chat_id, GET_JOIN(h_packet->data)->user_id);
 							controller_add_user_to_chat(GET_JOIN(h_packet->data)->chat_id, GET_JOIN(h_packet->data)->user_id);
 						
@@ -397,6 +397,9 @@ void *servent_responde(void *parm) {
 										sd->user_id_req = GET_JOIN(h_packet->data)->user_id;
 										sd->chat_id_req = GET_JOIN(h_packet->data)->chat_id;
 										sd->status_req = GET_JOIN(h_packet->data)->status;
+										sd->ip_req = GET_JOIN(h_packet->data)->ip;
+										sd->port_req = GET_JOIN(h_packet->data)->port;
+										sd->nick_req = tortella_get_data(h_packet->data_string);
 										sd->post_type = JOIN_ID;
 										UNLOCK(conn_servent->id);
 										servent_send_packet(sd);
@@ -787,6 +790,9 @@ void *servent_connect(void *parm) {
 	char *title;
 	u_int1 ttl, hops;
 	u_int8 packet_id;
+	u_int4 port_req;
+	char *ip_req;
+	char *nick_req;
 	
 	u_int1 status;
 	u_int1 status_req;
@@ -822,6 +828,9 @@ void *servent_connect(void *parm) {
 		servent_peer->packet_id = servent_queue->packet_id;
 		servent_peer->status_req = servent_queue->status_req;
 		servent_peer->user_id_req = servent_queue->user_id_req;
+		servent_peer->ip_req = servent_queue->ip_req;
+		servent_peer->port_req = servent_queue->port_req;
+		servent_peer->nick_req = servent_queue->nick_req;
 		
 		post_type = servent_peer->post_type;
 		user_id_req = servent_peer->user_id_req;
@@ -833,7 +842,9 @@ void *servent_connect(void *parm) {
 		ttl = servent_peer->ttl;
 		hops = servent_peer->hops;
 		packet_id = servent_peer->packet_id;
-		
+		ip_req = servent_peer->ip_req;
+		port_req = servent_peer->port_req;
+		nick_req = servent_peer->nick_req;
 		
 		status = local_servent->status;
 		status_req = servent_peer->status_req;
@@ -844,7 +855,7 @@ void *servent_connect(void *parm) {
 		}
 		else {
 			if(post_type==JOIN_ID) {
-				send_join_packet(fd, packet_id, local_servent->id, id_dest, status_req, user_id_req, chat_id_req, nick, ttl, hops);
+				send_join_packet(fd, packet_id, local_servent->id, id_dest, status_req, user_id_req, chat_id_req, nick_req, port_req, ip_req, ttl, hops);
 			}
 			else if(post_type==PING_ID) {
 				send_ping_packet(fd, local_servent->id, id_dest, nick, local_servent->port, status);
