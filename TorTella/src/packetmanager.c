@@ -85,14 +85,14 @@ int send_searchhits_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8
 	return send_packet(fd, buffer, len);
 }
 
-int send_join_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 status, u_int8 chat_id, char *nick) {
+int send_join_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int1 status, u_int8 chat_id, char *nick, u_int1 ttl, u_int1 hops) {
 	
 	printf("[send_join_packet]nick: %s\n", nick);
 	
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
 	
-	header->id = generate_id();
+	header->id = (packet_id>0 ? packet_id : generate_id());
 	header->desc_id = JOIN_ID;
 	header->sender_id = sender_id;
 	header->recv_id = recv_id;
@@ -102,6 +102,8 @@ int send_join_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 status,
 	join_desc *join = (join_desc*)malloc(sizeof(join_desc));
 	join->status = status;
 	join->chat_id = chat_id;
+	join->ttl = ttl;
+	join->hops = hops;
 	packet->desc = (char*)join;
 
 	header->desc_len = sizeof(join_desc);
@@ -121,12 +123,12 @@ int send_join_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 status,
 	return send_packet(fd, buffer, len);
 }
 
-int send_leave_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id) {
+int send_leave_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id, u_int1 ttl, u_int1 hops) {
 	
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
 	
-	header->id = generate_id();
+	header->id = (packet_id>0 ? packet_id : generate_id());
 	header->desc_id = LEAVE_ID;
 	header->sender_id = sender_id;
 	header->recv_id = recv_id;
@@ -135,6 +137,8 @@ int send_leave_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_i
 	
 	leave_desc *leave = (leave_desc*)malloc(sizeof(leave_desc));
 	leave->chat_id = chat_id;
+	leave->ttl = ttl;
+	leave->hops = hops;
 	packet->desc = (char*)leave;
 
 	header->desc_len = sizeof(leave_desc);
