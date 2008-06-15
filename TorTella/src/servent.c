@@ -367,7 +367,6 @@ void *servent_responde(void *parm) {
 						if(servent_get_join_packet(h_packet->data->header->id) == NULL) {
 							servent_new_join_packet(h_packet->data->header->id);
 							
-							GList *res;
 							GList *servent_list;
 							servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
 							if(conn_servent==NULL) {
@@ -375,8 +374,9 @@ void *servent_responde(void *parm) {
 								continue;
 							}
 							
-							data_add_existing_user_to_chat(GET_JOIN(h_packet->data)->chat_id, h_packet->data->header->sender_id);
-							controller_add_user_to_chat(GET_JOIN(h_packet->data)->chat_id, h_packet->data->header->sender_id);
+							data_add_user()
+							data_add_existing_user_to_chat(GET_JOIN(h_packet->data)->chat_id, GET_JOIN(h_packet->data)->user_id);
+							controller_add_user_to_chat(GET_JOIN(h_packet->data)->chat_id, GET_JOIN(h_packet->data)->user_id);
 						
 							printf("[servent_responde]Sending JOIN packet to others peer\n");
 						
@@ -394,6 +394,7 @@ void *servent_responde(void *parm) {
 										sd->ttl = GET_JOIN(h_packet->data)->ttl-1;
 										sd->hops = GET_JOIN(h_packet->data)->hops+1;
 										sd->packet_id = h_packet->data->header->id;
+										sd->user_id_req = GET_JOIN(h_packet->data)->user_id;
 										sd->chat_id_req = GET_JOIN(h_packet->data)->chat_id;
 										sd->status_req = GET_JOIN(h_packet->data)->status;
 										sd->post_type = JOIN_ID;
@@ -778,6 +779,7 @@ void *servent_connect(void *parm) {
 	servent_send_packet(tmp);
 
 	u_int4 post_type;
+	u_int8 user_id_req;
 	u_int8 chat_id_req;
 	u_int4 msg_len;
 	char *msg;
@@ -819,8 +821,10 @@ void *servent_connect(void *parm) {
 		servent_peer->hops = servent_queue->hops;
 		servent_peer->packet_id = servent_queue->packet_id;
 		servent_peer->status_req = servent_queue->status_req;
+		servent_peer->user_id_req = servent_queue->user_id_req;
 		
 		post_type = servent_peer->post_type;
+		user_id_req = servent_peer->user_id_req;
 		chat_id_req = servent_peer->chat_id_req;
 		msg_len = servent_peer->msg_len;
 		msg = servent_peer->msg;
@@ -829,6 +833,7 @@ void *servent_connect(void *parm) {
 		ttl = servent_peer->ttl;
 		hops = servent_peer->hops;
 		packet_id = servent_peer->packet_id;
+		
 		
 		status = local_servent->status;
 		status_req = servent_peer->status_req;
@@ -839,7 +844,7 @@ void *servent_connect(void *parm) {
 		}
 		else {
 			if(post_type==JOIN_ID) {
-				send_join_packet(fd, packet_id, local_servent->id, id_dest, status_req, chat_id_req, nick, ttl, hops);
+				send_join_packet(fd, packet_id, local_servent->id, id_dest, status_req, user_id_req, chat_id_req, nick, ttl, hops);
 			}
 			else if(post_type==PING_ID) {
 				send_ping_packet(fd, local_servent->id, id_dest, nick, local_servent->port, status);
@@ -855,7 +860,7 @@ void *servent_connect(void *parm) {
 				pthread_exit(NULL);
 			}
 			else if(post_type==LEAVE_ID) {
-				send_leave_packet(fd, packet_id, local_servent->id, id_dest, chat_id_req, ttl, hops);
+				send_leave_packet(fd, packet_id, local_servent->id, id_dest, user_id_req, chat_id_req, ttl, hops);
 			}
 			else if(post_type==MESSAGE_ID) {
 				send_message_packet(fd, local_servent->id, id_dest, chat_id_req, msg_len, msg);

@@ -77,7 +77,10 @@ typedef struct listhits_desc listhits_desc;
 
 struct join_desc {
 	u_int1 status;
+	u_int8 user_id;
 	u_int8 chat_id; //ID della chat room (hash del nome della chat)
+	u_int4 port;
+	char ip[16];
 	u_int1 ttl;
 	u_int1 hops;
 	//Campo dati: nickname
@@ -85,6 +88,7 @@ struct join_desc {
 typedef struct join_desc join_desc;
 
 struct leave_desc {
+	u_int8 user_id;
 	u_int8 chat_id; //ID della chat room (hash del nome della chat)
 	u_int1 ttl;
 	u_int1 hops;
