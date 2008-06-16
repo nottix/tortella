@@ -1107,7 +1107,9 @@ int controller_add_user_to_chat(u_int8 chat_id, u_int8 id) {
 //	}
 	if(servent ==NULL) {
 		logger(CTRL_INFO, "[controller_add_user_to_chat] servent null\n");
-		return -1;
+		chatclient *tmp = data_get_chatclient(id);
+		gui_add_user_to_chat(chat_id, tmp->id, tmp->nick, 0);
+		return 0;
 	}
 	logger(CTRL_INFO, "[controller_add_user_to_chat]Addingi user: %s, id: %lld, status: %c\n", servent->nick, servent->id, servent->status);
 	gui_add_user_to_chat(chat_id, servent->id, servent->nick, servent->status);
