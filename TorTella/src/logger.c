@@ -46,14 +46,16 @@ int logger(int type, const char* text, ...) {
 	va_start(ap, text);
 	pthread_mutex_lock(&logger_mutex);
 	//fd_file = fopen(pathname, "a");
-	fprintf(fd_file, "%s", get_timestamp());
+	fprintf(fd_file, "<%u>%s", (int)pthread_self(), get_timestamp());
 	vfprintf(fd_file, text, ap);
 	//fclose(fd_file);
-	pthread_mutex_unlock(&logger_mutex);
 	
-	if(type<=verbose)
+	if(type<=verbose) {
+		printf("<%u>", pthread_self());
 		vprintf(text, ap);
+	}
 	va_end(ap);
-
+	
+	pthread_mutex_unlock(&logger_mutex);
 	return 0;
 }

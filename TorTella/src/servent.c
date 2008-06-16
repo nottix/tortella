@@ -314,7 +314,7 @@ void *servent_listen(void *parm) {
 	
 	while(1) {
 		connFd = listen_http_packet((int)parm);
-		printf("[servent_listen]Connessione ricevuta, socket: %d\n", connFd);
+		logger(SYS_INFO, "[servent_listen]Connessione ricevuta, socket: %d\n", connFd);
 		if(connFd!=0) {
 			thread = (pthread_t*)calloc(1, sizeof(pthread_t));
 			server_connection_fd = g_list_prepend(server_connection_fd, (gpointer)connFd);
@@ -331,7 +331,7 @@ void *servent_listen(void *parm) {
 //Riceve i pacchetti da un peer e li gestisce
 //parm: socket
 void *servent_responde(void *parm) {
-	printf("[servent_responde]Server initialized\n");
+	logger(SYS_INFO, "[servent_responde]Server initialized\n");
 	char *buffer;
 	http_packet *h_packet;
 	int len;
@@ -342,20 +342,20 @@ void *servent_responde(void *parm) {
 	while(1) {
 		logger(SYS_INFO, "[servent_responde]Waiting\n");
 		len = recv_http_packet(fd, &buffer);
-		printf("[servent_responde]Data received len: %d, buffer: \nSTART\n%s\nEND\n", len, dump_data(buffer, len));
+		logger(SYS_INFO, "[servent_responde]Data received len: %d, buffer: \nSTART\n%s\nEND\n", len, dump_data(buffer, len));
 		
 		if(len>0) {
-			printf("[servent_responde]Converting\n");
+			logger(SYS_INFO, "[servent_responde]Converting\n");
 			h_packet = http_char_to_bin((const char*)buffer);
 			if(h_packet!=NULL) {
-				printf("[servent_responde]http packet received, type=%d\n", h_packet->type);
+				logger(SYS_INFO, "[servent_responde]http packet received, type=%d\n", h_packet->type);
 				if(h_packet->type==HTTP_REQ_POST) {
 					
-					printf("[servent_responde]POST ricevuto\n");
+					logger(SYS_INFO, "[servent_responde]POST ricevuto\n");
 					
 					//Aggiunge le info in base al tipo di pacchetto
 					if(h_packet->data==NULL || h_packet->data->header==NULL) {
-						printf("[servent_responde]NULL\n");
+						logger(SYS_INFO, "[servent_responde]NULL\n");
 						
 						status = HTTP_STATUS_CERROR;
 					}
@@ -363,15 +363,21 @@ void *servent_responde(void *parm) {
 						status = HTTP_STATUS_CERROR;
 					}
 					else if(h_packet->data->header->desc_id==JOIN_ID) {
-						printf("[servent_responde]JOIN ricevuto\n");
-						printf("[servent_responde]JOIN ricevuto packet_id: %lld\n", h_packet->data->header->id);
+						logger(SYS_INFO, "[servent_responde]JOIN ricevuto\n");
+						logger(SYS_INFO, "[servent_responde]JOIN ricevuto packet_id: %lld\n", h_packet->data->header->id);
+
+						status = HTTP_STATUS_OK;
+						send_post_response_packet(fd, status, 0, NULL);
+						logger(SYS_INFO, "[servent_responde]Sending post response\n");
+						status = 0;
+						
 						if(servent_get_join_packet(h_packet->data->header->id) == NULL) {
 							servent_new_join_packet(h_packet->data->header->id);
 							
 							GList *servent_list;
 							servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
 							if(conn_servent==NULL) {
-								printf("[servent_responde]conn_servent entry %lld doesn't found\n", h_packet->data->header->sender_id);
+								logger(SYS_INFO, "[servent_responde]conn_servent entry %lld doesn't found\n", h_packet->data->header->sender_id);
 								continue;
 							}
 							logger(SYS_INFO, "[servent_responde] id: %lld, nick: %s\n", GET_JOIN(h_packet->data)->user_id, tortella_get_data(h_packet->data_string));
@@ -379,10 +385,10 @@ void *servent_responde(void *parm) {
 							data_add_existing_user_to_chat(GET_JOIN(h_packet->data)->chat_id, GET_JOIN(h_packet->data)->user_id);
 							controller_add_user_to_chat(GET_JOIN(h_packet->data)->chat_id, GET_JOIN(h_packet->data)->user_id);
 						
-							printf("[servent_responde]Sending JOIN packet to others peer\n");
+							logger(SYS_INFO, "[servent_responde]Sending JOIN packet to others peer\n");
 						
 							if(GET_JOIN(h_packet->data)->ttl>1) {
-								printf("[servent_responde]TTL > 1\n");
+								logger(SYS_INFO, "[servent_responde]TTL > 1\n");
 								int i;
 								servent_list = g_hash_table_get_values(servent_hashtable);
 								for(i=0; i<g_list_length(servent_list); i++) {
@@ -405,15 +411,14 @@ void *servent_responde(void *parm) {
 										UNLOCK(conn_servent->id);
 										servent_send_packet(sd);
 										servent_pop_response(sd);
-										printf("[servent_responde]Retrasmitted JOIN packet %s to %s\n", sd->nick_req, sd->nick);
+										logger(SYS_INFO, "[servent_responde]Retrasmitted JOIN packet %s to %s\n", sd->nick_req, sd->nick);
 									}
 								}		   
 							}
-							status = HTTP_STATUS_OK;
 						}
 					}
 					else if(h_packet->data->header->desc_id==PING_ID) {
-						printf("[servent_responde]PING ricevuto da %lld a %lld\n", h_packet->data->header->sender_id, h_packet->data->header->recv_id);
+						logger(SYS_INFO, "[servent_responde]PING ricevuto da %lld a %lld\n", h_packet->data->header->sender_id, h_packet->data->header->recv_id);
 						user_id = h_packet->data->header->sender_id;
 						servent_data *conn_servent;
 						u_int8 id = h_packet->data->header->sender_id;
@@ -427,12 +432,12 @@ void *servent_responde(void *parm) {
 							conn_servent->is_online = 1;
 							UNLOCK(id);
 							data_add_user(conn_servent->id, conn_servent->nick, conn_servent->ip, conn_servent->port);
-							printf("[servent_responde]Old PING, nick: %s, status: %c\n", conn_servent->nick, conn_servent->status);
+							logger(SYS_INFO, "[servent_responde]Old PING, nick: %s, status: %c\n", conn_servent->nick, conn_servent->status);
 							controller_manipulating_status(id, conn_servent->status);
 							status = HTTP_STATUS_OK;
 						}
 						else {
-							printf("[servent_responde]New PING\n");
+							logger(SYS_INFO, "[servent_responde]New PING\n");
 							
 							if(h_packet->data->header->recv_id < conf_get_gen_start()) {
 								status = HTTP_STATUS_OK;
@@ -457,9 +462,9 @@ void *servent_responde(void *parm) {
 								pthread_rwlock_init(&conn_servent->rwlock_data, NULL);
 								pthread_cond_init(&conn_servent->cond, NULL);
 								
-								printf("[servent_responde]Lookup ID: %s\n", to_string(id));
+								logger(SYS_INFO, "[servent_responde]Lookup ID: %s\n", to_string(id));
 								if(g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id))==NULL) {
-									printf("[servent_responde]connection %s added to hashtable\n", to_string(id));
+									logger(SYS_INFO, "[servent_responde]connection %s added to hashtable\n", to_string(id));
 									g_hash_table_insert(servent_hashtable, (gpointer)to_string(id), (gpointer)conn_servent);
 								}
 								
@@ -509,15 +514,21 @@ void *servent_responde(void *parm) {
 						}
 					}
 					else if(h_packet->data->header->desc_id==LEAVE_ID) {
-						printf("[servent_responde]LEAVE ricevuto\n");
-						printf("[servent_responde]LEAVE ricevuto packet_id: %lld\n", h_packet->data->header->id);
+						logger(SYS_INFO, "[servent_responde]LEAVE ricevuto\n");
+						logger(SYS_INFO, "[servent_responde]LEAVE ricevuto packet_id: %lld\n", h_packet->data->header->id);
+
+						status = HTTP_STATUS_OK;
+						send_post_response_packet(fd, status, 0, NULL);
+						logger(SYS_INFO, "[servent_responde]Sending post response\n");
+						status = 0;
+						
 						if(servent_get_leave_packet(h_packet->data->header->id) == NULL) {
 							servent_new_leave_packet(h_packet->data->header->id);
 							
 							GList *servent_list;
 							servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
 							if(conn_servent==NULL) {
-								printf("[servent_responde]conn_servent entry %lld doesn't found\n", h_packet->data->header->sender_id);
+								logger(SYS_INFO, "[servent_responde]conn_servent entry %lld doesn't found\n", h_packet->data->header->sender_id);
 								continue;
 							}
 							u_int8 chat_id = GET_LEAVE(h_packet->data)->chat_id;
@@ -534,10 +545,10 @@ void *servent_responde(void *parm) {
 							logger(SYS_INFO, "[servent_responde]Deleted user: %lld\n", conn_servent->id);
 							
 						
-							printf("[servent_responde]Sending LEAVE packet to others peer\n");
+							logger(SYS_INFO, "[servent_responde]Sending LEAVE packet to others peer\n");
 						 
 							if(GET_LEAVE(h_packet->data)->ttl>1) {
-								printf("[servent_responde]TTL > 1\n");
+								logger(SYS_INFO, "[servent_responde]TTL > 1\n");
 								int i;
 								servent_list = g_hash_table_get_values(servent_hashtable);
 								for(i=0; i<g_list_length(servent_list); i++) {
@@ -556,14 +567,14 @@ void *servent_responde(void *parm) {
 										UNLOCK(conn_servent->id);
 										servent_send_packet(sd);
 										servent_pop_response(sd);
-										printf("[servent_responde]Retrasmitted LEAVE packet to other peers\n");
+										logger(SYS_INFO, "[servent_responde]Retrasmitted LEAVE packet to other peers\n");
 									}
 								}		   
 							}
 						}
 					}
 					else if(h_packet->data->header->desc_id==MESSAGE_ID) {
-						printf("[servent_responde]MESSAGE ricevuto\n");
+						logger(SYS_INFO, "[servent_responde]MESSAGE ricevuto\n");
 						//controller_emit();
 						
 						servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
@@ -588,13 +599,19 @@ void *servent_responde(void *parm) {
 							controller_add_msg_to_chat(chat_id, send_msg);
 							gdk_threads_leave();
 						}
-						printf("[servent_responde]msg: %s, msg_len: %d\n", conn_servent->msg, conn_servent->msg_len);
+						logger(SYS_INFO, "[servent_responde]msg: %s, msg_len: %d\n", conn_servent->msg, conn_servent->msg_len);
 						
 
 						status = HTTP_STATUS_OK;
 					}
 					else if(h_packet->data->header->desc_id==SEARCH_ID) {
-						printf("[servent_responde]SEARCH ricevuto packet_id: %lld\n", h_packet->data->header->id);
+						logger(SYS_INFO, "[servent_responde]SEARCH ricevuto packet_id: %lld\n", h_packet->data->header->id);
+
+						status = HTTP_STATUS_OK;
+						send_post_response_packet(fd, status, 0, NULL);
+						logger(SYS_INFO, "[servent_responde]Sending post response\n");
+						status = 0;
+						
 						if(servent_get_search_packet(h_packet->data->header->id) == NULL) {
 							servent_new_search_packet(h_packet->data->header->id);
 						
@@ -602,10 +619,10 @@ void *servent_responde(void *parm) {
 							GList *servent_list;
 							servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
 							if(conn_servent==NULL) {
-								printf("[servent_responde]conn_servent entry %lld doesn't found\n", h_packet->data->header->sender_id);
+								logger(SYS_INFO, "[servent_responde]conn_servent entry %lld doesn't found\n", h_packet->data->header->sender_id);
 								continue;
 							}
-							printf("[servent_responde]conn_servent entry found\n");
+							logger(SYS_INFO, "[servent_responde]conn_servent entry found\n");
 						
 							if(h_packet->data_len>0) {
 								servent_data *sd;
@@ -613,9 +630,9 @@ void *servent_responde(void *parm) {
 								COPY_SERVENT(conn_servent, sd);
 								UNLOCK(conn_servent->id);
 							
-								printf("[servent_responde]Searching %s\n", tortella_get_data(h_packet->data_string));
+								logger(SYS_INFO, "[servent_responde]Searching %s\n", tortella_get_data(h_packet->data_string));
 								res = data_search_all_chat(tortella_get_data(h_packet->data_string));
-								printf("[servent_responde]Results number %d\n", g_list_length(res));
+								logger(SYS_INFO, "[servent_responde]Results number %d\n", g_list_length(res));
 				
 								logger(SYS_INFO, "[servent_responde]Sending to ID: %lld\n", sd->id);
 								sd->chat_res = res;
@@ -631,10 +648,10 @@ void *servent_responde(void *parm) {
 							}
 
 						
-							printf("[servent_responde]Sending SEARCHHITS packet to searching peer\n");
+							logger(SYS_INFO, "[servent_responde]Sending SEARCHHITS packet to searching peer\n");
 						
 							if(GET_SEARCH(h_packet->data)->ttl>1) {
-								printf("[servent_responde]TTL > 1\n");
+								logger(SYS_INFO, "[servent_responde]TTL > 1\n");
 								int i;
 								servent_list = g_hash_table_get_values(servent_hashtable);
 								for(i=0; i<g_list_length(servent_list); i++) {
@@ -654,7 +671,7 @@ void *servent_responde(void *parm) {
 										servent_send_packet(sd);
 										//Aggiunta regola di routing alla tabella
 										add_route_entry(h_packet->data->header->id, h_packet->data->header->sender_id, conn_servent->id);
-										printf("[servent_responde]Retrasmitted SEARCH packet to other peers\n");
+										logger(SYS_INFO, "[servent_responde]Retrasmitted SEARCH packet to other peers\n");
 									}
 								}		   
 							}
@@ -662,7 +679,12 @@ void *servent_responde(void *parm) {
 						}
 					}
 					else if(h_packet->data->header->desc_id==SEARCHHITS_ID) {
-						printf("[servent_responde]SEARCHHITS ricevuto\n");
+						logger(SYS_INFO, "[servent_responde]SEARCHHITS ricevuto\n");
+
+						status = HTTP_STATUS_OK;
+						send_post_response_packet(fd, status, 0, NULL);
+						logger(SYS_INFO, "[servent_responde]Sending post response\n");
+						status = 0;
 						
 						GList *chat_list = data_char_to_chatlist(tortella_get_data(h_packet->data_string), h_packet->data->header->data_len);
 						data_add_all_to_chat(chat_list);
@@ -683,25 +705,25 @@ void *servent_responde(void *parm) {
 							if(strcmp(ret,TIMEOUT) == 0) {
 								logger(SYS_INFO, "[servent_responde] TIMEOUT\n");
 							} */
-							printf("[servent_responde]Routing packet from %lld to %lld\n", h_packet->data->header->sender_id, entry->sender_id);
+							logger(SYS_INFO, "[servent_responde]Routing packet from %lld to %lld\n", h_packet->data->header->sender_id, entry->sender_id);
 							del_route_entry(h_packet->data->header->id);
-							printf("[servent_responde]Route entry %lld deleted\n", h_packet->data->header->id); 
+							logger(SYS_INFO, "[servent_responde]Route entry %lld deleted\n", h_packet->data->header->id); 
 						}
 						else {
 							int i=0;
 							chat *chat_val;
-							
+
 							for(; i<g_list_length(chat_list); i++) {
 								chat_val = (chat*)g_list_nth_data(chat_list, i);																
 								logger(SYS_INFO,"[servent_responde] title chat %s\n", chat_val->title);
 								GList *local_chat = data_search_all_local_chat(chat_val->title);
 								int j=0;
 								for(; j<g_list_length(local_chat); j++) {
-								chat *tmp = (chat*)g_list_nth_data(local_chat, j);
-								logger(SYS_INFO, "[servent_responde] title chat %s\n", tmp->title);
-								gdk_threads_enter();
-								gui_add_chat(tmp->id, tmp->title);
-								gdk_threads_leave();
+									chat *tmp = (chat*)g_list_nth_data(local_chat, j);
+									logger(SYS_INFO, "[servent_responde] title chat %s\n", tmp->title);
+									gdk_threads_enter();
+									gui_add_chat(tmp->id, tmp->title);
+									gdk_threads_leave();
 								}
 							}
 						}
@@ -710,7 +732,7 @@ void *servent_responde(void *parm) {
 						
 					}
 					else if(h_packet->data->header->desc_id == BYE_ID) {
-						printf("[servent_responde]BYE ricevuto\n");
+						logger(SYS_INFO, "[servent_responde]BYE ricevuto\n");
 						
 						servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
 						WLOCK(h_packet->data->header->sender_id);
@@ -720,7 +742,7 @@ void *servent_responde(void *parm) {
 						
 						status = HTTP_STATUS_OK;
 						send_post_response_packet(fd, status, 0, NULL);
-						printf("[servent_responde]Sending post response\n");
+						logger(SYS_INFO, "[servent_responde]Sending post response\n");
 						status = 0;
 						servent_data *sd;
 						COPY_SERVENT(conn_servent, sd);
@@ -753,13 +775,13 @@ void *servent_responde(void *parm) {
 					
 					//Invio la conferma di ricezione
 					if(status>0) {
-						printf("[servent_responde]Sending post response\n");
+						logger(SYS_INFO, "[servent_responde]Sending post response\n");
 						send_post_response_packet(fd, status, 0, NULL);
 					}
 						
 				}
 				else if(h_packet->type==HTTP_REQ_GET) {
-					printf("[servent_responde]GET ricevuto\n");
+					logger(SYS_INFO, "[servent_responde]GET ricevuto\n");
 				}
 				
 				/*if(h_packet->header_request!=NULL)
@@ -771,7 +793,7 @@ void *servent_responde(void *parm) {
 				if(h_packet->data_string!=NULL)
 					free(h_packet->data_string);*/
 //				if(h_packet->header_request!=NULL) {
-//					printf("[servent_responde]free\n");
+//					logger(SYS_INFO, "[servent_responde]free\n");
 //					free(h_packet->header_request);
 //				}
 //				free(h_packet);
@@ -781,7 +803,7 @@ void *servent_responde(void *parm) {
 			logger(SYS_INFO, "[servent_responde]Peer %lld crashed\n");
 			if(servent_get(user_id)!=NULL) {
 				RLOCK(user_id);
-				printf("[servent_responde]Client %lld,%s disconnected\n", user_id, servent_get(user_id)->nick);
+				logger(SYS_INFO, "[servent_responde]Client %lld,%s disconnected\n", user_id, servent_get(user_id)->nick);
 				servent_data* srv = servent_get(user_id);
 				servent_data* sd;
 				COPY_SERVENT(srv, sd);
@@ -952,14 +974,14 @@ void *servent_connect(void *parm) {
 			len = recv_http_packet(fd, &buffer);
 			logger(SYS_INFO, "[sevente_connect]Received response\n");
 			if(len>0) {
-				printf("[servent_connect]buffer recv: %s\n", dump_data(buffer, len));
+				logger(SYS_INFO, "[servent_connect]buffer recv: %s\n", dump_data(buffer, len));
 				h_packet = http_char_to_bin(buffer);
 				if(h_packet!=NULL && h_packet->type==HTTP_RES_POST) {
 					if(strcmp(h_packet->header_response->response, HTTP_OK)==0) {
-						printf("[servent_connect]OK POST received\n");
+						logger(SYS_INFO, "[servent_connect]OK POST received\n");
 					}
 					else {
-						printf("[servent_connect]Error\n");
+						logger(SYS_INFO, "[servent_connect]Error\n");
 					}
 				}
 			}
@@ -1016,12 +1038,12 @@ void *servent_timer(void *parm) {
 					servent_send_packet(tmp);
 				}
 				UNLOCK(data->id);
-				printf("[servent_timer]Signaling %lld\n", data->id);
+				logger(SYS_INFO, "[servent_timer]Signaling %lld\n", data->id);
 			}
 		}
 		
 		//servent_flush_data();
-		printf("[servent_timer]Sleeping\n");
+		logger(SYS_INFO, "[servent_timer]Sleeping\n");
 		sleep(timer_interval);
 	}
 }

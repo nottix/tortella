@@ -113,20 +113,20 @@ static GList *server_connection_thread;
 
 #define WLOCK(servent)			logger(SYS_INFO, "[WLOCK]Try locking %lld\n", servent); \
 								if(servent_get(servent)!=NULL) { \
-									logger(SYS_INFO, "[WLOCK]Lock %lld\n", servent); \
 									pthread_rwlock_wrlock( &((servent_get(servent)->rwlock_data))); \
+									logger(SYS_INFO, "[WLOCK]Lock %lld\n", servent); \
 								}
 
 #define RLOCK(servent)			logger(SYS_INFO, "[RLOCK]Try locking %lld\n", servent); \
 								if(servent_get(servent)!=NULL) { \
-									logger(SYS_INFO, "[RLOCK]Lock %lld\n", servent); \
 									pthread_rwlock_rdlock( &((servent_get(servent)->rwlock_data))); \
+									logger(SYS_INFO, "[RLOCK]Lock %lld\n", servent); \
 								}
 
 #define UNLOCK(servent)			logger(SYS_INFO, "[UNLOCK]Try unlocking %lld\n", servent); \
 								if(servent_get(servent)!=NULL) { \
-									logger(SYS_INFO, "[UNLOCK]Unlock %lld\n", servent); \
 									pthread_rwlock_unlock( &((servent_get(servent)->rwlock_data))); \
+									logger(SYS_INFO, "[UNLOCK]Unlock %lld\n", servent); \
 								}
 
 #define UNLOCK_F(servent)		pthread_rwlock_unlock( &(((servent)->rwlock_data)) ); \
