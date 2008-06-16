@@ -974,14 +974,15 @@ int controller_join_flooding(u_int8 chat_id) {
 					tmp->post_type = JOIN_ID;
 					tmp->ttl = 3;
 					tmp->hops = 0;
-					tmp->nick_req = servent->nick;
+					tmp->nick_req = servent_get_local()->nick;
 					tmp->packet_id = generate_id(); //Se non ci fosse verrebbe riutilizzato l'ID di uno degli eventuali pacchetti SEARCH ritrasmessi
 					tmp->chat_id_req = chat_id;
-					tmp->user_id_req = servent->id;
-					tmp->ip_req = servent->ip;
-					tmp->port_req = servent->port;	
+					tmp->user_id_req = servent_get_local()->id;
+					tmp->status_req = servent_get_local()->status;
+					tmp->ip_req = servent_get_local()->ip;
+					tmp->port_req = servent_get_local()->port;	
 					if(count == 0) {
-						servent_get_local()->chat_list = g_list_append(tmp->chat_list, (gpointer)chat_elem); //OK???
+						servent_get_local()->chat_list = g_list_append(tmp->chat_list, (gpointer)chat_elem);
 						count = 1;
 					}	
 					logger(INFO, "[controller_join]Send\n");
@@ -992,11 +993,13 @@ int controller_join_flooding(u_int8 chat_id) {
 					logger(INFO, "[controller_join]Local ID\n");
 
 			}
+			GList *users = data_get_chatclient_from_chat(chat_elem->id);
+			int j;
 			for(i=0; i<g_list_length(servents); i++) {
 				peer = (servent_data*)g_list_nth_data(servents, i);
 				chatclient *client = data_get_chatclient(peer->id);
 				logger(CTRL_INFO, "[controller_join_chat]Sending join to %lld\n", peer->id);
-				if(peer!=NULL) {
+				if(client!=NULL && peer!=NULL && peer->id!=servent_get_local()->id && peer->id >= conf_get_gen_start ()) {
 					char *ret = servent_pop_response(peer);
 					if(ret==NULL) {
 						logger(CTRL_INFO, "[controller_join_chat]Ret NULL\n");
@@ -1005,9 +1008,17 @@ int controller_join_flooding(u_int8 chat_id) {
 					if(strcmp(ret, TIMEOUT)==0)
 						return peer->id;
 					printf("RECEIVED %s\n", ret);
-					data_add_user_to_chat(chat_elem->id, client->id, client->nick, client->ip, client->port);
 
-					gui_add_user_to_chat(chat_elem->id, client->id, client->nick, peer->status);
+					for(j=0; j<g_list_length(users); j++) {
+						chatclient *user = (chatclient*)g_list_nth_data(users, j);
+						if(user!=NULL) {
+							if(user->id == client->id) {
+								data_add_user_to_chat(chat_elem->id, client->id, client->nick, client->ip, client->port);
+								gui_add_user_to_chat(chat_elem->id, client->id, client->nick, peer->status);
+								break;
+							}
+						}
+					}
 				}
 			}
 		}
@@ -1060,7 +1071,7 @@ int controller_leave_flooding(u_int8 chat_id) {
 				}
 			}
 			for(i=0; i<g_list_length(clients); i++) {
-				//client = (chatclient*)g_list_nth_data(clients, i);
+				client = (chatclient*)g_list_nth_data(clients, i);
 				printf("eeee\n");
 				if(client!=NULL) {
 					peer = (servent_data*)g_list_nth_data(clients, i);
@@ -1075,7 +1086,7 @@ int controller_leave_flooding(u_int8 chat_id) {
 						
 					}
 				}
-			}	
+			}
 			return 0;
 		}
 	}

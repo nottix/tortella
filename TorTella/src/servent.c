@@ -403,7 +403,7 @@ void *servent_responde(void *parm) {
 										sd->post_type = JOIN_ID;
 										UNLOCK(conn_servent->id);
 										servent_send_packet(sd);
-										printf("[servent_responde]Retrasmitted JOIN packet to other peers\n");
+										printf("[servent_responde]Retrasmitted JOIN packet %s to %s\n", sd->nick_req, sd->nick);
 									}
 								}		   
 							}
