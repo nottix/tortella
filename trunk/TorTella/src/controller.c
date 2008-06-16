@@ -219,6 +219,7 @@ int controller_leave_all_chat()
 {
 	chat *tmp;
 	servent_data *sd = servent_get_local();
+	GList *iter;
 	if(sd == NULL) {
 		logger(CTRL_INFO, "[controller_leave_all_chat] servent NULL\n");
 		return -1;
@@ -227,9 +228,11 @@ int controller_leave_all_chat()
 	int i=0;
 	logger(CTRL_INFO, "[controller_leave_all_chat] lunghezza lista %d\n", g_list_length(chat_list));
 	//Chiamata alla funzione controller_leave_flooding per ogni chat a cui si è connessi
-	while((tmp=(chat*)g_list_last(chat_list)) != NULL) {
+	while((iter=(chat*)g_list_last(chat_list)) != NULL) {
 		//controller_leave_chat(tmp->id);
+		tmp = (chat*)iter->data;
 		controller_leave_flooding(tmp->id);  //PROVA
+		chat_list = sd->chat_list;
 	}
 	return 0;
 }
@@ -679,7 +682,6 @@ int controller_join_flooding(u_int8 chat_id) {
  */
 int controller_leave_flooding(u_int8 chat_id) {
 	char *ret;
-	int count = 0;
 	logger(CTRL_INFO,"[controller_leave_chat] chat_id %lld\n", chat_id); 
 	if(chat_id>0) {
 		logger(CTRL_INFO,"[controller_leave_chat] chat_id>0\n");
@@ -710,12 +712,6 @@ int controller_leave_flooding(u_int8 chat_id) {
 						sd->ttl = 3;
 						sd->hops = 0;
 							
-							//TODO: VA MODIFICATO	
-						if(count == 0) {
-							servent_get_local()->chat_list = g_list_remove(servent_get_local()->chat_list, (gconstpointer)chat_elem); 
-							data_del_user_from_chat (chat_id, servent_get_local()->id);
-							count = 1; 
-						}	
 					    UNLOCK(peer->id);
 						servent_send_packet(sd); 
 					}
@@ -739,6 +735,8 @@ int controller_leave_flooding(u_int8 chat_id) {
 					}
 				}
 			}
+			servent_get_local()->chat_list = g_list_remove(servent_get_local()->chat_list, (gconstpointer)chat_elem); 
+			data_del_user_from_chat (chat_id, servent_get_local()->id);
 			return 0;
 		}
 	}
