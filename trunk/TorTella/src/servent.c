@@ -64,10 +64,18 @@ servent_data *servent_start_client(char *dest_ip, u_int4 dest_port, u_int8 id) {
 	
 	data_add_user(servent->id, servent->nick, servent->ip, servent->port);
 
-	servent->post_type=PING_ID;
 	g_hash_table_insert(servent_hashtable, (gpointer)to_string(cliid), (gpointer)servent);
 	pthread_create(clithread, NULL, servent_connect, (void*)&cliid);
 	client_thread = g_list_prepend(client_thread, (gpointer)(*clithread));
+	
+	char *ret = servent_pop_response(servent);
+	if(ret!=NULL && strcmp(ret, TIMEOUT)==0) {
+		servent->post_type = CLOSE_ID;
+		servent_send_packet(servent);
+		//g_hash_table_remove(servent_hashtable, (gconstpointer)to_string(cliid));
+		//client_thread = g_list_remove(client_thread, (gpointer)(*clithread));
+		return NULL;
+	}
 	
 	return servent;
 }
@@ -108,9 +116,8 @@ int servent_init_connection(GList *init_servent) {
 	for(i=0; i<g_list_length(init_servent); i++) {
 		peer = (init_data*)g_list_nth_data(init_servent, i);
 		logger(SOCK_INFO, "[servent_init_connection]ip: %s, port: %d\n", peer->ip, peer->port);
-		if(servent_start_client(peer->ip, peer->port, 0)<0) {
-			logger(SYS_INFO, "[servent_init_connection]Errore connessione a peer conosciuti\n");
-			return -1;
+		if(servent_start_client(peer->ip, peer->port, 0)==NULL) {
+			logger(SYS_INFO, "[servent_init_connection]Connessione a peer conosciuto non possibile\n");
 		}
 	}
 	
@@ -551,25 +558,27 @@ void *servent_responde(void *parm) {
 								logger(SYS_INFO, "[servent_responde]TTL > 1\n");
 								int i;
 								servent_list = g_hash_table_get_values(servent_hashtable);
-								for(i=0; i<g_list_length(servent_list); i++) {
-							
-									conn_servent = (servent_data*)g_list_nth_data(servent_list, i);
-									if(conn_servent->id!=h_packet->data->header->sender_id && conn_servent->id!=servent_get_local()->id && conn_servent->id>=conf_get_gen_start()) {
-										RLOCK(conn_servent->id);
-										servent_data *sd;
-										COPY_SERVENT(conn_servent, sd);
-										sd->ttl = GET_LEAVE(h_packet->data)->ttl-1;
-										sd->hops = GET_LEAVE(h_packet->data)->hops+1;
-										sd->packet_id = h_packet->data->header->id;
-										sd->user_id_req = GET_LEAVE(h_packet->data)->user_id;
-										sd->chat_id_req = GET_LEAVE(h_packet->data)->chat_id;
-										sd->post_type = LEAVE_ID;
-										UNLOCK(conn_servent->id);
-										servent_send_packet(sd);
-										servent_pop_response(sd);
-										logger(SYS_INFO, "[servent_responde]Retrasmitted LEAVE packet to other peers\n");
+								if(servent_list!=NULL) {
+									for(i=0; i<g_list_length(servent_list); i++) {
+
+										conn_servent = (servent_data*)g_list_nth_data(servent_list, i);
+										if(conn_servent->id!=h_packet->data->header->sender_id && conn_servent->id!=servent_get_local()->id && conn_servent->id>=conf_get_gen_start()) {
+											RLOCK(conn_servent->id);
+											servent_data *sd;
+											COPY_SERVENT(conn_servent, sd);
+											sd->ttl = GET_LEAVE(h_packet->data)->ttl-1;
+											sd->hops = GET_LEAVE(h_packet->data)->hops+1;
+											sd->packet_id = h_packet->data->header->id;
+											sd->user_id_req = GET_LEAVE(h_packet->data)->user_id;
+											sd->chat_id_req = GET_LEAVE(h_packet->data)->chat_id;
+											sd->post_type = LEAVE_ID;
+											UNLOCK(conn_servent->id);
+											servent_send_packet(sd);
+											servent_pop_response(sd);
+											logger(SYS_INFO, "[servent_responde]Retrasmitted LEAVE packet to other peers\n");
+										}
 									}
-								}		   
+								}
 							}
 						}
 					}
@@ -1024,6 +1033,7 @@ void *servent_timer(void *parm) {
 			
 				RLOCK(data->id);
 				COPY_SERVENT(data, tmp);
+				UNLOCK(data->id);
 				tmp->post_type = PING_ID;
 				servent_send_packet(tmp);
 				ret = servent_pop_response(tmp);
@@ -1037,7 +1047,6 @@ void *servent_timer(void *parm) {
 					tmp->post_type = CLOSE_ID;
 					servent_send_packet(tmp);
 				}
-				UNLOCK(data->id);
 				logger(SYS_INFO, "[servent_timer]Signaling %lld\n", data->id);
 			}
 		}
