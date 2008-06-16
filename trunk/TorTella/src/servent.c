@@ -505,7 +505,7 @@ void *servent_responde(void *parm) {
 						}
 					}
 					else if(h_packet->data->header->desc_id==LEAVE_ID) {
-						printf("[servent_responde]LEAVE ricevuto\n");
+					/*	printf("[servent_responde]LEAVE ricevuto\n");
 						u_int8 chat_id = GET_LEAVE(h_packet->data)->chat_id;
 						
 						servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
@@ -520,9 +520,9 @@ void *servent_responde(void *parm) {
 						gdk_threads_enter();
 						controller_rem_user_from_chat(chat_id, conn_servent->id);
 						gdk_threads_leave();
-						logger(SYS_INFO, "[servent_responde]Deleted user: %lld\n", conn_servent->id);
+						logger(SYS_INFO, "[servent_responde]Deleted user: %lld\n", conn_servent->id);*/
 						
-					/*	printf("[servent_responde]LEAVE ricevuto\n");
+						printf("[servent_responde]LEAVE ricevuto\n");
 						printf("[servent_responde]LEAVE ricevuto packet_id: %lld\n", h_packet->data->header->id);
 						if(servent_get_leave_packet(h_packet->data->header->id) == NULL) {
 							servent_new_leave_packet(h_packet->data->header->id);
@@ -533,6 +533,8 @@ void *servent_responde(void *parm) {
 								printf("[servent_responde]conn_servent entry %lld doesn't found\n", h_packet->data->header->sender_id);
 								continue;
 							}
+							u_int8 chat_id = GET_LEAVE(h_packet->data)->chat_id;
+
 							WLOCK(h_packet->data->header->sender_id);
 							conn_servent->timestamp = h_packet->data->header->timestamp;
 							UNLOCK(h_packet->data->header->sender_id);
@@ -569,7 +571,9 @@ void *servent_responde(void *parm) {
 										servent_send_packet(sd);
 										printf("[servent_responde]Retrasmitted LEAVE packet to other peers\n");
 									}
-								}	*/	   
+								}		   
+							}
+						}
 					}
 					else if(h_packet->data->header->desc_id==MESSAGE_ID) {
 						printf("[servent_responde]MESSAGE ricevuto\n");
