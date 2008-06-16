@@ -36,21 +36,19 @@ typedef struct route_entry route_entry;
 
 static GHashTable *route_hashtable = NULL;
 
-static GHashTable *list_route_hashtable = NULL;
-
 //--------------------------------
 
 /*
  * Aggiunge una regola di routing alla tabella di routing. Se la regola è già presente
  * incrementa il contatore associato alla regola.
  */
-int add_route_entry(u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, GHashTable *route_table);
+int add_route_entry(u_int8 packet_id, u_int8 sender_id, u_int8 recv_id);
 
-int del_route_entry(u_int8 id, GHashTable *route_table);
+int del_route_entry(u_int8 id);
 
-route_entry *get_route_entry(u_int8 packet_id, GHashTable *route_table);
+route_entry *get_route_entry(u_int8 packet_id);
 
-u_int8 get_iddest_route_entry(u_int8 id, GHashTable *route_table);
+u_int8 get_iddest_route_entry(u_int8 id);
 
 
 #endif //ROUTEMANAGER_H

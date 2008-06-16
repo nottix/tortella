@@ -21,54 +21,42 @@
  * Aggiunge una regola di routing alla tabella di routing. Se la regola è già presente
  * incrementa il contatore associato alla regola.
  */
-int add_route_entry(u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, GHashTable *route_table) {
-	if(route_table==NULL)
-		return -1;
-	
-	/*char *key = to_string(recv_id);
-	route_entry *entry = (route_entry*)g_hash_table_lookup(route_table, (gconstpointer)key);
-	if(entry!=NULL) {
-		entry->counter++;
-		entry->sender_id = sender_id;
-		g_hash_table_replace(route_table, (gpointer)key, (gpointer)entry);
-	}*/
+int add_route_entry(u_int8 packet_id, u_int8 sender_id, u_int8 recv_id) {
+	if(route_hashtable==NULL) {
+		route_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
+	}
 
 	char *key = to_string(packet_id);
 	route_entry *entry = (route_entry*)calloc(sizeof(route_entry), 1);
 	entry->sender_id = sender_id;
 	entry->recv_id = recv_id;
-	g_hash_table_insert(route_table, (gpointer)key, (gpointer)entry);
+	g_hash_table_insert(route_hashtable, (gpointer)key, (gpointer)entry);
 	
 	return 1;
 }
 
-int del_route_entry(u_int8 id, GHashTable *route_table) {
-	if(route_table==NULL)
-		return -1;
+int del_route_entry(u_int8 id) {
+	if(route_hashtable==NULL) {
+		route_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
+	}
 	
 	char *key = to_string(id);
-	g_hash_table_remove(route_table, (gconstpointer)key);
-	/*route_entry *entry = (route_entry*)g_hash_table_lookup(route_table, (gconstpointer)key);
-	if(entry!=NULL) {
-		entry->counter--;
-		if(entry->counter==0)
-			
-		g_hash_table_replace(route_table, (gpointer)key, (gpointer)entry);
-	}*/
+	g_hash_table_remove(route_hashtable, (gconstpointer)key);
 	
 	return 1;
 }
 
-route_entry *get_route_entry(u_int8 packet_id, GHashTable *route_table) {
-	if(route_table==NULL)
-		return NULL;
+route_entry *get_route_entry(u_int8 packet_id) {
+	if(route_hashtable==NULL) {
+		route_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
+	}
 	
 	char *key = to_string(packet_id);
-	route_entry *entry = (route_entry*)g_hash_table_lookup(route_table, (gconstpointer)key);
+	route_entry *entry = (route_entry*)g_hash_table_lookup(route_hashtable, (gconstpointer)key);
 	return entry;
 }
 
-u_int8 get_iddest_route_entry(u_int8 id, GHashTable *route_table) {
+u_int8 get_iddest_route_entry(u_int8 id) {
 	
-	return ((route_entry*)get_route_entry(id, route_table))->sender_id;
+	return ((route_entry*)get_route_entry(id))->sender_id;
 }
