@@ -144,4 +144,6 @@ chat *data_get_chat(u_int8 chat_id);
 
 chatclient *data_get_chatclient(u_int8 id);
 
+int data_destroy_user(u_int8 id);
+
 #endif //SUPERNODEDATA_H

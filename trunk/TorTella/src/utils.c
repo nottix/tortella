@@ -17,7 +17,6 @@
 #include "utils.h"
 
 u_int8 generate_id(void) {
-	srandom(time(NULL));
 	char *addr;
 	addr = get_mac_addr();
 	int i=0, j=10;
@@ -25,12 +24,12 @@ u_int8 generate_id(void) {
 	for(; i<6; i++, j*=10) {
 		res += addr[i]*j;
 	}
+	res *= random();
 	//logger(INFO, "[generate_id]MAC: %lld\n", res);
 	return (conf_get_gen_start()+((random())^res))*(res/2);
 }
 
 int generate_id4(void) {
-	srandom(time(NULL));
 	char *addr;
 	addr = get_mac_addr();
 	int i=0, j=10;
@@ -208,7 +207,13 @@ char *get_mac_addr(void) {
 	IFR = ifc.ifc_req;
 	
 	i = (ifc.ifc_len / sizeof(struct ifreq));
-	//printf("ok i: %d\n", i);
+	if(i<=1) {
+		char *ret = calloc(128, 1);
+		time_t t = time(NULL);
+		sprintf(ret, "%s", asctime(localtime(&t)));
+		memcpy(addr, ret, 6);
+		return addr;
+	}
 	for (; i >= 0;) {
 
 		//printf("ok1\n");
