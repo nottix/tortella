@@ -160,6 +160,7 @@ int servent_init(char *ip, u_int4 port, u_int1 status) {
 	
 	//Inizializza la lista delle chat conosciute leggendo da un file predefinito
 	servent_init_supernode();
+	srandom(time(NULL));
 	logger(SYS_INFO, "[servent_init]Supernode initialized on %s:%d\n", conf_get_local_ip(), conf_get_local_port());
 	
 	servent_hashtable = g_hash_table_new_full(g_str_hash, g_str_equal, free, NULL);
@@ -336,6 +337,7 @@ void *servent_responde(void *parm) {
 	http_packet *h_packet;
 	int len;
 	int fd = (int)parm;
+	u_int8 user_id = 0;
 	u_int4 status = 0;
 	
 	while(1) {
@@ -387,7 +389,7 @@ void *servent_responde(void *parm) {
 								for(i=0; i<g_list_length(servent_list); i++) {
 							
 									conn_servent = (servent_data*)g_list_nth_data(servent_list, i);
-									if(conn_servent->id!=h_packet->data->header->sender_id && conn_servent->id!=servent_get_local()->id) {
+									if(conn_servent->id!=h_packet->data->header->sender_id && conn_servent->id!=servent_get_local()->id && conn_servent->id>=conf_get_gen_start()) {
 										RLOCK(conn_servent->id);
 										servent_data *sd;
 										COPY_SERVENT(conn_servent, sd);
@@ -403,6 +405,7 @@ void *servent_responde(void *parm) {
 										sd->post_type = JOIN_ID;
 										UNLOCK(conn_servent->id);
 										servent_send_packet(sd);
+										servent_pop_response(sd);
 										printf("[servent_responde]Retrasmitted JOIN packet %s to %s\n", sd->nick_req, sd->nick);
 									}
 								}		   
@@ -412,7 +415,7 @@ void *servent_responde(void *parm) {
 					}
 					else if(h_packet->data->header->desc_id==PING_ID) {
 						printf("[servent_responde]PING ricevuto da %lld a %lld\n", h_packet->data->header->sender_id, h_packet->data->header->recv_id);
-						
+						user_id = h_packet->data->header->sender_id;
 						servent_data *conn_servent;
 						u_int8 id = h_packet->data->header->sender_id;
 						logger(SYS_INFO, "[servent_responde]Searching in hashtable: %lld\n", id);
@@ -505,23 +508,6 @@ void *servent_responde(void *parm) {
 						}
 					}
 					else if(h_packet->data->header->desc_id==LEAVE_ID) {
-					/*	printf("[servent_responde]LEAVE ricevuto\n");
-						u_int8 chat_id = GET_LEAVE(h_packet->data)->chat_id;
-						
-						servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
-						WLOCK(h_packet->data->header->sender_id);
-						//conn_servent->chat_list = g_list_remove(conn_servent->chat_list, (gconstpointer)&chat_id); //TODO: non ci vorrebbe
-						conn_servent->timestamp = h_packet->data->header->timestamp;
-						UNLOCK(h_packet->data->header->sender_id);
-						
-						status = HTTP_STATUS_OK;
-						//Sconnetti dalla chat
-						logger(SYS_INFO, "[servent_responde]Deleting user\n");
-						gdk_threads_enter();
-						controller_rem_user_from_chat(chat_id, conn_servent->id);
-						gdk_threads_leave();
-						logger(SYS_INFO, "[servent_responde]Deleted user: %lld\n", conn_servent->id);*/
-						
 						printf("[servent_responde]LEAVE ricevuto\n");
 						printf("[servent_responde]LEAVE ricevuto packet_id: %lld\n", h_packet->data->header->id);
 						if(servent_get_leave_packet(h_packet->data->header->id) == NULL) {
@@ -547,7 +533,7 @@ void *servent_responde(void *parm) {
 							logger(SYS_INFO, "[servent_responde]Deleted user: %lld\n", conn_servent->id);
 							
 						
-							printf("[servent_responde]Sending JOIN packet to others peer\n");
+							printf("[servent_responde]Sending LEAVE packet to others peer\n");
 						 
 							if(GET_LEAVE(h_packet->data)->ttl>1) {
 								printf("[servent_responde]TTL > 1\n");
@@ -556,7 +542,7 @@ void *servent_responde(void *parm) {
 								for(i=0; i<g_list_length(servent_list); i++) {
 							
 									conn_servent = (servent_data*)g_list_nth_data(servent_list, i);
-									if(conn_servent->id!=h_packet->data->header->sender_id && conn_servent->id!=servent_get_local()->id) {
+									if(conn_servent->id!=h_packet->data->header->sender_id && conn_servent->id!=servent_get_local()->id && conn_servent->id>=conf_get_gen_start()) {
 										RLOCK(conn_servent->id);
 										servent_data *sd;
 										COPY_SERVENT(conn_servent, sd);
@@ -565,10 +551,10 @@ void *servent_responde(void *parm) {
 										sd->packet_id = h_packet->data->header->id;
 										sd->user_id_req = GET_LEAVE(h_packet->data)->user_id;
 										sd->chat_id_req = GET_LEAVE(h_packet->data)->chat_id;
-										//sd->nick_req = tortella_get_data(h_packet->data_string);
 										sd->post_type = LEAVE_ID;
 										UNLOCK(conn_servent->id);
 										servent_send_packet(sd);
+										servent_pop_response(sd);
 										printf("[servent_responde]Retrasmitted LEAVE packet to other peers\n");
 									}
 								}		   
@@ -653,7 +639,7 @@ void *servent_responde(void *parm) {
 								for(i=0; i<g_list_length(servent_list); i++) {
 							
 									conn_servent = (servent_data*)g_list_nth_data(servent_list, i);
-									if(conn_servent->id!=h_packet->data->header->sender_id && conn_servent->id!=servent_get_local()->id) {
+									if(conn_servent->id!=h_packet->data->header->sender_id && conn_servent->id!=servent_get_local()->id && conn_servent->id>=conf_get_gen_start()) {
 										RLOCK(conn_servent->id);
 										servent_data *sd;
 										COPY_SERVENT(conn_servent, sd);
@@ -791,8 +777,24 @@ void *servent_responde(void *parm) {
 			}
 		}
 		else {
-			printf("[servent_responde]Client disconnected\n");
-			delete_socket(fd);
+			logger(SYS_INFO, "[servent_responde]Peer %lld crashed\n");
+			if(servent_get(user_id)!=NULL) {
+				RLOCK(user_id);
+				printf("[servent_responde]Client %lld,%s disconnected\n", user_id, servent_get(user_id)->nick);
+				servent_data* srv = servent_get(user_id);
+				servent_data* sd;
+				COPY_SERVENT(srv, sd);
+				sd->post_type = CLOSE_ID;
+				servent_send_packet(sd);
+				UNLOCK(user_id);
+				
+				gdk_threads_enter();
+				controller_receive_bye(user_id);
+				gdk_threads_leave();
+				data_destroy_user(user_id);
+			}
+			
+			shutdown_socket(fd);
 			server_connection_fd = g_list_remove(server_connection_fd, (gconstpointer)fd);
 			server_connection_thread = g_list_remove(server_connection_thread, (gconstpointer)(pthread_self()));
 			pthread_exit(NULL);
@@ -921,6 +923,7 @@ void *servent_connect(void *parm) {
 				shutdown_socket(fd);
 				client_fd = g_list_remove(client_fd, (gconstpointer)fd);
 				client_thread = g_list_remove(client_thread, (gconstpointer)pthread_self());
+				g_hash_table_remove(servent_hashtable, (gconstpointer)to_string(id_dest));
 				pthread_exit(NULL);
 			}
 			else if(post_type==LEAVE_ID) {
@@ -966,7 +969,6 @@ void *servent_connect(void *parm) {
 				if(servent_peer==NULL) {
 					logger(SYS_INFO, "[servent_connect] Peer response NULL\n");
 					pthread_exit(NULL);
-					//servent_peer = servent_get(id_dest);
 				}
 				if(/*id_dest >= conf_get_gen_start() &&*/ !(servent_peer->post_type == SEARCH_ID || servent_peer->post_type == SEARCHHITS_ID || servent_peer->post_type == CLOSE_ID)) {
 					servent_append_response(servent_peer, h_packet->header_response->response);
@@ -996,22 +998,29 @@ void *servent_timer(void *parm) {
 		
 		for(i=0; i<g_list_length(list); i++) {
 			data = (servent_data*)g_list_nth_data(list, i);
-			if(data->id!=local_servent->id) {
+			if(data!=NULL && (data->id!=local_servent->id) && (data->id>=conf_get_gen_start())) {
 			
+				RLOCK(data->id);
 				COPY_SERVENT(data, tmp);
 				tmp->post_type = PING_ID;
 				servent_send_packet(tmp);
 				ret = servent_pop_response(tmp);
 				if(ret!=NULL && strcmp(ret, TIMEOUT)==0) {
 					logger(SYS_INFO, "[servent_timer]Timer scaduto per %lld\n", data->id);
-					//Uccidere thread ed eliminare i dati
+					gdk_threads_enter();
+					controller_receive_bye(data->id);
+					gdk_threads_leave();
+					data_destroy_user(data->id);
+					
+					tmp->post_type = CLOSE_ID;
+					servent_send_packet(tmp);
 				}
-				
+				UNLOCK(data->id);
 				printf("[servent_timer]Signaling %lld\n", data->id);
 			}
 		}
 		
-		servent_flush_data();
+		//servent_flush_data();
 		printf("[servent_timer]Sleeping\n");
 		sleep(timer_interval);
 	}

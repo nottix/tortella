@@ -583,3 +583,20 @@ chat *data_get_chat(u_int8 chat_id) {
 chatclient *data_get_chatclient(u_int8 id) {
 	return g_hash_table_lookup(chatclient_hashtable, to_string(id));
 }
+
+int data_destroy_user(u_int8 id) {
+	
+	if(id==0)
+		return -1;
+	
+	GList *chats = g_hash_table_get_values(chat_hashtable);
+	int i=0;
+	for(; i<g_list_length(chats); i++) {
+		chat *chat_val = (chat*)g_list_nth_data(chats, i);
+		if(chat_val!=NULL) {
+			g_hash_table_remove(chat_val->users, (gconstpointer)to_string(id));
+		}
+	}
+	data_del_user(id);
+	return 0;
+}

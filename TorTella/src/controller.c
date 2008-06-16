@@ -228,7 +228,7 @@ int controller_leave_all_chat()
 	int i=0;
 	logger(CTRL_INFO, "[controller_leave_all_chat] lunghezza lista %d\n", g_list_length(chat_list));
 	//Chiamata alla funzione controller_leave_flooding per ogni chat a cui si è connessi
-	while((iter=(chat*)g_list_last(chat_list)) != NULL) {
+	while((iter=g_list_last(chat_list)) != NULL) {
 		//controller_leave_chat(tmp->id);
 		tmp = (chat*)iter->data;
 		controller_leave_flooding(tmp->id);  //PROVA
