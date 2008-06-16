@@ -29,11 +29,11 @@ GList *init_read_file(const char *filename) {
 	int i=0;	
 
 	if(filename==NULL || strlen(filename)==0) {
-		printf("Il nome del file non è corretto\n");
+		printf("Il nome del file non è corretto o non è presente\n");
 		return NULL;
 	}
 	
-	if((fd=open(filename,O_RDONLY|O_EXCL))<0){
+	if((fd=open(filename, O_RDONLY|O_EXCL))<0){
 		printf("Errore apertura file\n");
 		return NULL;	
 	}
@@ -67,7 +67,7 @@ init_data *init_char_to_initdata(char *buffer){
 	ip=strtok_r(buffer,";",&saveptr);
 	data->ip=strdup(ip);
 	printf("data->ip:%s\n",data->ip);
-	port=strtok_r(NULL,"\n",&saveptr); //FIXIT da mettere ;
+	port=strtok_r(NULL,";",&saveptr); //FIXIT da mettere ;
 	data->port=atoi(port);
 	printf("data->port:%d\n",data->port);
 		

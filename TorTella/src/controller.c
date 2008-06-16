@@ -439,7 +439,7 @@ int controller_init(const char *filename, const char *cache) {
 	servent_start(init_list);
 
 	//avvio del timer per il meccanismo di failure detection
-	//servent_start_timer();
+	servent_start_timer();
 	
 	return 0;
 } 
