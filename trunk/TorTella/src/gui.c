@@ -48,7 +48,8 @@ gint gui_leave_chat_event(GtkWidget *widget, gpointer gdata)
 	g_print("Closing chat %lld, str: %s\n", val, str);
 	//u_int8 chat_id = atoll((char*)(*tmp));
 	//g_print("Closing chat %lld\n", chat_id);
-	controller_leave_chat(val);
+	//controller_leave_chat(val);
+	controller_leave_flooding(val);
 	//gtk_widget_destroy(widget);
 	//Aggiungere il leave dalla chat
 	return(FALSE);
