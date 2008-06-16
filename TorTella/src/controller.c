@@ -1038,16 +1038,19 @@ int controller_leave_flooding(u_int8 chat_id) {
 						logger(CTRL_INFO,"[controller_leave_chat] peer !=NULL\n");
 						
 						WLOCK(peer->id);
-						peer->chat_id_req = chat_id;
-						peer->post_type = LEAVE_ID;
-						peer->ttl = 3;
-						peer->hops = 0;
+						COPY_SERVENT(peer, sd);
+						sd->chat_id_req = chat_id;
+						sd->user_id_req = servent_get_local()->id;
+						sd->post_type = LEAVE_ID;
+						sd->packet_id = generate_id();
+						sd->ttl = 3;
+						sd->hops = 0;
 						if(count == 0) { //PROVA
-							peer->chat_list = g_list_remove(peer->chat_list, (gconstpointer)chat_elem); //PROVA
+							sd->chat_list = g_list_remove(sd->chat_list, (gconstpointer)chat_elem); //PROVA
 							count = 1; 
 						}	
 					    UNLOCK(peer->id);
-						servent_send_packet(peer); 
+						servent_send_packet(sd); 
 					}
 				}
 			}
