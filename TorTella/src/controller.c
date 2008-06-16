@@ -1105,13 +1105,11 @@ int controller_add_user_to_chat(u_int8 chat_id, u_int8 id) {
 //		g_list_append(users, (gpointer))
 //		controller_connect_users()
 //	}
+	if(servent ==NULL) {
+		logger(CTRL_INFO, "[controller_add_user_to_chat] servent null\n");
+		return -1;
+	}
 	logger(CTRL_INFO, "[controller_add_user_to_chat]Addingi user: %s, id: %lld, status: %c\n", servent->nick, servent->id, servent->status);
-	if(servent->status == ONLINE_ID)
-		logger(CTRL_INFO, "[controller_add_user_to_chat] ONLINE\n");
-	else if(servent->status == AWAY_ID)
-		logger(CTRL_INFO, "[controller_add_user_to_chat] AWAY\n");
-	else if(servent->status == BUSY_ID)
-		logger(CTRL_INFO, "[controller_add_user_to_chat] BUSY\n");
 	gui_add_user_to_chat(chat_id, servent->id, servent->nick, servent->status);
 	
 	return 0;
