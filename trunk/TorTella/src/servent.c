@@ -373,7 +373,7 @@ void *servent_responde(void *parm) {
 								printf("[servent_responde]conn_servent entry %lld doesn't found\n", h_packet->data->header->sender_id);
 								continue;
 							}
-							
+							logger(SYS_INFO, "[servent_responde] id: %lld, nick: %s\n", GET_JOIN(h_packet->data)->user_id, tortella_get_data(h_packet->data_string));
 							data_add_user(GET_JOIN(h_packet->data)->user_id, tortella_get_data(h_packet->data_string), GET_JOIN(h_packet->data)->ip, GET_JOIN(h_packet->data)->port);
 							data_add_existing_user_to_chat(GET_JOIN(h_packet->data)->chat_id, GET_JOIN(h_packet->data)->user_id);
 							controller_add_user_to_chat(GET_JOIN(h_packet->data)->chat_id, GET_JOIN(h_packet->data)->user_id);

@@ -372,7 +372,8 @@ void gui_open_chat_event (GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewC
 			//TODO: Attendere che i risultati siano arrivati
 			//sleep(2);
 			gui_open_chatroom(elem->id);
-			controller_join_chat(elem->id);
+			//controller_join_chat(elem->id);
+			controller_join_flooding(elem->id);
 		}
 		g_free(name);
 	}

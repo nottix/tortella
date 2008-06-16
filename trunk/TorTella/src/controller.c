@@ -233,6 +233,7 @@ int controller_join_chat(u_int8 chat_id) {
 						//WLOCK(peer->id);
 						sd->status_req = servent_get_local()->status;
 						sd->chat_id_req = chat_id;
+						sd->packet_id = generate_id();
 						sd->user_id_req = servent_get_local()->id;
 						sd->ip_req = servent_get_local()->ip;
 						sd->nick_req = servent_get_local()->nick;
@@ -954,9 +955,9 @@ int controller_join_flooding(u_int8 chat_id) {
 			int count = 0;
 			for(; i<g_list_length(servents); i++) {
 				servent = g_list_nth_data(servents, i);
-				logger(CTRL_INFO, "[controller_join]Servent ID: %lld\n", servent->id);
+				logger(CTRL_INFO, "[controller_join]Servent ID: %lld;  nick: %s\n", servent->id, servent->nick);
 				if(servent->id!=servent_get_local()->id && servent->id >= conf_get_gen_start ()) {
-
+					
 					if(servent->queue==NULL) {
 						logger(CTRL_INFO, "[controller_join]Coda Servent NULL\n");
 						continue;
@@ -973,8 +974,12 @@ int controller_join_flooding(u_int8 chat_id) {
 					tmp->post_type = JOIN_ID;
 					tmp->ttl = 3;
 					tmp->hops = 0;
+					tmp->nick_req = servent->nick;
 					tmp->packet_id = generate_id(); //Se non ci fosse verrebbe riutilizzato l'ID di uno degli eventuali pacchetti SEARCH ritrasmessi
 					tmp->chat_id_req = chat_id;
+					tmp->user_id_req = servent->id;
+					tmp->ip_req = servent->ip;
+					tmp->port_req = servent->port;	
 					if(count == 0) {
 						servent_get_local()->chat_list = g_list_append(tmp->chat_list, (gpointer)chat_elem); //OK???
 						count = 1;
