@@ -103,6 +103,7 @@ int send_join_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_
 	join->status = status;
 	join->user_id = user_id;
 	join->chat_id = chat_id;
+	memset(join->ip, 0, 16);
 	memcpy(join->ip, ip, strlen(ip));
 	join->port = port;
 	join->ttl = ttl;

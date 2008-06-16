@@ -542,7 +542,7 @@ void *servent_responde(void *parm) {
 							//Sconnetti dalla chat
 							logger(SYS_INFO, "[servent_responde]Deleting user\n");
 							gdk_threads_enter();
-							controller_rem_user_from_chat(chat_id, conn_servent->id);
+							controller_rem_user_from_chat(chat_id, GET_LEAVE(h_packet->data)->user_id);
 							gdk_threads_leave();
 							logger(SYS_INFO, "[servent_responde]Deleted user: %lld\n", conn_servent->id);
 							

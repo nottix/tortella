@@ -231,6 +231,7 @@ int data_add_existing_user_to_chat(u_int8 chat_id, u_int8 id) {
 	if(chat_elem!=NULL) {
 		chatclient *chatclient_elem = (chatclient*)g_hash_table_lookup(chatclient_hashtable, to_string(id));
 		if(chatclient_elem!=NULL) {
+			logger(SYS_INFO, "[data_add_existing_user_to_chat] adding user nick: %s\n", chatclient_elem->nick);
 			g_hash_table_insert(chat_elem->users, (gpointer)to_string(chatclient_elem->id), (gpointer)chatclient_elem);
 			return 1;
 		}
