@@ -29,9 +29,6 @@
 #include <pthread.h>
 #include "common.h"
 #include "confmanager.h"
-//#include "confvars.h"
-
-//#define PATH "/tmp/"
 
 #define ALARM_INFO		0
 #define INFO			1

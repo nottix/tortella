@@ -166,7 +166,6 @@ int servent_init(char *ip, u_int4 port, u_int1 status) {
 	servent_hashtable = g_hash_table_new_full(g_str_hash, g_str_equal, free, NULL);
 	
 	//----Rounting------
-	route_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
 	search_packet_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
 	join_packet_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
 	leave_packet_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
@@ -473,6 +472,8 @@ void *servent_responde(void *parm) {
 								pthread_t *cli_thread = (pthread_t*)malloc(sizeof(pthread_t));
 								pthread_create(cli_thread, NULL, servent_connect, (void*)&id);
 								client_thread = g_list_prepend(client_thread, (gpointer)(*cli_thread));
+								
+								servent_pop_response(conn_servent);
 							}
 							else {
 								status = HTTP_STATUS_OK;
@@ -652,7 +653,7 @@ void *servent_responde(void *parm) {
 										UNLOCK(conn_servent->id);
 										servent_send_packet(sd);
 										//Aggiunta regola di routing alla tabella
-										add_route_entry(h_packet->data->header->id, h_packet->data->header->sender_id, conn_servent->id, route_hashtable);
+										add_route_entry(h_packet->data->header->id, h_packet->data->header->sender_id, conn_servent->id);
 										printf("[servent_responde]Retrasmitted SEARCH packet to other peers\n");
 									}
 								}		   
@@ -666,7 +667,7 @@ void *servent_responde(void *parm) {
 						GList *chat_list = data_char_to_chatlist(tortella_get_data(h_packet->data_string), h_packet->data->header->data_len);
 						data_add_all_to_chat(chat_list);
 						
-						route_entry *entry = get_route_entry(h_packet->data->header->id, route_hashtable);
+						route_entry *entry = get_route_entry(h_packet->data->header->id);
 						if(entry!=NULL) {
 							RLOCK(entry->sender_id);
 							servent_data *sd;
@@ -683,7 +684,7 @@ void *servent_responde(void *parm) {
 								logger(SYS_INFO, "[servent_responde] TIMEOUT\n");
 							} */
 							printf("[servent_responde]Routing packet from %lld to %lld\n", h_packet->data->header->sender_id, entry->sender_id);
-							del_route_entry(h_packet->data->header->id, route_hashtable);
+							del_route_entry(h_packet->data->header->id);
 							printf("[servent_responde]Route entry %lld deleted\n", h_packet->data->header->id); 
 						}
 						else {
@@ -859,7 +860,6 @@ void *servent_connect(void *parm) {
 		if(servent_peer==NULL) {
 			logger(SYS_INFO, "[servent_connect] Peer NULL\n");
 			pthread_exit(NULL);
-			//servent_peer = servent_get(id_dest);
 		}
 		servent_queue = servent_pop_queue(servent_peer);
 		id_dest = servent_peer->id;
@@ -947,7 +947,7 @@ void *servent_connect(void *parm) {
 				send_searchhits_packet(fd, packet_id, local_servent->id, id_dest, g_list_length(servent_queue->chat_res), length, buf);
 			}
 		
-			free(buffer);
+			//free(buffer);
 			logger(SYS_INFO, "[servent_connect]Listening response\n");
 			len = recv_http_packet(fd, &buffer);
 			logger(SYS_INFO, "[sevente_connect]Received response\n");
@@ -970,7 +970,7 @@ void *servent_connect(void *parm) {
 					logger(SYS_INFO, "[servent_connect] Peer response NULL\n");
 					pthread_exit(NULL);
 				}
-				if(/*id_dest >= conf_get_gen_start() &&*/ !(servent_peer->post_type == SEARCH_ID || servent_peer->post_type == SEARCHHITS_ID || servent_peer->post_type == CLOSE_ID)) {
+				if(/*id_dest >= conf_get_gen_start() &&*/ servent_peer->post_type != SEARCH_ID && servent_peer->post_type != SEARCHHITS_ID && servent_peer->post_type != CLOSE_ID) {
 					servent_append_response(servent_peer, h_packet->header_response->response);
 					logger(SYS_INFO, "[servent_connect]Appended\n");
 				}
