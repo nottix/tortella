@@ -20,7 +20,6 @@
  * Provoca la semplice chiusura di una finestra
  */
 gint gui_close_window_event(GtkWidget *widget, gpointer gdata) {
-	g_print("Closing window\n");
 	gtk_widget_destroy(widget);
 	return(FALSE);
 }
@@ -32,7 +31,6 @@ gint gui_close_window_event(GtkWidget *widget, gpointer gdata) {
  */
 void gui_close_event (GtkWidget *widget, gpointer gdata)
 {
-	g_print ("Quitting...\n");
 	controller_leave_all_chat();
 	controller_send_bye();
 	controller_exit();
@@ -47,7 +45,6 @@ gint gui_leave_chat_event(GtkWidget *widget, gpointer gdata)
 {
 	char *str = (char*)gdata;
 	u_int8 val = atoll((char*)gdata);
-	g_print("Closing chat %lld, str: %s\n", val, str);
 	controller_leave_flooding(val);
 	return(FALSE);
 }
@@ -59,7 +56,6 @@ gint gui_leave_chat_event(GtkWidget *widget, gpointer gdata)
 gint gui_leave_pm_event(GtkWidget *widget, gpointer gdata)
 {
 	u_int8 val = atoll((char*)gdata);
-	g_print("Closing pm %lld\n", val);
 	pm_data *pm;
 	if((pm = g_hash_table_lookup(pm_data_hashtable, (gconstpointer)to_string(val)))!=NULL) {
 		gtk_widget_destroy(GTK_WIDGET(pm->window)); 
@@ -342,7 +338,6 @@ void gui_open_chat_event (GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewC
 	GtkTreeModel *model;
 	GtkTreeIter   iter;
 
-	g_print ("A row has been double-clicked!\n");
 
 	model = gtk_tree_view_get_model(treeview);
 
@@ -351,9 +346,6 @@ void gui_open_chat_event (GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewC
 		gchar *name;
 
 		gtk_tree_model_get(model, &iter, 0, &name, -1);
-
-		g_print ("Double-clicked row contains name %s\n", name);
-
 		chat *elem = data_get_chat(atoll(name));
 		if(elem!=NULL) {
 
@@ -376,8 +368,6 @@ gint gui_open_conversation_event(GtkTreeView *treeview, GtkTreePath *path, GtkTr
 	GtkTreeModel *model;
 	GtkTreeIter   iter;
 
-	g_print ("A row has been double-clicked!\n");
-
 	model = gtk_tree_view_get_model(treeview);
 
 	if (gtk_tree_model_get_iter(model, &iter, path))
@@ -386,8 +376,6 @@ gint gui_open_conversation_event(GtkTreeView *treeview, GtkTreePath *path, GtkTr
 		gchar *name; 
 		gtk_tree_model_get(model, &iter, 0, &name, -1);
 		gtk_tree_model_get(model, &iter, 1, &user_id, -1);
-
-		g_print ("Double-clicked row contains name %s\n", user_id);
 
 		if(user_id > 0 ) {
 			logger(INFO, "[open_conversation] nick length %d\n", strlen(name));
@@ -430,7 +418,6 @@ gint gui_open_about_event(GtkWidget *widget, gpointer gdata)
  */
 gint gui_set_to_online_event(GtkWidget *widget, gpointer gdata)
 {
-	g_print("Online...\n");
 	controller_change_status (ONLINE_ID);
 	gui_change_status(servent_get_local()->id, ONLINE);
 	return(FALSE);
@@ -442,7 +429,6 @@ gint gui_set_to_online_event(GtkWidget *widget, gpointer gdata)
  */
 gint gui_set_to_busy_event(GtkWidget *widget, gpointer gdata)
 {
-	g_print("Busy...\n");
 	controller_change_status(BUSY_ID);
 	gui_change_status(servent_get_local()->id, BUSY);
 	return (FALSE);
@@ -454,7 +440,6 @@ gint gui_set_to_busy_event(GtkWidget *widget, gpointer gdata)
  */
 gint gui_set_to_away_event(GtkWidget *widget, gpointer gdata)
 {
-	g_print("Away...\n");
 	controller_change_status(AWAY_ID);
 	gui_change_status(servent_get_local()->id, AWAY);	
 	return (FALSE);
@@ -522,7 +507,6 @@ gint gui_send_text_message_event(GtkWidget *widget, GdkEventKey *event, gpointer
 						gtk_tree_model_get(GTK_TREE_MODEL(chat_list_tmp->user_model), &tmp_iter, 1, &id, -1);
 						logger(INFO, "[send_text_message] id utente: %lld\n", atoll(id));
 						subset = g_list_prepend(subset, (gpointer)(servent_get(atoll(id))));
-						g_print("Utente selezionato: %s\n", (servent_get(atoll(id)))->nick);
 					}
 					valid = gtk_tree_model_iter_next(GTK_TREE_MODEL(chat_list_tmp->user_model), &tmp_iter); 
 				}
@@ -562,17 +546,13 @@ gint gui_send_pm_message_event(GtkWidget *widget, GdkEventKey *event, gpointer g
 {
 	//se è stato premuto il tasto invio, si sta inviando un messaggio
 	if(event->type == GDK_KEY_PRESS && event->keyval == GDK_Return) {
-		g_print("Enter pressed...\n");
 
 		u_int8 user_id = atoll((char*)gdata);
 		GtkTextBuffer *buf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget));
-		g_print("Enter pressed...\n");
 		GtkTextIter start ;
 		gtk_text_buffer_get_start_iter(buf, &start);
-		g_print("Enter pressed...\n");
 		GtkTextIter end;
 		gtk_text_buffer_get_end_iter(buf, &end);
-		g_print("Enter pressed...\n");
 		//testo del messaggio contenuto nella text view
 		char *msg = gtk_text_buffer_get_text(buf, &start, &end, TRUE);
 		logger(INFO, "[send_pm_message]Msg: %s to %lld\n", msg, user_id);
