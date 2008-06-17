@@ -58,9 +58,9 @@ servent_data *servent_start_client(char *dest_ip, u_int4 dest_port, u_int8 id) {
 	servent->queue = g_queue_new();
 	servent->res_queue = g_queue_new();
 	servent->is_online = 0;
-	pthread_mutex_init(&servent->mutex, NULL);
+	//pthread_mutex_init(&servent->mutex, NULL);
 	pthread_rwlock_init(&servent->rwlock_data, NULL);
-	pthread_cond_init(&servent->cond, NULL);
+	//pthread_cond_init(&servent->cond, NULL);
 	
 	data_add_user(servent->id, servent->nick, servent->ip, servent->port);
 
@@ -190,9 +190,9 @@ int servent_init(char *ip, u_int4 port, u_int1 status) {
 	local_servent->is_online = 1;
 	data_add_user(local_servent->id, local_servent->nick, local_servent->ip, local_servent->port);
 	
-	pthread_mutex_init(&local_servent->mutex, NULL);
+	//pthread_mutex_init(&local_servent->mutex, NULL);
 	pthread_rwlock_init(&local_servent->rwlock_data, NULL);
-	pthread_cond_init(&local_servent->cond, NULL);
+	//pthread_cond_init(&local_servent->cond, NULL);
 	logger(SYS_INFO, "[servent_init] id string %s\n", to_string(id));
 	g_hash_table_insert(servent_hashtable, (gpointer)to_string(id), (gpointer)local_servent);
 	
@@ -473,9 +473,9 @@ void *servent_responde(void *parm) {
 								data_add_user(conn_servent->id, conn_servent->nick, conn_servent->ip, conn_servent->port);
 								
 								//Si inizializzano il mutex e il cond
-								pthread_mutex_init(&conn_servent->mutex, NULL);
+								//pthread_mutex_init(&conn_servent->mutex, NULL);
 								pthread_rwlock_init(&conn_servent->rwlock_data, NULL);
-								pthread_cond_init(&conn_servent->cond, NULL);
+								//pthread_cond_init(&conn_servent->cond, NULL);
 								
 								logger(SYS_INFO, "[servent_responde]Lookup ID: %s\n", to_string(id));
 								if(g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id))==NULL) {

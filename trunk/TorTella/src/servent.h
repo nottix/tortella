@@ -38,47 +38,46 @@
 
 #define TIMEOUT "timeout error"
 
+/**
+ * Tale struttura dati viene utilizzata per le operazioni di comunicazioni
+ * con un servente a cui si è connessi. Ne è presente una anche per il peer locale
+ */
 struct servent_data {
-	u_int8 id;
-	GQueue *queue;
-	GQueue *res_queue;
+	u_int8 id;				//ID del peer rappresentato dalla struttura dati
+	GQueue *queue;			//Coda utilizzata per serializzare le richieste di invio pacchetti
+	GQueue *res_queue;		//Coda utilizzata per serializzare le risposte dei pacchetti inviati
 	char *ip;
 	u_int4 port;
-	u_int1 status;
+	u_int1 status;			//Stato del peer (ONLINE, BUSY, AWAY)
 	char *nick;
-	time_t timestamp;	//Timestamp ricezione pacchetto
+	time_t timestamp;		//Timestamp ricezione pacchetto
 	
-	GList *chat_list;	//Lista delle chat a cui è connesso il servente
-	
-	pthread_cond_t cond;
-	pthread_mutex_t mutex;
-	pthread_rwlock_t rwlock_data;
-	
-	char *msg; 			//Messaggio da inviare o ricevuto
-	u_int4 msg_len;		//Lunghezza messaggio
+	GList *chat_list;		//Lista delle chat a cui è connesso il peer
 
-	u_int1 is_supernode;	//Indica se il servente è un supernodo 1:si 0:no
+	pthread_rwlock_t rwlock_data;	//Serve per sincronizzare gli accessi ai dati del peer
 	
-	GList *chat_res; //Risultati della ricerca richiesta dal peer
-	GList *user_res; //Risultati della list
-	u_int1 ttl;		//ttl da inviare
-	u_int1 hops;	//hops da inviare
-	u_int8 packet_id;	//ID del pacchetto da ritrasmettere
+	char *msg; 				//Messaggio da inviare
+	u_int4 msg_len;			//Lunghezza messaggio
 	
-	u_int1 is_online;	//Flag che indica se il peer è pronto a ricevere pacchetti (viene impostato alla ricezione del primo PING): 1 e 0
+	GList *chat_res; 		//Risultati della ricerca richiesta dal peer
+	u_int1 ttl;				//ttl da inviare
+	u_int1 hops;			//hops da inviare
+	u_int8 packet_id;		//ID del pacchetto da ritrasmettere
+	
+	u_int1 is_online;		//Flag che indica se il peer è pronto a ricevere pacchetti (viene impostato alla ricezione del primo PING): 1 e 0
 	
 	//USATE SOLO IN LOCALE
-	u_int4 post_type;	//Tipo di pacchetto da inviare
+	u_int4 post_type;		//Tipo di pacchetto da inviare
 	
-	u_int8 user_id_req;	//Utente che si vuole connettere alla chat chat_id_req (per il flooding)
-	u_int8 chat_id_req; //Chat a cui connettersi o creare
-	u_int4 port_req;
-	char *nick_req;
-	char *ip_req;
-	u_int1 status_req;	//Status per il redirect del join
-	
-	char *title;	//Titolo chat da creare o ricercare
-	u_int4 title_len;	//Lunghezza del titolo
+	//FLOODING
+	u_int8 user_id_req;		//Utente che si vuole connettere alla chat con id: chat_id_req
+	u_int8 chat_id_req; 	//Chat a cui connettersi o creare
+	u_int4 port_req;		//PORT del join da rinviare
+	char *nick_req;			//NICK del join da rinviare
+	char *ip_req;			//IP del join da rinviare
+	u_int1 status_req;		//Status per il redirect del join
+	char *title;			//Titolo chat da creare o ricercare
+	u_int4 title_len;		//Lunghezza del titolo
 	
 };
 typedef struct servent_data servent_data;
