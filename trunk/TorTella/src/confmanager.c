@@ -27,8 +27,6 @@ int conf_read(const char *filename) {
 			else {
 				conf_save_value(tmp);
 			}
-			
-			
 			memset(tmp,0,strlen(tmp));
 			i=0;
 		}
@@ -85,6 +83,8 @@ int conf_save_value(const char *line) {
 		local_port = atoi(right);
 	else if(strcmp(left, "nick")==0)
 		nick = right;
+	else if(strcmp(left, "verbose")==0)
+		verbose = atoi(right);
 	
 	return 0;
 }
@@ -119,4 +119,8 @@ u_int4 conf_get_local_port(void) {
 
 char *conf_get_nick(void) {
 	return nick;
+}
+
+int conf_get_verbose(void) {
+	return verbose;
 }

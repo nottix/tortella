@@ -23,7 +23,7 @@ int logger_init(int verbose_level) {
 
 	fd_file = fopen(pathname, "a");
 	pthread_mutex_init(&logger_mutex, NULL);
-	verbose = verbose_level;
+	verbose_l = verbose_level;
 	return 1;
 }
 
@@ -50,7 +50,7 @@ int logger(int type, const char* text, ...) {
 	vfprintf(fd_file, text, ap);
 	//fclose(fd_file);
 	
-	if(type<=verbose) {
+	if(type<=verbose_l) {
 		printf("<%u>", pthread_self());
 		vprintf(text, ap);
 	}

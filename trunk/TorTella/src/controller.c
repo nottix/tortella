@@ -415,7 +415,7 @@ int controller_init(const char *filename, const char *cache) {
 	conf_read(filename);
 	
 	//avvio del logger
-	logger_init(3);
+	logger_init(conf_get_verbose());
 	
 	//inserimento dei vicini presenti nel file init_data nella lista 
 	GList *init_list = NULL;
