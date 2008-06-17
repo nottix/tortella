@@ -45,7 +45,7 @@ static FILE *fd_file;
 
 static pthread_mutex_t logger_mutex;
 
-static int verbose = 0;
+static int verbose_l = 0;
 
 int logger_init(int verbose_level);
 

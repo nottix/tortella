@@ -14,6 +14,9 @@
 #include "logger.h"
 #include "common.h"
 
+//LOGGER
+static int verbose = 3; //Valore standard di verbosità
+
 //SOCKET
 static int qlen = 5; //Coda di servizio per ricezione SYNC
 static int buffer_len = 1024; //Lunghezza buffer ricevzione/trasmissione
@@ -56,5 +59,7 @@ char *conf_get_local_ip(void);
 u_int4 conf_get_local_port(void);
 
 char *conf_get_nick(void);
+
+int conf_get_verbose(void);
 
 #endif /*CONFMANAGER_H*/
