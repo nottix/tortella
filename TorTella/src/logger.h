@@ -30,6 +30,9 @@
 #include "common.h"
 #include "confmanager.h"
 
+/**
+ * Definizione dei livelli del logger.
+ */
 #define ALARM_INFO		0
 #define INFO			1
 #define CTRL_INFO		2
@@ -47,12 +50,29 @@ static pthread_mutex_t logger_mutex;
 
 static int verbose_l = 0;
 
+/**
+ * Inizializza il logger, scegliendo come path del file su cui scrivere il valore
+ * presente nel file di configurazione. Il parametro verbose_level serve per 
+ * specificare fino a quale livello il logger deve salvare le informazioni. Viene
+ * inizializzato anche un mutex per evitare accessi simultanei.
+ */
 int logger_init(int verbose_level);
 
+/**
+ * Chiude il file su cui il logger stava salvando le informazioni.
+ */
 int logger_close();
 
+/**
+ * Ritorna un timestamp.
+ * Esempio: Tue Jun 17 16:26:28 2008
+ */
 char *get_timestamp();
 
+/**
+ * Si comporta come una printf, ma oltre alla stampa a video viene eseguita anche
+ * una scrittura su file in base al livello di verbosità.
+ */
 int logger(int type, const char* text, ...);
 
 #endif //LOGGER_H

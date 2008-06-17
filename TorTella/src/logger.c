@@ -16,6 +16,12 @@
  
 #include "logger.h"
 
+/**
+ * Inizializza il logger, scegliendo come path del file su cui scrivere il valore
+ * presente nel file di configurazione. Il parametro verbose_level serve per 
+ * specificare fino a quale livello il logger deve salvare le informazioni. Viene
+ * inizializzato anche un mutex per evitare accessi simultanei.
+ */
 int logger_init(int verbose_level) {
 	pathname = (char*)malloc(128);
 	strcpy(pathname, conf_get_path());
@@ -27,10 +33,17 @@ int logger_init(int verbose_level) {
 	return 1;
 }
 
+/**
+ * Chiude il file su cui il logger stava salvando le informazioni.
+ */
 int logger_close() {
 	return fclose(fd_file);
 }
 
+/**
+ * Ritorna un timestamp.
+ * Esempio: Tue Jun 17 16:26:28 2008
+ */
 char *get_timestamp() {
 	time_t t = time(NULL);
 	char *ret = (char*)malloc(128);
@@ -41,6 +54,10 @@ char *get_timestamp() {
 	return ret;
 }
 
+/**
+ * Si comporta come una printf, ma oltre alla stampa a video viene eseguita anche
+ * una scrittura su file in base al livello di verbosità.
+ */
 int logger(int type, const char* text, ...) {
 	va_list ap;
 	va_start(ap, text);
