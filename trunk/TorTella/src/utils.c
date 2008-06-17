@@ -16,6 +16,12 @@
  
 #include "utils.h"
 
+/*
+ * Genera l'id dei pacchetti e degli utenti, avviene  tramite una combinazione 
+ * del MAC-ADDRESS della macchina, il valore generato dalla funzione pseudo-randomica 
+ * “srandom(time(NULL))”, e dall'ID iniziale presente nel file di configurazione 
+ *  di ogni peer.
+ */
 u_int8 generate_id(void) {
 	char *addr;
 	addr = get_mac_addr();
@@ -25,10 +31,10 @@ u_int8 generate_id(void) {
 		res += addr[i]*j;
 	}
 	res *= random();
-	//logger(INFO, "[generate_id]MAC: %lld\n", res);
 	return (conf_get_gen_start()+((random())^res))*(res/2);
 }
 
+//Obsoleto
 int generate_id4(void) {
 	char *addr;
 	addr = get_mac_addr();
@@ -40,6 +46,9 @@ int generate_id4(void) {
 	return (random())^res;
 }
 
+/*
+ * Conversione in stringa di un unsigned long long.
+ */
 char *to_string(u_int8 num) {
 	char *ret = (char*)malloc(60);
 	sprintf(ret, "%lld", num);
@@ -47,6 +56,11 @@ char *to_string(u_int8 num) {
 	return ret;
 }
 
+/*
+ * Preparazione di un messaggio da inviare agli altri utenti: al messaggio originale
+ * da inviare vengono aggiunti data e orario di invio e il nick del mittente.
+ * Esempio: Data - ora - nickname : messaggio.
+ */
 char *prepare_msg(time_t timestamp, const char *nick, char *msg, int msg_len) {
 	char *time_str = asctime(localtime(&timestamp));
 	time_str[strlen(time_str)-1]='\0';
@@ -56,13 +70,15 @@ char *prepare_msg(time_t timestamp, const char *nick, char *msg, int msg_len) {
 	return send_msg;
 }
 
-/*char *to_string(u_int8 num1, u_int8 num2) {
-	char *ret = (char*)malloc(512);
-	sprintf(ret, "%lld;%lld", num1, num2);
-	ret = realloc(ret, strlen(ret);
-	return ret;
-}*/
-
+/* 
+ * Effettua il dump in esadecimale di un pacchetto.
+ * Esempio di dump:
+ *  50 4f 53 54 20 2a 20 48 54 54 	  POST * HTT
+ *  50 2f 31 2e 31 0d 0a 55 73 65 	  P/1.1..Use
+ *  72 2d 41 67 65 6e 74 3a 20 54 	  r-Agent: T
+ *  6f 72 54 65 6c 6c 61 2f 30 2e 	  orTella/0.
+ *  31 0d 0a 43 6f 6e 74 65 6e 74 	  1..Content	
+ */
 char *hex_dump(const char *packet, int len, int n)
 {
 	int i=0;
@@ -77,7 +93,6 @@ char *hex_dump(const char *packet, int len, int n)
 	}
 
 	int length =   (len*4+(divtemp)*4+(modulo)*3)*2;
-	//int length = 5000;
 	char *buffer = (char*)calloc(length, 1);
 	char *strtemp = (char*)calloc(4, 1);
 
@@ -179,13 +194,18 @@ char *hex_dump(const char *packet, int len, int n)
 	return buffer;
 }
 
+/*
+ * Chiama la funzione hex_dump specificando quanti caratteri devono essere stampati
+ * su una riga. Il parametro è impostato di default a 10.
+ */
 char *dump_data(const char *packet, int len) {
 	return hex_dump(packet, len, 10);
-	//return packet;
 }
 
 
-
+/*
+ * Ottiene l'indirizzo MAC dell'interfaccia di rete disponibile.
+ */
 char *get_mac_addr(void) {
 	char *addr = calloc(7, 1);
 	struct ifreq ifr;
@@ -216,15 +236,10 @@ char *get_mac_addr(void) {
 	}
 	for (; i >= 0;) {
 
-		//printf("ok1\n");
 		strcpy(ifr.ifr_name, IFR->ifr_name);
-		//printf("ok2\n");
 		if (ioctl(s, SIOCGIFFLAGS, &ifr) == 0) {
-			//printf("ok3\n");
 			if (! (ifr.ifr_flags & IFF_LOOPBACK)) {
-				//printf("ok4\n");
 				if (ioctl(s, SIOCGIFHWADDR, &ifr) == 0) {
-					//printf("ok5\n");
 					ok = 1;
 					break;
 				}
