@@ -38,8 +38,6 @@
 
 #define TIMEOUT "timeout error"
 
-static u_int4 timer_interval = 20;
-
 struct servent_data {
 	u_int8 id;
 	GQueue *queue;
