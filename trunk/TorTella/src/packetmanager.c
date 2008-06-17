@@ -16,6 +16,7 @@
  
 #include "packetmanager.h"
 
+/** invio di un pacchetto http contenente una search */
 int send_search_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int1 ttl, u_int1 hops, u_int4 string_len, char *string) {
 
 	logger(PAC_INFO, "[send_search_packet]Sending SEARCH: %s\n", string);
@@ -52,6 +53,7 @@ int send_search_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 rec
 	return send_packet(fd, buffer, len);
 }
 
+/** invio di un pacchetto http contenente una searchhits */
 int send_searchhits_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int4 num_res, u_int4 res_len, char *res) {
 	
 	logger(PAC_INFO, "[send_searchhits_packet]Sending SEARCHHITS\n");
@@ -87,6 +89,7 @@ int send_searchhits_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8
 	return send_packet(fd, buffer, len);
 }
 
+/** invio di un pacchetto http contenente una join */
 int send_join_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int1 status, u_int8 user_id, u_int8 chat_id, char *nick, u_int4 port, char *ip, u_int1 ttl, u_int1 hops) {
 	
 	logger(PAC_INFO, "[send_join_packet]Sending JOIN\n");
@@ -129,6 +132,7 @@ int send_join_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_
 	return send_packet(fd, buffer, len);
 }
 
+/** invio di un pacchetto http contenente una leave */
 int send_leave_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int8 user_id, u_int8 chat_id, u_int1 ttl, u_int1 hops) {
 	
 	logger(PAC_INFO, "[send_leave_packet]Sending LEAVE\n");
@@ -167,6 +171,7 @@ int send_leave_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv
 	return send_packet(fd, buffer, len);
 }
 
+/** invio di un pacchetto http contenente un ping */
 int send_ping_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, char *nick, u_int4 port, u_int1 status) {
 	
 	logger(PAC_INFO, "[send_ping_packet]Sending PING from %lld to %lld\n", sender_id, recv_id);
@@ -203,6 +208,7 @@ int send_ping_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, char *nick, u_
 	return send_packet(fd, buffer, len);
 }
 
+/** invio di un pacchetto http contenente una list. Non utilizzato */
 int send_list_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 ttl, u_int1 hops, u_int8 chat_id) {
 	
 	logger(PAC_INFO, "[send_list_packet]Sending LIST\n");
@@ -240,6 +246,7 @@ int send_list_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 ttl, u_
 	return send_packet(fd, buffer, len);
 }
 
+/** invio di un pacchetto http contenente una listhits. Non utilizzato */
 int send_listhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int4 user_num, u_int4 res_len, char *res, u_int8 chat_id) {
 	
 	logger(PAC_INFO, "[send_listhits_packet]Sending LISTHITS\n");
@@ -276,6 +283,7 @@ int send_listhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int4 use
 	return send_packet(fd, buffer, len);
 }
 
+/** invio di un pacchetto http contenente una bye */
 int send_bye_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id) {
 	
 	logger(PAC_INFO, "[send_bye_packet]Sending BYE\n");
@@ -310,6 +318,7 @@ int send_bye_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id) {
 	return send_packet(fd, buffer, len);
 }
 
+/** invio di un pacchetto http contenente un messaggio */
 int send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id, u_int4 msg_len, char *msg) {
 
 	logger(PAC_INFO, "[send_message_packet]Sending MESSAGE\n");
@@ -347,6 +356,7 @@ int send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat
 	return send_packet(fd, buffer, len);
 }
 
+/** invio di un pacchetto http di risposta al POST */
 int send_post_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char *data) {
 	
 	printf("[send_post_response_packet]Sending with status: %d\n", status);
@@ -370,6 +380,7 @@ int send_post_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char *d
 	return send_packet(fd, buffer, len);
 }
 
+/** invio di un pacchetto http di tipo GET */
 int send_get_request_packet(u_int4 fd, char *filename, u_int4 range_start, u_int4 range_end) {
 	char *buffer;
 	int len;
@@ -383,6 +394,7 @@ int send_get_request_packet(u_int4 fd, char *filename, u_int4 range_start, u_int
 	return send_packet(fd, buffer, len);
 }
 
+/** invio di un pacchetto http di risposta */
 int send_get_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char *data) {
 	char *buffer;
 	int len;
