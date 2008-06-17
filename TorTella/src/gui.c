@@ -73,7 +73,6 @@ gint gui_add_chat(u_int8 chat_id, char *chat_name)
 	GtkTreeIter iter;
 	gboolean valid = TRUE;
 	gchar *id;
-	logger(INFO, "[add_chat_to_list]Init\n");
 	//scorre la lista delle chat visualizzate
 	if(gtk_tree_model_get_iter_first(GTK_TREE_MODEL(chat_model), &iter)==TRUE) {
 		while(valid) {
@@ -93,11 +92,9 @@ gint gui_add_chat(u_int8 chat_id, char *chat_name)
 	//prepara i campi da inserire nel nuovo record
 	gchar *msg = g_strdup_printf (to_string(chat_id));
 	gchar *msg1 = g_strdup_printf (chat_name);
-	printf("msg: %s\n", msg1);
 	//inserimento del record
 	gtk_list_store_append (chat_model, &chat_iter);
 	gtk_list_store_set (GTK_LIST_STORE(chat_model), &chat_iter, 0, msg, 1, msg1, -1);
-	printf("msg: %s\n", msg);
 	g_free (msg);
 	g_free (msg1);
 	return 0;
@@ -112,7 +109,7 @@ gint gui_add_user_to_chat(u_int8 chat_id, u_int8 id, char *user, u_int1 status)
        logger(INFO, "[gui_add_user_to_chat] Adding user %lld\n", id);
        gchar *msg = g_strdup_printf(user);
        if(tree_model_hashtable==NULL) {
-               logger(INFO, "[add_user_to_chat_list]Hashtable NULL\n");
+               logger(INFO, "[add_user_to_chat_list]User list not ready\n");
                return -1;
        }
        tree_model *mod = (tree_model*)g_hash_table_lookup(tree_model_hashtable,(gconstpointer)to_string(chat_id));
@@ -128,7 +125,6 @@ gint gui_add_user_to_chat(u_int8 chat_id, u_int8 id, char *user, u_int1 status)
                        valid2 = gtk_tree_model_iter_next(GTK_TREE_MODEL(mod->user_model), &iter2);
                        //ciclo su tutti i record della lista
 				   		while(valid) {
-                               logger(INFO, "[gui_add_user_to_chat] entering while\n");
                                gtk_tree_model_get(GTK_TREE_MODEL(mod->user_model), &iter, 1, &id_tmp, -1);
                                logger(INFO, "[gui_add_user_to_chat]ID: %s\n", id_tmp);
                                if(atoll(id_tmp) == id) {
@@ -138,7 +134,7 @@ gint gui_add_user_to_chat(u_int8 chat_id, u_int8 id, char *user, u_int1 status)
 							   //controllo che l'id non sia già presente
                                if(atoll(id_tmp)!= id && valid2 == FALSE ) {
                                        
-								   	   logger(INFO, "[add_user_to_chat_list]Tree model non NULL\n");
+								   	   logger(INFO, "[add_user_to_chat_list]User list OK\n");
                                        //inserimento del nuovo record
 								   	   gtk_list_store_append(GTK_LIST_STORE(mod->user_model), &(mod->user_iter));
                                        gtk_list_store_set(GTK_LIST_STORE(mod->user_model), &(mod->user_iter), 0, msg, -1);
@@ -200,13 +196,12 @@ gint gui_del_user_from_chat(u_int8 chat_id, u_int8 user_id)
 {
 	tree_model *mod = (tree_model*)g_hash_table_lookup(tree_model_hashtable,(gconstpointer)to_string(chat_id));
 	if(mod==NULL) {
-		logger(INFO, "[gui_del_user_from_chat]Non connesso alla chat %lld\n", chat_id);
+		logger(INFO, "[gui_del_user_from_chat]Not connected to chad %lld\n", chat_id);
 		return -1;
 	}
 	GtkTreeIter iter;
 	gboolean valid = TRUE;
 	gchar *id;
-	logger(INFO, "[remove_user_from_chat_list]Init\n");
 	//posizionamento dell'iteratore al primo record e successivo scorrimento della lista
 	if(gtk_tree_model_get_iter_first(GTK_TREE_MODEL(mod->user_model), &iter)==TRUE) {
 		while(valid) {
@@ -224,7 +219,7 @@ gint gui_del_user_from_chat(u_int8 chat_id, u_int8 user_id)
 			}
 
 			valid = gtk_tree_model_iter_next(GTK_TREE_MODEL(mod->user_model), &iter);
-			logger(INFO, "[remove_user_from_chat_list]next\n");
+			logger(INFO, "[remove_user_from_chat_list]next user\n");
 
 		}
 	}
@@ -237,31 +232,25 @@ gint gui_del_user_from_chat(u_int8 chat_id, u_int8 user_id)
  */
 gint gui_change_status(u_int8 user_id, char *status) 
 {
-	logger(INFO, "[manipulating_status] Enter function\n");
 	if(tree_model_hashtable == NULL) {
-		logger(INFO, "[gui_change_status] tree_model_hashtable == NULL\n");
+		logger(INFO, "[gui_change_status] user list not ready\n");
 		return (FALSE);
 	}
 	GList *chat_id_list = g_hash_table_get_keys(tree_model_hashtable);
 	int i=0;
 	char *id;
 	for(; i < g_list_length(chat_id_list); i++) {
-		logger(INFO, "[gui_change_status] Entering for\n");
 		u_int8 chat_id = atoll(g_list_nth_data(chat_id_list,i));
-		logger(INFO, "[gui_change_status] after retrieving glist data chat_id %lld\n",chat_id);
+		logger(INFO, "[gui_change_status] retrieving chat_id %lld\n",chat_id);
 
 		tree_model *chat_model_tmp = (tree_model*)g_hash_table_lookup(tree_model_hashtable, (gconstpointer)to_string(chat_id));
-
-		logger(INFO, "[gui_change_status] after retrieving treemodel data\n");
 		GtkTreeIter iter;
 		gboolean valid = TRUE;
 		
 		//posizionamento dell'iteratore al primo record e successivo scorrimento della lista
 		if(gtk_tree_model_get_iter_first(GTK_TREE_MODEL(chat_model_tmp->user_model), &iter)==TRUE) {			
-			logger(INFO, "[gui_change_status] after get iter first\n");
 
 			while(valid) {
-				logger(INFO, "[gui_change status] entering while\n");
 				gtk_tree_model_get(GTK_TREE_MODEL(chat_model_tmp->user_model), &iter, 1, &id, -1);
 				logger(INFO, "[gui_change_status]ID: %s\n", id);
 				
@@ -383,7 +372,7 @@ gint gui_open_conversation_event(GtkTreeView *treeview, GtkTreePath *path, GtkTr
 		if(user_id > 0 ) {
 			logger(INFO, "[open_conversation] nick length %d\n", strlen(name));
 			if(g_hash_table_lookup(pm_data_hashtable, (gconstpointer)user_id) != NULL) {
-				logger(INFO, "[open_conversation] conversazione già attiva\n");
+				logger(INFO, "[open_conversation] conversation already open\n");
 				return (FALSE);
 			}	
 			gui_open_pm(atoll(user_id),name);
@@ -489,7 +478,7 @@ gint gui_send_text_message_event(GtkWidget *widget, GdkEventKey *event, gpointer
 
 		u_int8 chat_id = atoll((char*)gdata);
 		logger(INFO, "[send_text_message] chat id = %lld\n",chat_id);
-		/* 					SUBSET						*/
+		/* Invio del messaggio ad un sottoinsieme di utenti*/
 		tree_model *chat_list_tmp = gui_get_tree_model(chat_id);
 		
 		//elenco degli utenti selezionati
@@ -500,7 +489,6 @@ gint gui_send_text_message_event(GtkWidget *widget, GdkEventKey *event, gpointer
 			GtkTreeIter tmp_iter;
 			gboolean valid = TRUE;
 			char *id;
-			logger(INFO, "[add_user_tolist_of_subset]Init\n");
 			//si setta l'iteratore al primo record della lista
 			if(gtk_tree_model_get_iter_first(GTK_TREE_MODEL(chat_list_tmp->user_model), &tmp_iter)==TRUE) {
 				//si scorre la lista degli utenti della chat e si confronta con gli utenti selezionati
@@ -508,7 +496,7 @@ gint gui_send_text_message_event(GtkWidget *widget, GdkEventKey *event, gpointer
 					if(gtk_tree_selection_iter_is_selected(selection, &tmp_iter)) {
 						//Aggiungi alla lista di utenti a cui è rivolto il messaggio
 						gtk_tree_model_get(GTK_TREE_MODEL(chat_list_tmp->user_model), &tmp_iter, 1, &id, -1);
-						logger(INFO, "[send_text_message] id utente: %lld\n", atoll(id));
+						logger(INFO, "[send_text_message] user id: %lld\n", atoll(id));
 						subset = g_list_prepend(subset, (gpointer)(servent_get(atoll(id))));
 					}
 					valid = gtk_tree_model_iter_next(GTK_TREE_MODEL(chat_list_tmp->user_model), &tmp_iter); 
@@ -526,7 +514,7 @@ gint gui_send_text_message_event(GtkWidget *widget, GdkEventKey *event, gpointer
 				return TRUE;
 			}
 		}
-		/***			FINE SUBSET			***/
+		/* Fine dell'invio ad un sottoinsieme di utenti */
 		else { 
 			//invio del messaggio tramite il controller
 			if(controller_send_chat_users(chat_id, strlen(msg), msg)>=0) {
@@ -594,7 +582,7 @@ int gui_add_msg_pm(u_int8 sender_id, char *msg) {
 
 	pm_data *pm = (pm_data*)g_hash_table_lookup(pm_data_hashtable, (gconstpointer)to_string(sender_id));
 	if(pm==NULL) {
-		logger(INFO, "[add_msg_pm]PM NULL\n");
+		logger(INFO, "[add_msg_pm]PM window not ready\n");
 		logger(INFO, "[add_msg_pm] strlen nick %d\n",strlen(servent_get(sender_id)->nick));
 		//apertura della nuova conversazione privata nel caso questa non sia già presente
 		gui_open_pm(sender_id, servent_get(sender_id)->nick);
@@ -666,7 +654,7 @@ GtkWidget *gui_create_users_list(u_int8 index )
 			G_CALLBACK(gui_open_conversation_event),
 			to_string(index));  
 	if(tree_model_hashtable == NULL) {
-		logger(INFO, "[create_users_list] Hashtable created\n");
+		logger(INFO, "[create_users_list] created user list\n");
 		tree_model_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
 	}
 
@@ -841,25 +829,22 @@ GtkWidget *gui_create_text(u_int8 chat_id, int type, int msg_type)
 			gtk_text_buffer_create_tag(buffer, "blue_fg", "foreground", "blue", NULL);
 			tree_model *model_str = gui_get_tree_model(chat_id);
 			if(model_str!=NULL) {
-				logger(INFO, "[create_text]OK\n");
 				model_str->text_area = GTK_TEXT_VIEW(view);
 			}
 			else {
-				logger(INFO, "[create_text]NULL\n");
 				return NULL;
 			}
 		}
 		else if(msg_type == PM) {
 			pm_data *pm = (pm_data*)g_hash_table_lookup(pm_data_hashtable, (gconstpointer)to_string(chat_id));
-			logger(INFO, "[create_text]Checking\n");
 			if(pm==NULL) {
 				pm = calloc(1, sizeof(pm_data));
 				pm->text_area = GTK_TEXT_VIEW(view);
 				gtk_text_view_set_editable(GTK_TEXT_VIEW(pm->text_area),FALSE);
 				gtk_text_buffer_create_tag(buffer, "blue_fg", "foreground", "blue", NULL);
-				logger(INFO, "[create_text]Allocating\n");
+				logger(INFO, "[create_text]Allocating pm window\n");
 				g_hash_table_insert(pm_data_hashtable, (gpointer)to_string(chat_id), (gpointer)pm);
-				logger(INFO, "[create_text]Allocated\n");
+				logger(INFO, "[create_text]Allocated pm window\n");
 			}
 		}
 	}	
@@ -877,7 +862,7 @@ int gui_open_chatroom(u_int8 chat_id) {
 	GtkWidget *window;
 	GtkWidget *menu;
 	GtkWidget *vbox;
-	GtkWidget *hbox; //
+	GtkWidget *hbox; 
 	GtkWidget *vbox2;
 	GtkWidget *handlebox;  
 	GtkWidget *text;
@@ -987,7 +972,6 @@ int gui_open_pm(u_int8 user_id, gchar *nickname) {
 	g_signal_connect(GTK_OBJECT(window), "destroy", G_CALLBACK(gui_leave_pm_event), (gpointer)to_string(user_id));
 
 	pm_data *pm = (pm_data*)g_hash_table_lookup(pm_data_hashtable, (gconstpointer)to_string(user_id));
-	logger(INFO, "[open_pm_gui]Checking\n");
 	if(pm!=NULL) {
 		pm->window = GTK_WIDGET(window);
 	}
@@ -1044,19 +1028,17 @@ GList *gui_get_chat_users(u_int8 chat_id) {
 	GList *id_list = NULL;
 
 	if(mod == NULL) {
-		logger(INFO, "[gui_get_chat_users] tree model NULL\n");
+		logger(INFO, "[gui_get_chat_users] users list not ready\n");
 		return id_list;
 	}
 	GtkTreeIter iter;
 	gchar *id;
 	gboolean valid = TRUE;
 	if(gtk_tree_model_get_iter_first(GTK_TREE_MODEL(mod->user_model), &iter)==TRUE) {			
-		logger(INFO, "[gui_get_chat_users] after get iter first\n");
 
 		while(valid) {
-			logger(INFO, "[gui_get_chat_users entering while\n");
 			gtk_tree_model_get(GTK_TREE_MODEL(mod->user_model), &iter, 1, &id, -1);
-			logger(INFO, "[gui_get_chat_users]ID: %s\n", id);
+			logger(INFO, "[gui_get_chat_users]user id: %s\n", id);
 			id_list = g_list_append(id_list, (gpointer)id);
 			
 
