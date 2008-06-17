@@ -25,14 +25,14 @@ static int buffer_len = 1024; //Lunghezza buffer ricevzione/trasmissione
 static char *path = "/tmp/";
 
 //UTILS
-static u_int8 gen_start = 100000; //fake IDs range
+static u_int8 gen_start = 100000; //fake IDs start range
 
 //SERVENT
 static int max_len = 4000;
 static int max_thread = 20;
 static int max_fd = 100;
 static u_int4 timer_interval = 20; //Intervallo del PING timer
-static u_int8 connection_id_limit = 10000; //Limite inferiore degli ID generati
+static u_int8 connection_id_limit = 10000; //Limite inferiore dei fake ID generati
 
 //SUPERNODE
 static char *datadir = "./data";
