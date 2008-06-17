@@ -9,7 +9,7 @@ int controller_change_status(u_int1 status)
 	servent_data *peer, *sd;
 	char *ret;
 	if(servent_get_local () == NULL) {
-		logger(CTRL_INFO,"[controller_change_status] local_servent NULL\n");
+		logger(CTRL_INFO,"[controller_change_status] local_servent not present\n");
 	    return -1;
 	}
 	WLOCK(servent_get_local()->id);
@@ -35,9 +35,7 @@ int controller_change_status(u_int1 status)
 				COPY_SERVENT(peer, sd);
 				ret = servent_pop_response(peer);
 				if(strcmp(ret, TIMEOUT)==0)
-					return peer->id;
-				printf("RECEIVED %s\n", ret);
-						
+					return peer->id;						
 			}
 		}
 	}			
@@ -74,12 +72,12 @@ int controller_send_chat_users(u_int8 chat_id, u_int4 msg_len, char *msg) {
 		chat *chat_elem = data_get_chat(chat_id);
 		char *ret;
 		if(chat_elem==NULL) {
-			logger(CTRL_INFO, "[controller_send_chat_users]Chat %lld non presente\n", chat_id);
+			logger(CTRL_INFO, "[controller_send_chat_users]Chat %lld not present\n", chat_id);
 			return -2;
 		}
 		GList *users = g_hash_table_get_values(chat_elem->users);
 		if(users==NULL) {
-			logger(CTRL_INFO, "[controller_send_chat_users]Users NULL\n");
+			logger(CTRL_INFO, "[controller_send_chat_users]Users list is empty\n");
 			return -2;
 		}
 		logger(CTRL_INFO, "[controller_send_chat_users]Users size: %d\n", g_list_length(users));
@@ -104,12 +102,11 @@ int controller_send_chat_users(u_int8 chat_id, u_int4 msg_len, char *msg) {
 				logger(CTRL_INFO, "[controller_send_chat_users]Sent msg\n");
 			}
 			else
-				logger(CTRL_INFO, "[controller_send_chat_users]Servent NULL\n");
+				logger(CTRL_INFO, "[controller_send_chat_users]Servent not present\n");
 		}
 		// Attesa di ricezione dei pacchetti di OK (o di TIMEOUT) inviati da tutti gli utenti. 
 		for(i=0; i<g_list_length(users); i++) {
 			chatclient *client = (chatclient*)g_list_nth_data(users, i);
-			printf("eeee\n");
 			if(client!=NULL) {
 				data = servent_get(client->id);
 				logger(CTRL_INFO, "[controller_leave_chat]pop response %lld\n", client->id);
@@ -117,7 +114,6 @@ int controller_send_chat_users(u_int8 chat_id, u_int4 msg_len, char *msg) {
 					ret = servent_pop_response(data);
 					if(strcmp(ret, TIMEOUT)==0)
 						return data->id;
-				printf("RECEIVED %s\n", ret);
 				}
 			}
 		}		
@@ -158,16 +154,13 @@ int controller_send_subset_users(u_int8 chat_id, u_int4 msg_len, char *msg, GLis
 		servent_data *sd, *data;
 		for(i=0; i<g_list_length(users); i++) {
 			chatclient *client = (chatclient*)g_list_nth_data(users, i);
-			printf("eeee\n");
 			if(client!=NULL) {
 				data = servent_get(client->id);
 				logger(CTRL_INFO, "[controller_leave_chat]pop response %lld\n", client->id);
 				if(data!=NULL && data->id!=servent_get_local()->id) {
 					ret = servent_pop_response(data);
 					if(strcmp(ret, TIMEOUT)==0)
-						return data->id;
-				printf("RECEIVED %s\n", ret);
-						
+						return data->id;						
 				}
 			}
 		}		
@@ -181,7 +174,7 @@ int controller_send_subset_users(u_int8 chat_id, u_int4 msg_len, char *msg, GLis
  * ricevuto correttamente.
  */
 int controller_send_pm(u_int4 msg_len, char *msg, u_int8 recv_id) {
-	logger(CTRL_INFO, "[controller_send_pm] id destinatario %d\n", recv_id);
+	logger(CTRL_INFO, "[controller_send_pm] receiver id %d\n", recv_id);
 	char *ret;
 	servent_data *sd;
 	
@@ -198,7 +191,6 @@ int controller_send_pm(u_int4 msg_len, char *msg, u_int8 recv_id) {
 	UNLOCK(data->id);
     servent_send_packet(data); 
 	// Attesa di ricezione del pacchetto di OK (o di TIMEOUT)
-	printf("eeee\n");
 	servent_data *peer;
 	peer = servent_get(recv_id);
 	logger(CTRL_INFO, "[controller_leave_chat]pop response %lld\n", recv_id);
@@ -206,9 +198,7 @@ int controller_send_pm(u_int4 msg_len, char *msg, u_int8 recv_id) {
 			ret = servent_pop_response(peer);
 			if(strcmp(ret, TIMEOUT)==0)
 				return peer->id;
-			printf("RECEIVED %s\n", ret);
-						
-			
+									
 	}
 		
 	return 0;
@@ -221,17 +211,16 @@ int controller_leave_all_chat()
 	servent_data *sd = servent_get_local();
 	GList *iter;
 	if(sd == NULL) {
-		logger(CTRL_INFO, "[controller_leave_all_chat] servent NULL\n");
+		logger(CTRL_INFO, "[controller_leave_all_chat] local servent not present\n");
 		return -1;
 	}
 	GList *chat_list =  sd->chat_list;
 	int i=0;
-	logger(CTRL_INFO, "[controller_leave_all_chat] lunghezza lista %d\n", g_list_length(chat_list));
+	logger(CTRL_INFO, "[controller_leave_all_chat] list length %d\n", g_list_length(chat_list));
 	//Chiamata alla funzione controller_leave_flooding per ogni chat a cui si è connessi
 	while((iter=g_list_last(chat_list)) != NULL) {
-		//controller_leave_chat(tmp->id);
 		tmp = (chat*)iter->data;
-		controller_leave_flooding(tmp->id);  //PROVA
+		controller_leave_flooding(tmp->id);  
 		chat_list = sd->chat_list;
 	}
 	return 0;
@@ -271,7 +260,7 @@ int controller_connect_users(GList *users) {
 
 				}
 				else
-					logger(CTRL_INFO, "[controller_connect_users]Già connesso\n");
+					logger(CTRL_INFO, "[controller_connect_users]Already connected\n");
 					result = -2;
 			}
 
@@ -285,8 +274,8 @@ int controller_connect_users(GList *users) {
 					logger(CTRL_INFO, "[controller_connect_users]ret: %s\n", ret);
 					if(strcmp(ret, TIMEOUT)==0) {
 						logger(CTRL_INFO, "[controller_connect_users]TIMEOUT\n");
-						timeout = g_list_append(timeout, (gpointer)client);
 						//Aggiunge alla lista dei non connessi (per ritentare)
+						timeout = g_list_append(timeout, (gpointer)client);
 					}
 					else {
 						logger(CTRL_INFO, "[controller_connect_users]RECEIVED OK %s\n", ret);
@@ -319,10 +308,8 @@ int controller_check_users_con(GList *users) {
 	
 	servent_data *client;
 	chatclient *user;
-	logger(CTRL_INFO, "[controller_check_users_con]Init\n");
 	int counter=3, i;
 	while(counter--) {
-		logger(CTRL_INFO, "[controller_check_users_con]while counter: %d\n", counter);
 		for(i=0; i<g_list_length(users); i++) {
 			user = g_list_nth_data(users, i);
 			logger(CTRL_INFO, "[controller_check_users_con]User nick: %s\n", user->nick);
@@ -330,7 +317,7 @@ int controller_check_users_con(GList *users) {
 				client = servent_get(user->id);
 				logger(CTRL_INFO, "[controller_check_users_con]client nick: %s\n", client->nick);
 				if((client!=NULL) && (!client->is_online)) {
-					logger(CTRL_INFO, "[controller_check_users_con]Servent %lld non pronto, is_online %d\n", client->id, client->is_online);
+					logger(CTRL_INFO, "[controller_check_users_con]Servent %lld not ready\n", client->id);
 					usleep(200000);
 					continue;
 				}
@@ -353,7 +340,7 @@ int controller_send_bye()
 	servent_data *tmp, *peer, *sd;
 	char *ret;
 	if(servent_get_local() == NULL) {
-		logger(CTRL_INFO,"[controller_send_bye] local_servent NULL\n");
+		logger(CTRL_INFO,"[controller_send_bye] local_servent not present\n");
 	    return -1;
 	}
 	  
@@ -410,7 +397,7 @@ int controller_send_bye()
 int controller_receive_bye(u_int8 id)
 {
    pm_data *pm;
-   logger(CTRL_INFO, "[controller_receive_bye] id utente %lld\n", id);
+   logger(CTRL_INFO, "[controller_receive_bye] user id %lld\n", id);
    if((pm = gui_pm_data_get(id)) != NULL) {
    	gui_leave_pm_event(pm->window, (gpointer)to_string(id)); 
    }
@@ -432,7 +419,6 @@ int controller_init(const char *filename, const char *cache) {
 	
 	//inserimento dei vicini presenti nel file init_data nella lista 
 	GList *init_list = NULL;
-	logger(INFO, "[controller_init]Init\n");
 	init_list = init_read_file(cache);
 	
 	//avvio del servente
@@ -519,14 +505,14 @@ int controller_init_gui(void) {
  */
 u_int8 controller_search(const char *query) {
 	if(query==NULL || strcmp(query, "")==0) {
-		logger(CTRL_INFO, "[controller_search]Stringa di query inaccettabile\n");
+		logger(CTRL_INFO, "[controller_search]Query string not valid\n");
 		return 0;
 	}
 	
 	GList *servents = servent_get_values();
 	logger(CTRL_INFO, "[controller_search]Query: %s\n", query);
 	if(servents==NULL) {
-		logger(CTRL_INFO, "[controller_search]Servents null\n");
+		logger(CTRL_INFO, "[controller_search]Servents list is empty\n");
 		return 0;
 	}
 	servent_data *servent, *tmp;
@@ -540,7 +526,6 @@ u_int8 controller_search(const char *query) {
 		if(servent->id!=servent_get_local()->id && servent->id >= conf_get_gen_start ()) {
 			
 			if(servent->queue==NULL) {
-				logger(CTRL_INFO, "[controller_search]Coda Servent NULL\n");
 				continue;
 			}
 			RLOCK(servent->id);
@@ -548,7 +533,6 @@ u_int8 controller_search(const char *query) {
 			COPY_SERVENT(servent, tmp);
 			UNLOCK(servent->id);
 			if(tmp->queue==NULL || tmp->res_queue==NULL) {
-				logger(CTRL_INFO, "[controller_search]Coda NULL\n");
 				continue;
 			}
 			logger(INFO, "[controller_search]Copy\n");
@@ -607,7 +591,6 @@ int controller_join_flooding(u_int8 chat_id) {
 					COPY_SERVENT(servent, tmp);
 					UNLOCK(servent->id);
 					if(tmp->queue==NULL || tmp->res_queue==NULL) {
-						logger(CTRL_INFO, "[controller_join]Coda NULL\n");
 						continue;
 					}
 					logger(INFO, "[controller_join]Copy\n");
@@ -643,12 +626,10 @@ int controller_join_flooding(u_int8 chat_id) {
 				if(client!=NULL && peer!=NULL && peer->id!=servent_get_local()->id && peer->id >= conf_get_gen_start ()) {
 					char *ret = servent_pop_response(peer);
 					if(ret==NULL) {
-						logger(CTRL_INFO, "[controller_join_chat]Ret NULL\n");
 						return -1;
 					}
 					if(strcmp(ret, TIMEOUT)==0)
 						return peer->id;
-					printf("RECEIVED %s\n", ret);
 
 					for(j=0; j<g_list_length(users); j++) {
 						chatclient *user = (chatclient*)g_list_nth_data(users, j);
@@ -687,7 +668,7 @@ int controller_leave_flooding(u_int8 chat_id) {
 		logger(CTRL_INFO,"[controller_leave_chat] chat_id>0\n");
 		chat *chat_elem = data_get_chat(chat_id);
 		if(chat_elem!=NULL) {
-			logger(CTRL_INFO,"[controller_leave_chat] chat_elem !=NULL\n");
+			logger(CTRL_INFO,"[controller_leave_chat] chat present\n");
 			GList *clients = servent_get_values();
 			chatclient *client;
 			servent_data *peer, *sd;
@@ -697,11 +678,11 @@ int controller_leave_flooding(u_int8 chat_id) {
 			for(i=0; i<g_list_length(clients); i++) {
 				client = (chatclient*)g_list_nth_data(clients, i);
 				if(client!=NULL) {
-					logger(CTRL_INFO,"[controller_leave_chat] client !=NULL\n");
+					logger(CTRL_INFO,"[controller_leave_chat] client present\n");
 
 					peer = servent_get(client->id);
 					if(peer!=NULL && peer->id!=servent_get_local()->id) {
-						logger(CTRL_INFO,"[controller_leave_chat] peer !=NULL\n");
+						logger(CTRL_INFO,"[controller_leave_chat] peer present\n");
 						
 						WLOCK(peer->id);
 						COPY_SERVENT(peer, sd);
@@ -720,7 +701,6 @@ int controller_leave_flooding(u_int8 chat_id) {
 			// Attesa di ricezione dei pacchetti di OK (o di TIMEOUT).
 			for(i=0; i<g_list_length(clients); i++) {
 				client = (chatclient*)g_list_nth_data(clients, i);
-				printf("eeee\n");
 				if(client!=NULL) {
 					peer = (servent_data*)g_list_nth_data(clients, i);
 					logger(CTRL_INFO, "[controller_leave_chat]pop response %lld\n",peer->id);
@@ -729,9 +709,7 @@ int controller_leave_flooding(u_int8 chat_id) {
 					
 						ret = servent_pop_response(peer);
 						if(strcmp(ret, TIMEOUT)==0)
-							return peer->id;
-						printf("RECEIVED %s\n", ret);
-						
+							return peer->id;						
 					}
 				}
 			}
@@ -751,7 +729,7 @@ int controller_leave_flooding(u_int8 chat_id) {
  */
 int controller_create(const char *title) {
 	if(title==NULL || strcmp(title, "")==0) {
-		logger(CTRL_INFO, "[controller_create]Titolo non valido\n");
+		logger(CTRL_INFO, "[controller_create]Chat title is invalid\n");
 		return -1;
 	}
 	
@@ -765,7 +743,6 @@ int controller_create(const char *title) {
 	chat *test = data_get_chat(chat_id);
 	//aggiunta della chat alla lista locale delle chat a cui si è connessi
 	local->chat_list = g_list_append(local->chat_list, (gpointer)test);
-	printf("chat created with ID: %lld\n", test->id);
 	
 	//apertura della finestra della chat e aggiornamento dei dati
 	gui_open_chatroom(chat_id);
@@ -781,17 +758,16 @@ int controller_create(const char *title) {
  * aggiunto alla chat un utente in modo provvisorio.
  */
 int controller_add_user_to_chat(u_int8 chat_id, u_int8 id) {
-	logger(CTRL_INFO, "[controller_add_user_to_chat]\n"); 
 	servent_data *servent = servent_get(id);
 
 	if(servent ==NULL) {
-		logger(CTRL_INFO, "[controller_add_user_to_chat] servent null\n");
+		logger(CTRL_INFO, "[controller_add_user_to_chat] servent not present\n");
 		chatclient *tmp = data_get_chatclient(id);
 		//Aggiornamento provvisorio della lista degli utenti della chat a livello di GUI
 		gui_add_user_to_chat(chat_id, tmp->id, tmp->nick, 0);
 		return 0;
 	}
-	logger(CTRL_INFO, "[controller_add_user_to_chat]Addingi user: %s, id: %lld, status: %c\n", servent->nick, servent->id, servent->status);
+	logger(CTRL_INFO, "[controller_add_user_to_chat]Adding user: %s, id: %lld, status: %c\n", servent->nick, servent->id, servent->status);
 	//Aggiornamento della lista degli utenti della chat a livello di GUI
 	gui_add_user_to_chat(chat_id, servent->id, servent->nick, servent->status);
 	
@@ -815,13 +791,13 @@ int controller_rem_user_from_chat(u_int8 chat_id, u_int8 id) {
 int controller_add_msg_to_chat(u_int8 chat_id, char *msg) {
 	
 	if(msg==NULL) {
-		logger(CTRL_INFO, "[controller_add_msg_to_chat]Messaggio non valido\n");
+		logger(CTRL_INFO, "[controller_add_msg_to_chat]Message invalid\n");
 		return -1;
 	}
 	
 	if(chat_id>0) {
 		if(gui_add_msg_to_chat(chat_id, msg)<0) {
-			logger(CTRL_INFO, "[controller_add_msg_to_chat]Msg error\n");
+			logger(CTRL_INFO, "[controller_add_msg_to_chat]Message error\n");
 			return -2;
 		}
 		return 0;
@@ -837,13 +813,13 @@ int controller_add_msg_to_chat(u_int8 chat_id, char *msg) {
 int controller_add_msg(u_int8 sender_id, char *msg) {
 	
 	if(msg==NULL) {
-		logger(CTRL_INFO, "[controller_add_msg]Messaggio non valido\n");
+		logger(CTRL_INFO, "[controller_add_msg]Message invalid\n");
 		return -1;
 	}
 	
 	if(sender_id>0) {
 		if(gui_add_msg_pm(sender_id, msg)<0) {
-			logger(CTRL_INFO, "[controller_add_msg]Msg pm error\n");
+			logger(CTRL_INFO, "[controller_add_msg]Adding pm to gui error\n");
 			return -2;
 		}
 		return 0;
