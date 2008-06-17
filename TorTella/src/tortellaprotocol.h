@@ -34,14 +34,14 @@
 #define ONLINE_ID	0x80
 #define BUSY_ID		0x81
 #define AWAY_ID		0x82
-/*
-                          TorTella Header
- +----+---------+-----------+---------+-----------+----------+----------+
- | ID | desc_ID | sender_ID | recv_ID | timestamp | desc_len | data_len |
- 
- +----+---------+-----------+---------+-----------+----------+----------+
 
- * struttura dati dove vengono memorizzati rispettivamente l'id univoco del
+/*
+ *                           TorTella Header
+ * +----+---------+-----------+---------+-----------+----------+----------+
+ * | ID | desc_ID | sender_ID | recv_ID | timestamp | desc_len | data_len |
+ * +----+---------+-----------+---------+-----------+----------+----------+
+ */
+/** struttura dati dove vengono memorizzati rispettivamente l'id univoco del
  * pacchetto, il descrittore del pacchetto,l'id del servente che invia il pacchetto,
  * l'id del ricevente, il timestamp e la relativa lunghezza sia del descrittore che 
  * del campo dati.
@@ -57,7 +57,7 @@ struct tortella_header {
 };
 typedef struct tortella_header tortella_header;
 
-/*
+/**
  * struttura dati per il pacchetto di tipo PING, in cui viene memorizzato
  * lo status dell'utente al momento dell'invio del pacchetto
  */
@@ -69,7 +69,7 @@ struct ping_desc {
 };
 typedef struct ping_desc ping_desc;
 
-/*
+/**
  * struttura dati per il pacchetto LIST, in cui viene memorizzato il valore
  * del TTL e dell' HOPS, e l'ID della chat di cui si richiede la lista degli
  * utenti presenti
@@ -81,7 +81,7 @@ struct list_desc {
 };
 typedef struct list_desc list_desc;
 
-/*
+/**
  * struttura dati per il pacchetto di risposta al LIST, in cui sono salvati
  *  gli stessi dati contenuti nella struttura list_desc con aggiunta del numero 
  *   di utenti connessi alla chat, di cui era stata richiesta la lista degli users  
@@ -96,7 +96,7 @@ struct listhits_desc {
 };
 typedef struct listhits_desc listhits_desc;
 
-/*
+/**
  * struttura dati per il pacchetto di join ad una chat.
  * Nella struct sono salvate tutte le info relative all'utente 
  * che vuole accedere alla chat: stato(ONLINE-BUSY-AWAY)-ID dell'utente-
@@ -119,7 +119,7 @@ struct join_desc {
 };
 typedef struct join_desc join_desc;
 
-/*
+/**
  * struttura dati per l'invio del pacchetto LEAVE ad una chat.
  * I dati salvati sono rispettivamente l'ID dell'utente che vuole uscire
  * dalla chat e il rispettivo identificativo della chat. Come per il pacchetto
@@ -135,16 +135,13 @@ struct leave_desc {
 };
 typedef struct leave_desc leave_desc;
 
-/*
-   Data
- +-----+
- | msg |
- +-----+
-
+/**
+ * Data
+ * +-----+
+ * | msg |
+ * +-----+
  */
-
-/*
- * struttura dati per l'invio del messaggio ad una specifica chat,
+/** struttura dati per l'invio del messaggio ad una specifica chat,
  * tenendo memoria per l'appunto in tlae struttura l'ID della chat a cui
  * è diretto il messaggio di testo.
  */
@@ -156,15 +153,12 @@ struct message_desc {
 typedef struct message_desc message_desc;
 
 /*
-   Data
- +-------+
- | Query |
- +-------+
-
+ * Data
+ * +-------+
+ * | Query |
+ * +-------+
  */
-
-/*
- * struct per il flooding del pacchetto SEARCH. Ogni utente
+/** struct per il flooding del pacchetto SEARCH. Ogni utente
  * invierà una richiesta di ricerca, e in tale
  * struttura verrà decrementato il valore del TTL e incrementato quello 
  * dell'HOPS per ogni nodo attraversato dal pacchetto durante il suo percorso
@@ -178,7 +172,7 @@ struct search_desc {
 };
 typedef struct search_desc search_desc;
 
-/*
+/**
  * struct per l'invio del pacchetto SEARCHHITS.
  * Il routing di tale pacchetto segue il percorso inverso 
  * di quello eseguito dal pacchetto SEARCH.
@@ -190,20 +184,20 @@ struct searchhits_desc {
 };
 typedef struct searchhits_desc searchhits_desc;
 
+/**
+ * struttura usata per segnalare la disconnessione dalla rete tortella.
+ */
 struct bye_desc {
 };
 typedef struct bye_desc bye_desc;
 
-/*
-        Tortella Packet
- +--------+------------+------+
- | Header | Descriptor | Data |
- +--------+------------+------+
-
+/**
+ *        Tortella Packet
+ * +--------+------------+------+
+ * | Header | Descriptor | Data |
+ * +--------+------------+------+
  */
-
-/*
- * struttua del pacchetto Tortella. Nella struttura
+/** struttua del pacchetto Tortella. Nella struttura
  * viene memorizzato il puntatore relativo al suo header,
  * il descrittore di una delle possibili strutture dati(join_desc,search_desc,..)
  */
@@ -214,7 +208,7 @@ struct tortella_packet {
 };
 typedef struct tortella_packet tortella_packet;
 
-/*
+/**
  * funzione la quale ha il compito di eseguire il parser del pacchetto tortella.
  * In paritcolare prende in input da parametro il pacchetto, memorizzato nella sua
  * struttura dati, e restituisce tutto il suo contenuto in un buffer di caratter.
@@ -222,40 +216,40 @@ typedef struct tortella_packet tortella_packet;
  */
 char *tortella_bin_to_char(tortella_packet *packet, u_int4 *len);
 
-/*
+/**
  * funzione che svolge le funzionalità di parser inverso rispetto alla funzione tortella_bin_to_char. 
  * La procedura riceve come parametro il buffer, contenente i dati, i quali vengono memorizzati nella 
  * struttura dati tortella_packet.
  */
 tortella_packet *tortella_char_to_bin(char *packet);
 
-/*
+/**
  * funzione adibita alla stampa ordinata di tutte le informazioni contenute nella struttura dati
  * tortella_packet, ricevuta come parametro d'input.
  */
 void print_packet(tortella_packet *packet);
 
-/*
+/**
  * funzione che si occupa della creazione del pacchetto tortella.   
  * La procedura si occupa dell'allocazione dello spazio di memoria per la struttura dati tortella_packet
  * e del relativo setting dei campi con i valori contenuti nei parametri d'input.
  */
 tortella_packet *tortella_create_packet(tortella_header *header, char *desc, char *data);
 
-/*
+/**
  * funzione che si occupa della creazione della struttura dati tortella_header e del relativo setting
  * dei vari campi dati contenutti nella struttura stessa.
  */
 tortella_header *tortella_create_header(u_int8 id, u_int4 desc_id, u_int8 sender_id, u_int8 recv_id, u_int4 desc_len, u_int4 data_len);
 
-/*
+/**
  * funzione che sioccupa della creazione contemporanea sia della struttura dati relativa all'header del pacchetto,
  * sia della struttura dati relativo al l'intero pacchetto tortella. In realtà tale funzione contiene la chiamata
  * alla funzione tortella_create_header e tortella_create_packet. 
  */
 tortella_packet *tortella_create_packet_header(u_int8 id, u_int4 desc_id, u_int8 sender_id, u_int8 recv_id, u_int4 desc_len, u_int4 data_len, char *desc, char *data);
 
-/*
+/**
  * funzione che ritorna il puntatore all'header del pacchetto, facendo un casting del buffer,
  * il quale contiene come dati iniziali quelli relativi all'header.
  */
