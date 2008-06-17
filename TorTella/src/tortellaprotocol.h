@@ -40,7 +40,7 @@
  | ID | desc_ID | sender_ID | recv_ID | timestamp | desc_len | data_len |
  
  +----+---------+-----------+---------+-----------+----------+----------+
-/* 
+
  * struttura dati dove vengono memorizzati rispettivamente l'id univoco del
  * pacchetto, il descrittore del pacchetto,l'id del servente che invia il pacchetto,
  * l'id del ricevente, il timestamp e la relativa lunghezza sia del descrittore che 
@@ -48,7 +48,7 @@
  */
 struct tortella_header {
 	u_int8 id;		
-	u_int4 desc_id; .
+	u_int4 desc_id;
 	u_int8 sender_id;   
 	u_int8 recv_id; 
 	time_t timestamp;
