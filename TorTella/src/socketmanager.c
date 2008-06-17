@@ -223,6 +223,10 @@ int recv_sized_packet(int sock_descriptor, char **buf, int max_len)
 		}
 		len += char_read;
 
+		if(len-char_read<0 || len<0) {
+			logger(SOCK_INFO, "[recv_sized_packet]Impossibile allocare memoria\n");
+			return -1;
+		}
 		buf2 = calloc(len-char_read, 1);
 		memcpy(buf2, buffer, len-char_read);
 		//free(buffer);

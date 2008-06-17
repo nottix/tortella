@@ -426,6 +426,12 @@ void *servent_responde(void *parm) {
 					}
 					else if(h_packet->data->header->desc_id==PING_ID) {
 						logger(SYS_INFO, "[servent_responde]PING ricevuto da %lld a %lld\n", h_packet->data->header->sender_id, h_packet->data->header->recv_id);
+						
+						status = HTTP_STATUS_OK;
+						send_post_response_packet(fd, status, 0, NULL);
+						logger(SYS_INFO, "[servent_responde]Sending post response\n");
+						status = 0;
+						
 						user_id = h_packet->data->header->sender_id;
 						servent_data *conn_servent;
 						u_int8 id = h_packet->data->header->sender_id;
@@ -440,8 +446,10 @@ void *servent_responde(void *parm) {
 							UNLOCK(id);
 							data_add_user(conn_servent->id, conn_servent->nick, conn_servent->ip, conn_servent->port);
 							logger(SYS_INFO, "[servent_responde]Old PING, nick: %s, status: %c\n", conn_servent->nick, conn_servent->status);
+							gdk_threads_enter();
 							controller_manipulating_status(id, conn_servent->status);
-							status = HTTP_STATUS_OK;
+							gdk_threads_leave();
+							
 						}
 						else {
 							logger(SYS_INFO, "[servent_responde]New PING\n");
@@ -503,7 +511,7 @@ void *servent_responde(void *parm) {
 									logger(SYS_INFO, "[servent_responde]nick: %s, ip: %s, port: %d\n", nick, get_dest_ip(fd), GET_PING(h_packet->data)->port);
 									if((strcmp(tmp_ip, get_dest_ip(fd))==0) && (tmp_port == GET_PING(h_packet->data)->port)) {
 										logger(SYS_INFO, "[servent_responde]Changing old ID: %lld with new ID: %lld\n", tmp->id, h_packet->data->header->sender_id);
-										g_hash_table_remove(servent_hashtable, (gpointer)to_string(tmp->id)); //TODO: meglio toglierlo per evitare segfault
+										g_hash_table_remove(servent_hashtable, (gpointer)to_string(tmp->id));
 										
 										tmp->id = h_packet->data->header->sender_id;
 										tmp->status = GET_PING(h_packet->data)->status;
@@ -951,6 +959,8 @@ void *servent_connect(void *parm) {
 				send_bye_packet(fd, local_servent->id, id_dest);
 			}
 			else if(post_type==CLOSE_ID) {
+				UNLOCK_F(servent_peer);
+				UNLOCK(local_servent->id);
 				shutdown_socket(fd);
 				client_fd = g_list_remove(client_fd, (gconstpointer)fd);
 				client_thread = g_list_remove(client_thread, (gconstpointer)pthread_self());
@@ -1011,7 +1021,7 @@ void *servent_connect(void *parm) {
 				servent_append_response(servent_peer, TIMEOUT);
 			}
 		}
-		UNLOCK_F(servent_peer); 
+		UNLOCK_F(servent_peer);
 		UNLOCK(local_servent->id);
 	}
 	pthread_exit(NULL);
