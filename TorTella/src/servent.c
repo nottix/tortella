@@ -142,7 +142,7 @@ void servent_close_all(void) {
 	
 }
 
-void kill_all_thread(int sig) {
+void servent_kill_all_thread(int sig) {
 	logger(SYS_INFO, "[kill_all_thread]Killing thread\n");
 	servent_close_supernode();
 	logger(SYS_INFO, "[kill_all_thread]Closing supernode\n");
@@ -168,6 +168,7 @@ int servent_init(char *ip, u_int4 port, u_int1 status) {
 	//Inizializza la lista delle chat conosciute leggendo da un file predefinito
 	servent_init_supernode();
 	srandom(time(NULL));
+	new_connection_counter = conf_get_connection_id_limit();
 	logger(SYS_INFO, "[servent_init]Supernode initialized on %s:%d\n", conf_get_local_ip(), conf_get_local_port());
 	
 	servent_hashtable = g_hash_table_new_full(g_str_hash, g_str_equal, free, NULL);
@@ -272,10 +273,6 @@ char *servent_pop_response(servent_data *sd) {
 		counter++;
 	}
 	return buf;
-}
-
-void servent_add_to_chat_list(servent_data *sd, chat *chat_elem) {
-	sd->chat_list = g_list_append(sd->chat_list, (gpointer)chat_elem);
 }
 
 char *servent_get_search_packet(u_int8 id) {
@@ -1051,7 +1048,7 @@ void *servent_timer(void *parm) {
 			}
 		}
 		
-		//servent_flush_data();
+		servent_flush_data();
 		logger(SYS_INFO, "[servent_timer]Sleeping\n");
 		sleep(timer_interval);
 	}

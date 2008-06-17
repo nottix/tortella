@@ -450,7 +450,7 @@ int controller_init(const char *filename, const char *cache) {
  * Uccide tutti i thread e chiude il file di logger.
  */
 int controller_exit() {
-	kill_all_thread(0);
+	servent_kill_all_thread(0);
 	
 	logger_close();
 	return 0;

@@ -32,6 +32,7 @@ static int max_len = 4000;
 static int max_thread = 20;
 static int max_fd = 100;
 static u_int4 timer_interval = 20; //Intervallo del PING timer
+static u_int8 connection_id_limit = 10000; //Limite inferiore degli ID generati
 
 //SUPERNODE
 static char *datadir = "./data";
@@ -64,5 +65,7 @@ char *conf_get_nick(void);
 int conf_get_verbose(void);
 
 u_int4 conf_get_timer_interval(void);
+
+u_int8 conf_get_connection_id_limit(void);
 
 #endif /*CONFMANAGER_H*/

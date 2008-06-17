@@ -87,6 +87,8 @@ int conf_save_value(const char *line) {
 		verbose = atoi(right);
 	else if(strcmp(left, "timer_interval")==0)
 		timer_interval = atoi(right);
+	else if(strcmp(left, "connection_id_limit")==0)
+		connection_id_limit = atoll(right);
 	
 	return 0;
 }
@@ -129,4 +131,8 @@ int conf_get_verbose(void) {
 
 u_int4 conf_get_timer_interval(void) {
 	return timer_interval;
+}
+
+u_int8 conf_get_connection_id_limit(void) {
+	return connection_id_limit;
 }
