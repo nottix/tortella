@@ -45,10 +45,19 @@ static GHashTable *route_hashtable = NULL;
  */
 int add_route_entry(u_int8 packet_id, u_int8 sender_id, u_int8 recv_id);
 
+/*
+ * Decrementa il contatore della regola. Elimina la regola se il contatore è 0
+ */
 int del_route_entry(u_int8 id);
 
+/*
+ * Ritorna una la regola di routing associata all'id del pacchetto
+ */
 route_entry *get_route_entry(u_int8 packet_id);
 
+/*
+ * Ritorna l'id destinazione associato all'id del pacchetto
+ */
 u_int8 get_iddest_route_entry(u_int8 id);
 
 
