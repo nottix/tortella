@@ -1026,11 +1026,12 @@ void *servent_connect(void *parm) {
 	servent_data *servent_queue;
 	if(servent_peer == NULL) {
 		logger(SYS_INFO, "[servent_connect]Error\n");
-		return pthread_exit(NULL);
+		pthread_exit(NULL);
 	}
 	char *ip_dest = servent_peer->ip;
 	u_int4 port_dest = servent_peer->port;
 	
+	//Creazione socket client
 	int fd = servent_create_client(ip_dest, port_dest);
 
 	client_fd = g_list_prepend(client_fd, (gpointer)fd);
@@ -1040,7 +1041,10 @@ void *servent_connect(void *parm) {
 	if(servent_peer->res_queue==NULL)
 		servent_peer->res_queue = g_queue_new();
 
-	//Aggiunta richiesta di PING nella coda del suddetto servent
+	/**
+	 * Aggiunta richiesta di PING nella coda del suddetto servent
+	 * per iniziare la connessione verso il server.
+	 */
 	servent_data *tmp;
 	COPY_SERVENT(servent_peer, tmp);
 	tmp->post_type = PING_ID;
@@ -1067,20 +1071,27 @@ void *servent_connect(void *parm) {
 	while(1) {
 		logger(SYS_INFO, "[servent_connect]Waiting\n");
 		if(servent_peer==NULL) {
-			logger(SYS_INFO, "[servent_connect] Peer NULL\n");
+			logger(SYS_INFO, "[servent_connect]Peer error\n");
 			pthread_exit(NULL);
 		}
+		//Attesa richiesta di invio pacchetto
 		servent_queue = servent_pop_queue(servent_peer);
+		/**
+		 * Questo passo è fondamentale quando si effettua la connessione iniziale,
+		 * Quando viene inviato il nuovo ID tramite PING.
+		 */
 		id_dest = servent_peer->id;
 		if(servent_queue==NULL) {
-			logger(SYS_INFO, "[servent_connect] Queue NULL\n");
+			logger(SYS_INFO, "[servent_connect]Queue error\n");
 			continue;
 		}
 		logger(SYS_INFO, "[servent_connect]Signal received in id_dest %lld\n", id_dest);
 		
 		RLOCK(local_servent->id); 
 		WLOCK(id_dest); 
-		logger(SYS_INFO, "[servent_connect] post_type %d\n", servent_queue->post_type);
+		logger(SYS_INFO, "[servent_connect]Post_type %d\n", servent_queue->post_type);
+		
+		//Si salvano tutti i dati nella struttura dati condivisa
 		servent_peer->post_type = servent_queue->post_type;
 		servent_peer->chat_id_req = servent_queue->chat_id_req;
 		servent_peer->msg_len = servent_queue->msg_len;
@@ -1106,9 +1117,7 @@ void *servent_connect(void *parm) {
 		ttl = servent_peer->ttl;
 		hops = servent_peer->hops;
 		packet_id = servent_peer->packet_id;
-		ip_req = servent_peer->ip_req;/**
- * Si connette alla lista dei peer specificati, se qualcuno non è disponibile lo salta.
- */
+		ip_req = servent_peer->ip_req;
 		port_req = servent_peer->port_req;
 		nick_req = servent_peer->nick_req;
 		
@@ -1116,7 +1125,9 @@ void *servent_connect(void *parm) {
 		status_req = servent_peer->status_req;
 		nick = local_servent->nick;
 		
+		//Invio dei vari pacchetti
 		if(post_type==HTTP_REQ_GET) {
+			//Invio di pacchetto GET (non utilizzata)
 			//send_get_request_packet(fd, char *filename, u_int4 range_start, u_int4 range_end);
 		}
 		else {
@@ -1127,10 +1138,11 @@ void *servent_connect(void *parm) {
 				send_ping_packet(fd, local_servent->id, id_dest, nick, local_servent->port, status);
 			}
 			else if(post_type==BYE_ID) {
-				logger(SYS_INFO, "[servent_connect] sending bye packet\n");
+				logger(SYS_INFO, "[servent_connect]Sending bye packet\n");
 				send_bye_packet(fd, local_servent->id, id_dest);
 			}
 			else if(post_type==CLOSE_ID) {
+				//Richiesta di invio CLOSE, ovvero terminazione thread corrente
 				UNLOCK_F(servent_peer);
 				UNLOCK(local_servent->id);
 				shutdown_socket(fd);
@@ -1150,6 +1162,7 @@ void *servent_connect(void *parm) {
 			}
 			else if(post_type==SEARCHHITS_ID) {
 				int length;
+				//Converte la lista delle chat in stringa, per inviare tramite pacchetto
 				char *buf = data_chatlist_to_char(servent_queue->chat_res, &length);
 				if(buf==NULL) {
 					length=0;
@@ -1159,8 +1172,8 @@ void *servent_connect(void *parm) {
 				}
 				send_searchhits_packet(fd, packet_id, local_servent->id, id_dest, g_list_length(servent_queue->chat_res), length, buf);
 			}
-		
-			//free(buffer);
+
+			//Attesa ricezione risposta
 			logger(SYS_INFO, "[servent_connect]Listening response\n");
 			len = recv_http_packet(fd, &buffer);
 			logger(SYS_INFO, "[sevente_connect]Received response\n");
@@ -1183,12 +1196,14 @@ void *servent_connect(void *parm) {
 					logger(SYS_INFO, "[servent_connect] Peer response NULL\n");
 					pthread_exit(NULL);
 				}
-				if(/*id_dest >= conf_get_gen_start() &&*/ servent_peer->post_type != SEARCH_ID && servent_peer->post_type != SEARCHHITS_ID && servent_peer->post_type != CLOSE_ID) {
+				if(servent_peer->post_type != SEARCH_ID && servent_peer->post_type != SEARCHHITS_ID && servent_peer->post_type != CLOSE_ID) {
+					//Appende alla coda delle risposte il tipo di risposta ricevuta
 					servent_append_response(servent_peer, h_packet->header_response->response);
 					logger(SYS_INFO, "[servent_connect]Appended\n");
 				}
 			}
 			else {
+				//In caso di timeout appende alla coda delle risposte l'errore
 				logger(SYS_INFO, "[servent_connect]Appending response TIMEOUT\n");
 				servent_append_response(servent_peer, TIMEOUT);
 			}
@@ -1199,6 +1214,11 @@ void *servent_connect(void *parm) {
 	pthread_exit(NULL);
 }
 
+/**
+ * Thread utilizzato per gestire il meccanismo di failure detection e per pulire
+ * la lista dei pacchetti ricevuti. L'intervallo di tempo è impostato nel file
+ * di configurazione.
+ */
 void *servent_timer(void *parm) {
 	GList *list;
 	servent_data *data, *tmp;
@@ -1217,15 +1237,20 @@ void *servent_timer(void *parm) {
 				COPY_SERVENT(data, tmp);
 				UNLOCK(data->id);
 				tmp->post_type = PING_ID;
+				//Invio PING al peer selezionato
 				servent_send_packet(tmp);
+				//Attende la risposta
 				ret = servent_pop_response(tmp);
 				if(ret!=NULL && strcmp(ret, TIMEOUT)==0) {
-					logger(SYS_INFO, "[servent_timer]Timer scaduto per %lld\n", data->id);
+					//Entra in questo flusso se c'è stato un timeout (failure detection)
+					logger(SYS_INFO, "[servent_timer]Timer expired per %lld\n", data->id);
+					//Elimina il peer dalla GUI e dalle strutture dati
 					gdk_threads_enter();
 					controller_receive_bye(data->id);
 					gdk_threads_leave();
 					data_destroy_user(data->id);
 					
+					//Uccide il client thread associato al peer
 					tmp->post_type = CLOSE_ID;
 					servent_send_packet(tmp);
 				}
@@ -1233,8 +1258,9 @@ void *servent_timer(void *parm) {
 			}
 		}
 		
+		//Libera le hashtable dei pacchetti
 		servent_flush_data();
 		logger(SYS_INFO, "[servent_timer]Sleeping\n");
-		sleep(timer_interval);
+		sleep(conf_get_timer_interval());
 	}
 }
