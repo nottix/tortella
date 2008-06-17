@@ -1,5 +1,11 @@
 #include "tortellaprotocol.h"
 
+/**
+ * funzione la quale ha il compito di eseguire il parser del pacchetto tortella.
+ * In paritcolare prende in input da parametro il pacchetto, memorizzato nella sua
+ * struttura dati, e restituisce tutto il suo contenuto in un buffer di caratter.
+ * Inoltre il parametro len ritorna la lunghezza di tale buffer.
+ */
 char *tortella_bin_to_char(tortella_packet *packet, u_int4 *len) {
 	
 	char *header = (char *) packet->header;
@@ -23,6 +29,11 @@ char *tortella_bin_to_char(tortella_packet *packet, u_int4 *len) {
 	return ret;
 }
 
+/**
+ * funzione che svolge le funzionalità di parser inverso rispetto alla funzione tortella_bin_to_char. 
+ * La procedura riceve come parametro il buffer, contenente i dati, i quali vengono memorizzati nella 
+ * struttura dati tortella_packet.
+ */
 tortella_packet *tortella_char_to_bin(char *packet) {
 
 	tortella_packet *ret = (tortella_packet *) calloc(1, sizeof(tortella_packet));
@@ -41,6 +52,10 @@ tortella_packet *tortella_char_to_bin(char *packet) {
 	return ret;
 }
 
+/**
+ * funzione adibita alla stampa ordinata di tutte le informazioni contenute nella struttura dati
+ * tortella_packet, ricevuta come parametro d'input.
+ */
 void print_packet(tortella_packet * packet) {
 	if (packet != NULL) {
 		printf("--tortella_header--\n");
@@ -69,6 +84,11 @@ void print_packet(tortella_packet * packet) {
 	}
 }
 
+/**
+ * funzione che si occupa della creazione del pacchetto tortella.   
+ * La procedura si occupa dell'allocazione dello spazio di memoria per la struttura dati tortella_packet
+ * e del relativo setting dei campi con i valori contenuti nei parametri d'input.
+ */
 tortella_packet *tortella_create_packet(tortella_header *header, char *desc, char *data) {
 	
 	tortella_packet *packet = (tortella_packet*)calloc(1, sizeof(tortella_packet));
@@ -79,6 +99,10 @@ tortella_packet *tortella_create_packet(tortella_header *header, char *desc, cha
 	return packet;
 }
 
+/**
+ * funzione che si occupa della creazione della struttura dati tortella_header e del relativo setting
+ * dei vari campi dati contenutti nella struttura stessa.
+ */
 tortella_header *tortella_create_header(u_int8 id, u_int4 desc_id, u_int8 sender_id, u_int8 recv_id, u_int4 desc_len, u_int4 data_len) {
 	
 	tortella_header *header = (tortella_header*)calloc(1, sizeof(tortella_header));
@@ -92,6 +116,11 @@ tortella_header *tortella_create_header(u_int8 id, u_int4 desc_id, u_int8 sender
 	return header;
 }
 
+/**
+ * funzione che sioccupa della creazione contemporanea sia della struttura dati relativa all'header del pacchetto,
+ * sia della struttura dati relativo al l'intero pacchetto tortella. In realtà tale funzione contiene la chiamata
+ * alla funzione tortella_create_header e tortella_create_packet. 
+ */
 tortella_packet *tortella_create_packet_header(u_int8 id, u_int4 desc_id, u_int8 sender_id, u_int8 recv_id, u_int4 desc_len, u_int4 data_len, char *desc, char *data) {
 	
 	tortella_header *header = tortella_create_header(id, desc_id, sender_id, recv_id, desc_len, data_len);
@@ -100,6 +129,10 @@ tortella_packet *tortella_create_packet_header(u_int8 id, u_int4 desc_id, u_int8
 	return packet;	
 }
 
+/**
+ * funzione che ritorna il puntatore all'header del pacchetto, facendo un casting del buffer,
+ * il quale contiene come dati iniziali quelli relativi all'header.
+ */
 tortella_header* tortella_get_header(const char *buffer) {
 	if(buffer==NULL)
 		return NULL;
