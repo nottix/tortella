@@ -26,11 +26,18 @@ int add_route_entry(u_int8 packet_id, u_int8 sender_id, u_int8 recv_id) {
 		route_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
 	}
 
+	route_entry *entry;
 	char *key = to_string(packet_id);
-	route_entry *entry = (route_entry*)calloc(sizeof(route_entry), 1);
-	entry->sender_id = sender_id;
-	entry->recv_id = recv_id;
-	g_hash_table_insert(route_hashtable, (gpointer)key, (gpointer)entry);
+	if((entry=get_route_entry(packet_id))!=NULL) {
+		entry->counter++;
+	}
+	else {
+		entry = (route_entry*)calloc(sizeof(route_entry), 1);
+		entry->sender_id = sender_id;
+		entry->recv_id = recv_id;
+		entry->counter = 0;
+		g_hash_table_insert(route_hashtable, (gpointer)key, (gpointer)entry);
+	}
 	
 	return 1;
 }
@@ -40,10 +47,16 @@ int del_route_entry(u_int8 id) {
 		route_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
 	}
 	
+	route_entry *entry;
 	char *key = to_string(id);
-	g_hash_table_remove(route_hashtable, (gconstpointer)key);
+	if((entry=get_route_entry(id))!=NULL) {
+		entry->counter--;
+		if(entry->counter==0)
+			g_hash_table_remove(route_hashtable, (gconstpointer)key);
+		return 0;
+	}
 	
-	return 1;
+	return -1;
 }
 
 route_entry *get_route_entry(u_int8 packet_id) {

@@ -31,6 +31,7 @@
 struct route_entry {
 	u_int8 sender_id;
 	u_int8 recv_id;
+	u_int4 counter;
 };
 typedef struct route_entry route_entry;
 
