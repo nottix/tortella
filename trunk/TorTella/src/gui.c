@@ -199,7 +199,10 @@ gint gui_add_user_to_chat(u_int8 chat_id, u_int8 id, char *user, u_int1 status)
 gint gui_del_user_from_chat(u_int8 chat_id, u_int8 user_id)
 {
 	tree_model *mod = (tree_model*)g_hash_table_lookup(tree_model_hashtable,(gconstpointer)to_string(chat_id));
-
+	if(mod==NULL) {
+		logger(INFO, "[gui_del_user_from_chat]Non connesso alla chat %lld\n", chat_id);
+		return -1;
+	}
 	GtkTreeIter iter;
 	gboolean valid = TRUE;
 	gchar *id;
