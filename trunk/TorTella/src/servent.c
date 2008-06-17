@@ -592,7 +592,6 @@ void *servent_responde(void *parm) {
 					}
 					else if(h_packet->data->header->desc_id==MESSAGE_ID) {
 						logger(SYS_INFO, "[servent_responde]MESSAGE ricevuto\n");
-						//controller_emit();
 						
 						servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(h_packet->data->header->sender_id));
 
@@ -656,12 +655,6 @@ void *servent_responde(void *parm) {
 								sd->packet_id = h_packet->data->header->id;
 								sd->post_type = SEARCHHITS_ID;								
 								servent_send_packet(sd);
-								
-							/*	char *ret = servent_pop_response (sd);
-								if(strcmp(ret,TIMEOUT) == 0) {
-									logger(SYS_INFO, "[servent_responde] TIMEOUT\n");
-								}*/
-									
 							}
 
 						
@@ -692,7 +685,6 @@ void *servent_responde(void *parm) {
 									}
 								}		   
 							}
-							status = HTTP_STATUS_OK;
 						}
 					}
 					else if(h_packet->data->header->desc_id==SEARCHHITS_ID) {
@@ -744,8 +736,6 @@ void *servent_responde(void *parm) {
 								}
 							}
 						}
-						
-						status = HTTP_STATUS_OK;
 						
 					}
 					else if(h_packet->data->header->desc_id == BYE_ID) {
