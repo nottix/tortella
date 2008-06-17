@@ -27,13 +27,30 @@
 #include <sys/stat.h>
 #include "common.h"
 
+
+/** dati dei peer inizialmente conosciuti. */
 struct init_data {
 	char *ip;
 	u_int4 port;
 };
 typedef struct init_data init_data;
 
+/**
+ * Legge il file specificato dal parametro filename (che contiene il path) e 
+ * e aggiunge tutti i peer presenti all'interno del file in una lista contenente
+ * strutture di tipo init_data. 
+ * Il file ha la seguente struttura:
+ * 127.0.0.1;2110;
+ * 127.0.0.1;2120;
+ * ...
+ */
 GList *init_read_file(const char *filename);
+
+/**
+ * istanzia la struttura init_data. Viene invocata da init_read_file per aggiungere
+ * gli elementi alla lista. Riceve in ingresso il buffer contenente ip e porta
+ * del vicino e tokenizza la stringa riempiendo la struttura dati in modo opportuno.
+ */
 init_data *init_char_to_initdata(char *buffer);
 
 #endif
