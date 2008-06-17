@@ -47,10 +47,10 @@ int logger_close() {
 char *get_timestamp() {
 	time_t t = time(NULL);
 	char *ret = (char*)malloc(128);
-	sprintf(ret, "%s", asctime(localtime(&t)));
-	ret[strlen(ret)-1]=':';
-	ret[strlen(ret)]=' ';
-	ret[strlen(ret)+1]='\0';
+	sprintf(ret, "%s  ", asctime(localtime(&t)));
+	ret[strlen(ret)-3]=':';
+	ret[strlen(ret)-2]=' ';
+	ret[strlen(ret)-1]='\0';
 	return ret;
 }
 

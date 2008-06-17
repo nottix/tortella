@@ -100,7 +100,7 @@ typedef struct servent_data servent_data;
 
 static GHashTable *servent_hashtable;	//Hashtable di servent_data, una per ogni peer
 
-//---Rounting Hashtables-----
+//---Routing Hashtables-----
 
 static GHashTable *search_packet_hashtable = NULL;
 
@@ -180,6 +180,8 @@ servent_data *servent_start_client(char *dest_ip, u_int4 dest_port, u_int8 id);
  * Questa funzione viene utilizzata per il boot iniziale, in quanto si connette
  * alla lista dei peer conosciuti, presi dal file di init. Inoltre inizializza
  * tutte le variabili necessarie e avvia il server di ascolto nuove connessioni.
+ *
+ * \param init_servent Lista dei serventi necessari per il boot iniziale
  */
 int servent_start(GList *init_servent);
 
@@ -206,7 +208,7 @@ void servent_close_all(void);
 void servent_kill_all_thread(int sig);
 
 /**
- * Inizializza le variabili del peer locale
+ * Inizializza: le variabili del peer locale, il seed, le hashtable, i lock etc...
  */
 int servent_init(char *ip, u_int4 port, u_int1 status);
 
@@ -315,11 +317,12 @@ char *servent_get_leave_packet(u_int8 id);
  */
 void servent_new_leave_packet(u_int8 id);
 
-//-----THREAD-----
+//---------THREAD---------------
 
 /**
- * Thread che riceve le richieste di connessione e lancia un thread (servent_responde)
- * per gestire tali richieste.
+ * Thread che riceve le richieste di connessione e avvia nuovi thread.
+ * Ogni nuovo peer (client) che richiede di connettersi al server locale viene
+ * assegnato ad un nuovo Thread che si occupera' di rispondere alle richieste del client.
  */
 void *servent_listen(void *parm);
 
@@ -327,8 +330,10 @@ void *servent_listen(void *parm);
  * Server thread che riceve i pacchetti e risponde adeguatamente. Ne esiste uno per ogni
  * peer a cui si è connessi. Questa funzione è il vero cuore di TorTella,
  * infatti gestisce tutti i comportamente dei programma in base ai pacchetti ricevuti.
+ *
+ * \param parm Socket descriptor della connessione
  */
-void *servent_responde(void *parm);
+void *servent_respond(void *parm);
 
 /**
  * Client thread utilizzato per gestire il canale di invio pacchetti ad un peer.
