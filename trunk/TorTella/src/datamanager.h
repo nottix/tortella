@@ -33,7 +33,7 @@
 #define MODE_TRUNC 0x900
 #define MODE_APPEND 0x901
 
-//utente connesso ad una chat
+/** utente connesso ad una chat */
 struct chatclient {
 	u_int8 id;
 	char *nick;

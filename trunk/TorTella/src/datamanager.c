@@ -192,6 +192,7 @@ int data_add_chat(u_int8 id, const char *title) {
 	if(g_hash_table_lookup(chat_hashtable, (gpointer)to_string(id))!=NULL) {
 		return -1;
 	}
+	//creazione della nuova chat
 	chat *chat_str = (chat*)calloc(1, sizeof(chat));
 	chat_str->id = id;
 	chat_str->title = (char*)strdup(title);
@@ -314,7 +315,6 @@ int data_add_user_to_chat(u_int8 chat_id, u_int8 id, const char *nick, const cha
 	
 	chat *chat_str = (chat*)g_hash_table_lookup(chat_hashtable, (gconstpointer)to_string(chat_id));
 	if(chat_str==NULL) {
-		printf("[add_user_to_chat]chat non presente\n");
 		return -1;
 	}
 	
@@ -323,7 +323,6 @@ int data_add_user_to_chat(u_int8 chat_id, u_int8 id, const char *nick, const cha
 	if(g_hash_table_lookup(chat_str->users, (gpointer)to_string(id))==NULL) {
 		g_hash_table_insert(chat_str->users, (gpointer)to_string(id), (gpointer)chatclient_str);
 	}
-	printf("[add_user_to_chat]Inserted\n");
 	pthread_mutex_unlock(&chat_str->mutex);
 	
 	return 0;
@@ -651,7 +650,6 @@ chatclient *data_get_chatclient(u_int8 id) {
  * Rimuove un utente da tutte le hashtable delle chat in cui è presente e infine
  * lo rimuove dalla hashtable dei chatclient.
  */
-
 int data_destroy_user(u_int8 id) {
 	
 	if(id==0)

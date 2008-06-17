@@ -15,11 +15,17 @@
  */
  
 #include "init.h"
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 
+
+/**
+ * Legge il file specificato dal parametro filename (che contiene il path) 
+ * e aggiunge tutti i peer presenti all'interno del file in una lista contenente
+ * strutture di tipo init_data. 
+ * Il file ha la seguente struttura:
+ * 127.0.0.1;2110;
+ * 127.0.0.1;2120;
+ * ...
+ */
 GList *init_read_file(const char *filename) {
 	GList *init_list=NULL;
 	char buffer;
@@ -29,12 +35,12 @@ GList *init_read_file(const char *filename) {
 	int i=0;	
 
 	if(filename==NULL || strlen(filename)==0) {
-		printf("Il nome del file non è corretto o non è presente\n");
+		logger(ALARM_INFO, "[init_read_file] Filename incorrecto or file not present\n");
 		return NULL;
 	}
 	
 	if((fd=open(filename, O_RDONLY|O_EXCL))<0){
-		printf("Errore apertura file\n");
+		logger(ALARM_INFO, "[init_read_file] Error opening file\n");
 		return NULL;	
 	}
 	
@@ -42,6 +48,7 @@ GList *init_read_file(const char *filename) {
 		tmp[i]=buffer;
 		
 		if(tmp[i]=='\n'){
+			//aggiunta dei peer vicini alla lista
 			init_list=g_list_append(init_list,(gpointer)init_char_to_initdata(tmp));
 			memset(tmp,0,strlen(tmp));
 			i=0;
@@ -51,12 +58,17 @@ GList *init_read_file(const char *filename) {
 	}
 	
 	if(close(fd)<0){
-		printf("Errore chiusura\n");
+		logger(ALARM_INFO, "[init_read_file] Error closing file\n");
 		return NULL;
 	}		
 	return init_list;
 }
 
+/**
+ * istanzia la struttura init_data. Viene invocata da init_read_file per aggiungere
+ * gli elementi alla lista. Riceve in ingresso il buffer contenente ip e porta
+ * del vicino e tokenizza la stringa riempiendo la struttura dati in modo opportuno.
+ */
 init_data *init_char_to_initdata(char *buffer){
 	
 	char *ip;
@@ -66,10 +78,8 @@ init_data *init_char_to_initdata(char *buffer){
 	
 	ip=strtok_r(buffer,";",&saveptr);
 	data->ip=strdup(ip);
-	printf("data->ip:%s\n",data->ip);
-	port=strtok_r(NULL,";",&saveptr); //FIXIT da mettere ;
+	port=strtok_r(NULL,";",&saveptr); 
 	data->port=atoi(port);
-	printf("data->port:%d\n",data->port);
 		
 	return data;
 }
