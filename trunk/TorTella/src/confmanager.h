@@ -31,6 +31,7 @@ static u_int8 gen_start = 100000; //fake IDs range
 static int max_len = 4000;
 static int max_thread = 20;
 static int max_fd = 100;
+static u_int4 timer_interval = 20; //Intervallo del PING timer
 
 //SUPERNODE
 static char *datadir = "./data";
@@ -61,5 +62,7 @@ u_int4 conf_get_local_port(void);
 char *conf_get_nick(void);
 
 int conf_get_verbose(void);
+
+u_int4 conf_get_timer_interval(void);
 
 #endif /*CONFMANAGER_H*/

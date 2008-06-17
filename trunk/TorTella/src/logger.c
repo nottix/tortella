@@ -35,9 +35,9 @@ char *get_timestamp() {
 	time_t t = time(NULL);
 	char *ret = (char*)malloc(128);
 	sprintf(ret, "%s", asctime(localtime(&t)));
-	ret[strlen(ret)-2]=':';
-	ret[strlen(ret)-1]=' ';
-	ret[strlen(ret)]='\0';
+	ret[strlen(ret)-1]=':';
+	ret[strlen(ret)]=' ';
+	ret[strlen(ret)+1]='\0';
 	return ret;
 }
 
@@ -45,10 +45,8 @@ int logger(int type, const char* text, ...) {
 	va_list ap;
 	va_start(ap, text);
 	pthread_mutex_lock(&logger_mutex);
-	//fd_file = fopen(pathname, "a");
 	fprintf(fd_file, "<%u>%s", (int)pthread_self(), get_timestamp());
 	vfprintf(fd_file, text, ap);
-	//fclose(fd_file);
 	
 	if(type<=verbose_l) {
 		printf("<%u>", pthread_self());

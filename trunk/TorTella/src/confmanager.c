@@ -85,6 +85,8 @@ int conf_save_value(const char *line) {
 		nick = right;
 	else if(strcmp(left, "verbose")==0)
 		verbose = atoi(right);
+	else if(strcmp(left, "timer_interval")==0)
+		timer_interval = atoi(right);
 	
 	return 0;
 }
@@ -123,4 +125,8 @@ char *conf_get_nick(void) {
 
 int conf_get_verbose(void) {
 	return verbose;
+}
+
+u_int4 conf_get_timer_interval(void) {
+	return timer_interval;
 }
