@@ -14,10 +14,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 
-/*
- * Developed by Notargiacomo Simone
- * TorTella socket interface
- */
 #include "socketmanager.h"
 
 #include <sys/types.h>
@@ -68,15 +64,10 @@ int create_tcp_socket(const char *dst_ip, int dst_port)
 	}
 
 	int reuse = 1;
-	/*funzione che permette di impostare le caratteristiche 
-	if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int)) < 0) {
-		logger(SOCK_INFO, "[create_tcp_socket]Error in setsockopt SO_REUSEADDR\n");
-		return -1;
-	}*/
-	
+		
 	/**
 	 * funzione che permette di impostare le caratteristiche del socket.
-	 * In questa funzione grazie all'utilizzo del paramtero SO_KEEPALIVE si 
+	 * In questa funzione grazie all'utilizzo del parametro SO_KEEPALIVE si 
 	 * ha la possibilità di gestire le persistenza delle connessioni. 
 	 */ 
 	if(setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, &reuse, sizeof(int)) < 0) {
@@ -88,7 +79,7 @@ int create_tcp_socket(const char *dst_ip, int dst_port)
 }
 
 /*
- * Crea un socket d'ascolto ovver un server TCP in attesa di connessioni.
+ * Crea un socket d'ascolto, ovvero un server TCP in attesa di connessioni.
  */
 int create_listen_tcp_socket(const char *src_ip, int src_port)
 {
@@ -121,7 +112,7 @@ int create_listen_tcp_socket(const char *src_ip, int src_port)
 	int reuse = 1;
 	/**
 	 * funzione che permette di impostare le caratteristiche del socket.
-	 * In questa funzione grazie all'utilizzo del paramtero SO_REUSEADDR si 
+	 * In questa funzione grazie all'utilizzo del parametro SO_REUSEADDR si 
 	 * ha la possibilità di riutilizzare un indirizzo locale,modificando il comportamento
 	 * della bind che fallisce in caso l'indirizzo sia già in uso in un altro socket. 
 	 */
@@ -131,7 +122,7 @@ int create_listen_tcp_socket(const char *src_ip, int src_port)
 	}
 	/**
 	 * funzione che permette di impostare le caratteristiche del socket.
-	 * In questa funzione grazie all'utilizzo del paramtero SO_KEEPALIVE si 
+	 * In questa funzione grazie all'utilizzo del parametro SO_KEEPALIVE si 
 	 * ha la possibilità di gestire le persistenza delle connessioni. 
 	 */
 	if(setsockopt(listenfd, SOL_SOCKET, SO_KEEPALIVE, &reuse, sizeof(int)) < 0) {
@@ -235,7 +226,7 @@ int send_packet(int sock_descriptor, char *buffer, int len)
 
 /**
  * Attende la ricezione di un pacchetto, avente come dimensione massima quella pari al
- * valore assunto dal paramtero BUFFER_LEN
+ * valore assunto dal parametro BUFFER_LEN
  */
 int recv_packet(int sock_descriptor, char **buffer)
 {
@@ -244,7 +235,7 @@ int recv_packet(int sock_descriptor, char **buffer)
 
 /** 
  * Attende la ricezione di un pacchetto, prefissando il valore massimo(max_len) di byte di
- *  un blocco di dati del paccheto
+ *  un blocco di dati del pacchetto
  */
 int recv_sized_packet(int sock_descriptor, char **buf, int max_len)
 {
@@ -267,7 +258,6 @@ int recv_sized_packet(int sock_descriptor, char **buf, int max_len)
 	logger(SOCK_INFO, "[recv_sized_packet]Receiving from %d\n", sock_descriptor);
 	while(!flag) {
 		char_read = read(sock_descriptor, tmp, max_len);
-		//char_read = recv(sock_descriptor, tmp, max_len, MSG_PEEK);
 		if(char_read==0) {
 			flag=1;
 			continue;
@@ -280,10 +270,8 @@ int recv_sized_packet(int sock_descriptor, char **buf, int max_len)
 		}
 		buf2 = calloc(len-char_read, 1);
 		memcpy(buf2, buffer, len-char_read);
-		//free(buffer);
 		buffer = calloc(len, 1);
 		memcpy(buffer, buf2, len-char_read);
-		//free(buf2);
 
 		memcpy(iter, tmp, char_read);
 		iter += char_read;
