@@ -27,18 +27,75 @@ Di seguito si riportano alcune caratteristiche del protocollo TorTella, le analo
 Il protocollo realizzato eredita da Gnutella alcuni descrittori e ne definisce di nuovi per far fronte alle esigenze dell’applicazione:
 \begin{description}
 \item[Ping] a differenza del descrittore originario non viene inviato in flooding, ma indirizzato verso un unico peer. Viene utilizzato per stabilire nuove connessioni, per notificare i cambiamenti di stato dell'utente e per gestire il meccanismo di failure detection. Composto da due campi, il primo rappresentante il numero di porta e il secondo rappresentante lo status dell’utente. Un pacchetto con un descrittore di tipo Ping conterrà nel campo dati il nickname del peer che lo invia.
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.7]{etc/ping.jpg}
+\caption{Descrittore Ping}
+\label{ping}
+\end{center}
+\end{figure}
 \item[Join] viene inviato in flooding per accedere ad una chat creata precedentemente da un generico utente. Contiene dati riguardanti l'utente che ha generato inizialmente il pacchetto, in modo da consentire a tutti i peer riceventi di conoscere tale servente. Contiene il campo status e l’id della chat a cui si vuole connettere, id dell'utente che vuole connettersi, porta e ip del peer mittente, ttl e hops. Il campo dati contiene il nickname.
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.7]{etc/join.jpg}
+\caption{Descrittore Join}
+\label{join}
+\end{center}
+\end{figure}
 \item[Leave] viene inviato in flooding per notificare l'abbandono di una chat. Contiene l’id della chat room, l'id dell'utente mittente, ttl e hops.
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.7]{etc/leave.jpg}
+\caption{Descrittore Leave}
+\label{leave}
+\end{center}
+\end{figure}
 \item[Message] utiizzato per identificare i pacchetti di tipo messaggio. Contiene l’id della chat a cui recapitare il messaggio. Nel campo dati c'è il testo del messaggio.
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.7]{etc/message.jpg}
+\caption{Descrittore Message}
+\label{message}
+\end{center}
+\end{figure}
 \item[Search] simile al descrittore Query di Gnutella. Contiene i campi TTL e hops. Nel campo dati è contenuta la stringa di ricerca.
 \item[Searchhits] simile al descrittore QueryHit di Gnutella; contiene inoltre, la lista degli utenti partecipanti alle chat rispondenti alla richiesta. Contiene il numero di chat trovate sulla base della query inserita. Il campo dati contiene i risultati della ricerca.
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.7]{etc/search.jpg}
+\caption{Descrittore Search}
+\label{search}
+\end{center}
+\end{figure}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.7]{etc/searchhits.jpg}
+\caption{Descrittore SearchHits}
+\label{searchhits}
+\end{center}
+\end{figure}
 \item[List] serve per richiedere la lista degli utenti connessi ad una specifica chat (non più utilizzato perchè gestito dalla Search). Composto dall’id della chat, ttl e hops.
 \item[ListHits] serve per ritornare la lista degli utenti connessi ad una specifica chat (non più utilizzato perchè gestito dalla SearchHits). Composo da il numero di utenti, l'id della chat, ttl e hops. Nel campo dati c'è l'elenco degli utenti della chat.
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.7]{etc/list.jpg}
+\caption{Descrittore List}
+\label{list}
+\end{center}
+\end{figure}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.7]{etc/listhits.jpg}
+\caption{Descrittore ListHits}
+\label{list}
+\end{center}
+\end{figure}
 \item[Bye] serve per sconnettersi da uno specifico peer.
 \end{description}
+
 \subsection{Pacchetto TorTella}
 Il pachetto TorTella è incluso nel campo dati HTTP ed è composto da 3 campi: un header di 40 byte, un campo descriptor e un campo relativo ai dati di dimensione variabile.
-\begin{figure}[htb]
+\begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.38]{etc/tortellapacket.jpg}
 \caption{Pacchetto TorTella}
@@ -46,7 +103,7 @@ Il pachetto TorTella è incluso nel campo dati HTTP ed è composto da 3 campi: u
 \end{center}
 \end{figure}
 Si presentano di seguito l’header utilizzato per la realizzazione del protocollo utilizzato e quello Gnutella:
-\begin{figure}[htb]
+\begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.38]{etc/tortellaheader.jpg}
 \caption{Header TorTella}
@@ -74,7 +131,7 @@ Si presentano di seguito l’header utilizzato per la realizzazione del protocol
 \item[Descriptor\_length] un unsigned int (4 byte) che indica la lunghezza del descrittore che segue l’header;
 \item[Data\_length] un unsigned int (4 byte) che indica la lunghezza del campo dati presente all’interno del pacchetto.
 \end{description}
-\begin{figure}[htb]
+\begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.38]{etc/gnutellaheader.jpg}
 \caption{Header Gnutella}

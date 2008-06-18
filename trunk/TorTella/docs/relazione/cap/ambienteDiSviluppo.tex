@@ -34,10 +34,11 @@ Questi tipi di dati sono stati spesso utilizzati all’interno delle componenti 
 \end{center}
 Si è deciso di utilizzare delle funzioni che operano una la distinzione tra access in lettura e quello in scrittura in modo da evitare inutili serializzazioni dei dati:
 \begin{center}
-\texttt{
-int pthread\_rwlock\_wrlock(pthread\_rwlock\_t *rwlock)\\
-int pthread\_rwlock\_rdlock(pthread\_rwlock\_t *rwlock)\\
-int pthread\_rwlock\_unlock(pthread\_rwlock\_t *rwlock)}
+\begin{lstlisting}
+int pthread_rwlock_wrlock(pthread_rwlock_t *rwlock);
+int pthread_rwlock_rdlock(pthread_rwlock_t *rwlock);
+int pthread_rwlock_unlock(pthread_rwlock_t *rwlock);
+\end{lstlisting}
 \end{center}
 La prima funzione applica un lock in scrittura al rwlock. Il thread chiamante acquisice il lock se nessun altro thread possiede il read-write lock rwlock, altrimenti il thread è bloccato fin quando non acquisice il lock. La funzione \texttt{pthread\_rwlock\_rdlock} applica un lock in lettura a rwlock. Il thread chiamante acquisisce il lock in lettura se non esiste nessun lock in scrittura bloccati, altrimenti il thread viene bloccato fino all’acquisizione della risorsa. L’ultima funzione viene chiamata semplicemente per rilasciare il lock su rwlock.
 La libreria pthread è stata utilizzata, e lo è ancora, in molte applicazioni che necessitano del supporto di multipli flussi di esecuzione al suo interno; a tal proposito, è possibile reperire una grande mole di informazioni a riguardo sul Web, che possono essere utilizzate per meglio comprendere l’utilizzo che se ne è fatto.

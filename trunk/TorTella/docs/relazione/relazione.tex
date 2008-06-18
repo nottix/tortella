@@ -11,9 +11,17 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{latexsym}
+\usepackage{float}
+\usepackage{listings}
 
 \linespread{1.3}
 \makeindex
+\lstset{language=C}
+\lstset{frameround=fttt}
+%\lstset{frameround=single}
+\lstset{basicstyle=\scriptsize}
+\lstset{stringstyle=\ttfamily}
+\lstset{showstringspaces=false}
 
 \begin{document}
 \include{title}
@@ -26,6 +34,7 @@
 \include{cap/abstract}
 \include{cap/introduzione}
 \include{cap/gnutellaVsTortella}
+%\include{cap/tortella}
 \include{cap/architettura}
 \include{cap/ambienteDiSviluppo}
 %\include{cap/view}
