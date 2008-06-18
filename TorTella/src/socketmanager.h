@@ -1,3 +1,18 @@
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Library General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
+ */
 #ifndef SOCKETMANAGER_H
 #define SOCKETMANAGER_H
 
@@ -6,16 +21,6 @@
 #include "common.h"
 #include "httpmanager.h"
 
-/*Coda di servizio per ricezione SYNC*/
-//#define QLEN 5
-///*Lunghezza buffer ricevzione/trasmissione*/
-//#define BUFFER_LEN 1024
-
-/*Definizione operazioni per listen_packet*/
-#define LP_NONE     100
-#define LP_WRITE    LP_NONE +1
-#define LP_READ     LP_NONE +2
-
 /**
  * Crea un socket di connessione remota ovvero
  * si connette ad un server remoto.
@@ -23,7 +28,7 @@
 int create_tcp_socket(const char* dst_ip, int dst_port);
 
 /**
- * Crea un socket d'ascolto ovver un server TCP in attesa di connessioni.
+ * Crea un socket d'ascolto, ovvero un server TCP in attesa di connessioni.
  */
 int create_listen_tcp_socket(const char* src_ip, int src_port);
 
@@ -60,13 +65,13 @@ int send_packet(int sock_descriptor, char* buffer, int len);
 
 /**
  * Attende la ricezione di un pacchetto, avente come dimensione massima quella pari al
- * valore assunto dal paramtero BUFFER_LEN
+ * valore assunto dal parametro BUFFER_LEN
  */
 int recv_packet(int sock_descriptor,char** buffer);
 
 /** 
  * Attende la ricezione di un pacchetto, prefissando il valore massimo(max_len) di byte di
- *  un blocco di dati del paccheto
+ *  un blocco di dati del pacchetto
  */
 int recv_sized_packet(int sock_descriptor,char** buf, int max_len);
 
