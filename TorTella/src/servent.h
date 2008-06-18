@@ -80,11 +80,9 @@ struct servent_data {
 	u_int1 hops;			//hops da inviare
 	u_int8 packet_id;		//ID del pacchetto da ritrasmettere
 	
-	u_int1 is_online;		//Flag che indica se il peer è pronto a ricevere pacchetti (viene impostato alla ricezione del primo PING): 1 e 0
-	
-	//USATE SOLO IN LOCALE
 	u_int4 post_type;		//Tipo di pacchetto da inviare
-	
+	u_int1 is_online;		//Flag che indica se il peer è pronto a ricevere pacchetti (viene impostato alla ricezione del primo PING): 1 e 0
+
 	//FLOODING
 	u_int8 user_id_req;		//Utente che si vuole connettere alla chat con id: chat_id_req
 	u_int8 chat_id_req; 	//Chat a cui connettersi o creare
