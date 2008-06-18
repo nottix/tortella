@@ -17,9 +17,9 @@
 #include "tortellaprotocol.h"
 
 /**
- * funzione la quale ha il compito di eseguire il parser del pacchetto tortella.
- * In paritcolare prende in input da parametro il pacchetto, memorizzato nella sua
- * struttura dati, e restituisce tutto il suo contenuto in un buffer di caratter.
+ * Ha il compito di eseguire il parser del pacchetto tortella.
+ * In paritcolare prende in input il pacchetto, memorizzato nella sua
+ * struttura dati, e restituisce tutto il suo contenuto in un buffer di caratteri.
  * Inoltre il parametro len ritorna la lunghezza di tale buffer.
  */
 char *tortella_bin_to_char(tortella_packet *packet, u_int4 *len) {
@@ -46,7 +46,7 @@ char *tortella_bin_to_char(tortella_packet *packet, u_int4 *len) {
 }
 
 /**
- * funzione che svolge le funzionalità di parser inverso rispetto alla funzione tortella_bin_to_char. 
+ * Svolge le funzionalità di parser inverso rispetto alla funzione tortella_bin_to_char. 
  * La procedura riceve come parametro il buffer, contenente i dati, i quali vengono memorizzati nella 
  * struttura dati tortella_packet.
  */
