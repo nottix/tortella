@@ -1,0 +1,52 @@
+\chapter{Introduzione}
+\section{Requisiti}
+Lo scopo del progetto è realizzare in linguaggio C, usando l’API dei socket di Berkeley, una chat room P2P. In un servizio di chat (o instant messaging) la comunicazione tra gli utenti avviene in tempo reale. Ogni messaggio inserito da un utente viene recapitato immediatamente ai partecipanti alla chat, che visualizzano subito il messaggio ricevuto.
+L’applicazione realizzata deve comprendere le seguenti funzionalità:
+\begin{itemize}
+\item La creazione di una chat room;
+\item L’ingersso (join) e l’uscita (leave) da una chat room esistente;
+\item La lista (list) dei partecipanti alla chat a cui si è interessati;
+\item L’invio dei messaggi a tutti i partecipanti attivi della chat;
+\item Il servizio di presence information, riguardante lo stato corrente degli altri partecipanti (online, offline, busy, away, do not disturb, out to lunch, …);
+\item Un meccanismo di failure detection, per decidere che un partecipante non è più attivo se, allo scadere di un periodo di timeout, nessun messaggio è stato ricevuto da questo partecipante.
+\end{itemize}
+I requisiti salienti dell’applicazione sono elencati di seguito:
+\begin{itemize}
+\item Architettura P2P completamente decentralizzata (l’unica forma di centralizzazione può essere eventualmente il servizio di registrazione alla chat).
+\item La comunicazione tra peer (basata su un opportuno protocollo da definire) deve avvenire usando come “protocollo di trasporto” il protocollo HTTP.
+\item Il protocollo di comunicazione della chat deve prevedere lo scambio delle seguenti due tipologie di messaggi:
+\begin{enumerate}
+\item Messaggi di tipo comando: riguardano la gestione della chat room; includono i messaggi join, leave, list;
+\item Messaggi di tipo informativo: contengono il messaggio inviato a tutti i partecipanti attivi della chat
+\end{enumerate}
+\item L’applicazione deve essere eseguita nello spazio utente senza richiedere privilegi di root.
+\item L’applicazione deve avere un file di configurazione, in cui specificare i valori dei parametri di configurazione (numero di porta, …).
+\item L’applicazione deve avere una semplice interfaccia grafica, comprendente una finestra principale usata per scambiare messaggi (per ogni messaggio viene visualizzato il nickname del mittente, l’ora in cui il messaggio è stato inviato, il testo del messaggio), una finestra secondaria per visualizzare lo stato dei partecipanti alla chat, una finestra di dialogo con l’utente locale.
+\end{itemize}
+La chat P2P può fornire anche le seguenti funzionalità:
+\begin{itemize}
+\item l’invio di messaggi soltanto ad un sottoinsieme di partecipanti attivi alla chat;
+\item l’invio di messaggi privati (soltanto ad un partecipante attivo);
+\item la gestione contemporanea di più room.
+\end{itemize}
+\section{Sistemi Peer to Peer}
+I sistemi peer-to-peer (P2P) sono divenuti noti al grande pubblico abbastanza recentemente, intorno agli inizi del nuovo millennio. Le applicazioni basate su questo paradigma hanno consentito ai loro utenti di condividere e scambiare file di vario genere da ogni parte del mondo e di comunicare tra loro in maniera istantanea.
+Sebbene queste tipologie di applicazioni P2P siano indiscutibilmente le più conosciute ed utilizzate, è noto come molti utenti non siano a conoscenza di cosa esse siano e del loro reale funzionamento. Spesso viene ignorata la presenza di altre tipologie di sistemi P2P più complessi e meno pubblicizzati, ma probabilmente utilizzati almeno una volta in maniera inconsapevole. Lo scopo di questa Sezione è quello di fare chiarezza a tal proposito, offrendo una panoramica sui vari tipi di sistemi P2P esistenti al momento, e descrivendo l’utilità e le funzionalità di ciascuno di essi. In generale, il peer to peer è un modello di comunicazione nel quale ciascuna delle parti ha le stesse funzionalità e ognuna delle parti puo' iniziare la sessione di comunicazione, in contrasto con altri modelli come il client/server o il master/slave. In alcuni casi, la comunicazione P2P viene implementata dando ad ognuno dei nodi di comunicazione le funzionalità di server e client (??). Tale sistema è inoltre in grado di gestire popolazioni transienti di nodi, mantenendo tuttavia un livello accettabile di connettività e di prestazioni, e senza la necessità dell’intervento di alcun intermediario o di alcun supporto da parte di un server centrale o di una qualche autorità. In realtà, tale definizione può essere leggermente rilassata, in particolare sull’ultimo punto, come sarà possibile osservare nella seguente Sezione.
+I principali sistemi P2P conosciuti sono:
+\begin{itemize}
+\item sistemi per la distribuzione di contenuti (file-sharing): come già anticipato, sono i più noti ed utilizzati, e consentono agli utenti la condivisione e lo scambio di 	intere applicazioni, file audio e video, archivi, ed ogni altro tipo di contenuto trasferibile via rete. Alcuni esempi sono Napster, eMule, DC++, e KaZaA, oltre a molti altri;
+\item sistemi per la memorizzazione di contenuti (file-storage): consentono agli utenti di disporre di un file-system distribuito ed indipendente dalla locazione, efficiente e immune da tentativi di intrusione, al quale poter accedere in maniera anonima. Un esempio di questo tipo è Freenet;
+\item sistemi per la condivisione di risorse di calcolo: permettono agli utenti di sfruttare risorse di calcolo, come processori o memorie centrali, non locali ma distribuite anche su larga scala, il tutto in maniera trasparente. Alcuni esempi sono SETI@home e Grid;
+\item sistemi per la comunicazione istantanea: è l’altra killer-application oltre al file-sharing, e consente ai suoi utenti l’inoltro di messaggi testuali, o anche vocali, in maniera istantanea. Esempi di questa tipologia sono IRC, Microsoft Messenger e Skype, e 	molti altri;
+\item sistemi di basi di dati distribuite: offrono ai loro utenti la possibilità di memorizzare ed accedere a dati che in realtà vengono stipati in multiple locazioni remote, o anche replicati, il tutto in maniera efficiente e trasparente per gli utenti stessi.
+\end{itemize}
+\subsection{Architettura dei sistemi P2P}
+Come affermato nella sezione precedente, la definizione di peer to peer in cui non si fa riferimento né ad un server centrale né ad alcun intermediario, non è propriamente corretta. Questa inesattezza è dovuta al fatto che questi sistemi hanno sperimentato un ampio fenomeno di crescita. In particolar modo, le diverse applicazioni per cui essi sono stati concepiti hanno richiesto la progettazione e la realizzazione di diverse architettura di sistema, alcune delle quali non sono propriamente conformi alla definizione sopra riportata, ma che presentano degli aspetti tali per cui ne è stata proposta ed accettata l’utilizzazione.
+Si riportano di seguito i vari tipi di architetture utilizzate per sistemi P2P:
+\begin{itemize}
+\item architetture decentralizzate pure: rappresentano la versione originale dei sistemi P2P, e prevedono la sola presenza di nodi servent (server + client), i quali sono gli unici responsabili della ricezione, dell’elaborazione, dell’invio, o dell’inoltro dei vari messaggi scambiati con il resto dei nodi. Questa soluzione è quella che garantisce la massima scalabilità, affidabilità, e sicurezza in termini di rispetto della privacy degli utenti. L’operazione più complicata, tuttavia, è quella della scoperta dei vari servent che compongono il sistema, questa dev'essere realizzata grazie a complicati algoritmi distribuiti, dal momento che non esiste nessun nodo in grado di coordinare tale operazione. Un esempio di sistema P2P per file-sharing che adotta questo tipo di architettura è Gnutella 0.4;
+\item architetture decentralizzate ibride: questo tipo di architettura risolve le difficoltà sorte nel caso precedente introducendo un nodo di livello gerarchico più elevato. Questo nodo ha il compito di semplificare le interazioni tra i vari peer ed è implementato come server centralizzato. Esso si occupa di mantenere una directory in cui vengono memorizzate le informazioni sui peer presenti nel sistema. Questa directory viene interrogata ogni qual volta si necessiti di disporre di tali informazioni. L’effetto collaterale di quest'architettura è l’introduzione di un singolo 
+point-of-failure nel sistema: il suo intero funzionamento è legato all’operatività del directory server centralizzato, il quale contiene anche delle informazioni potenzialmente lesive della privacy degli utenti. Un esempio di sistema realizzato mediante questa architettura è Napster;
+\item architetture parzialmente centralizzate: il problema del singolo point-of-failure sollevato dalla soluzione precedente viene risolto da questa architettura introducendo una serie di supernodi. Essi agiscono da rappresentanti dei propri sottoposti, secondo un’organizzazione gerarchica. I supernodi vengono di volta in volta scelti in base alla loro connettività e capacità computazionale, e sono logicamente connessi tra loro. Questa soluzione è, in effetti, una mediazione tra le due precedenti, poiché è composta da più directory server semicentralizzati, i quali sono gli unici interessati dall’operazione di discovery. In questo modo, si riduce la difficoltà d'implementazione ed il tempo d'esecuzione. Esempi di sistemi P2P per file-sharing realizzati in questo modo sono KaZaA e Gnutella 0.6.
+\end{itemize}
+Tutti i sistemi sopra riportati sono molto utilizzati (ad eccezione di Napster che è stato chiuso per motivi legali) e, quindi, almeno in termini di popolarità, non è dato sapere quale delle architetture sia la migliore.
