@@ -44,8 +44,8 @@ int delete_socket(int sock_descriptor);
         - LP_READ, aperta la connessione attende dati, inserendoli poi nel buffer
         - LP_NONE, crea solo la nuova connessione con il client.
 */
-//int listen_packet(int listen_socket, char* buffer, unsigned int mode);
-//
+//!int listen_packet(int listen_socket, char* buffer, unsigned int mode);
+//!
 
 /**
  * funzione che ritorna il nuovo descrittore di socket e l'indirizzo del client connesso,
@@ -75,7 +75,7 @@ int recv_packet(int sock_descriptor,char** buffer);
  */
 int recv_sized_packet(int sock_descriptor,char** buf, int max_len);
 
-//char *recv_http_packet(int sock_descriptor,char* buffer, int *len);
+//!char *recv_http_packet(int sock_descriptor,char* buffer, int *len);
 
 /**
  * Permette di ottenere l'indirizzo ip e il numero di porta del peer assocciato
@@ -94,4 +94,4 @@ u_int4 get_dest_port(int socket);
  */
 int shutdown_socket(int sock_descriptor);
 
-#endif //SOCKETMANAGER_H
+#endif //!SOCKETMANAGER_H

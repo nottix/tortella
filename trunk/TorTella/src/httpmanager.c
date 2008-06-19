@@ -1,4 +1,4 @@
-/*
+/**
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -14,7 +14,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 
-/*
+/**
  * HTTP_REQ_GET
  * GET filename HTTP/1.1
  * User-Agent: TorTella/0.1
@@ -47,7 +47,7 @@
 
 #include "httpmanager.h"
 
-/*
+/**
  * Creazione del pacchetto http. Converte il pacchetto tortella in stringa e crea 
  * il pacchetto a seconda del tipo necessario differenziando il tipo request da 
  * quello response in modo da creare i rispettivi header
@@ -57,7 +57,7 @@ http_packet *http_create_packet(tortella_packet *packet, u_int4 type, u_int4 sta
 	u_int4 tortella_len = 0;
 	http_packet *ret = NULL;
 	if(type==HTTP_REQ_POST) {
-		//conversione del pacchetto http in stringa
+		//!conversione del pacchetto http in stringa
 		temp = tortella_bin_to_char(packet, &tortella_len);
 		if(temp==NULL)
 			return NULL;
@@ -65,10 +65,10 @@ http_packet *http_create_packet(tortella_packet *packet, u_int4 type, u_int4 sta
 	if(type==HTTP_REQ_POST || type==HTTP_REQ_GET) {
 		logger(HTTP_INFO, "[http_create_packet]Creating packet POST or GET request\n");
 		http_header_request *request = (http_header_request*)calloc(1, sizeof(http_header_request));
-		//creazione dell'header della request
+		//!creazione dell'header della request
 		request = http_create_header_request(request, type, filename, range_start, range_end, tortella_len);
 		ret = (http_packet*)malloc(sizeof(http_packet));
-		//settaggio dei parametri dell'header
+		//!settaggio dei parametri dell'header
 		ret->header_request = request;
 		ret->header_response = NULL;
 		if(type==HTTP_REQ_POST) {
@@ -88,14 +88,14 @@ http_packet *http_create_packet(tortella_packet *packet, u_int4 type, u_int4 sta
 	else if((type==HTTP_RES_POST || type==HTTP_RES_GET) && status>=HTTP_STATUS_OK) {
 		http_header_response *response = (http_header_response*)malloc(sizeof(http_header_response));
 		logger(HTTP_INFO, "[http_create_packet]Creating packet POST or GET response status %d\n", status);
-		//creazione dell'header della response
+		//!creazione dell'header della response
 		response = http_create_header_response(response, type, status, data_len);
 		if(response==NULL) {
 			logger(HTTP_INFO, "[http_create_packet]Response not created\n");
 			return NULL;
 		}
 		ret = (http_packet*)calloc(1, sizeof(http_packet));
-		//settaggio dei parametri dell'header
+		//!settaggio dei parametri dell'header
 		ret->header_request = NULL;
 		ret->header_response = response;
 		ret->data = NULL;
@@ -106,18 +106,18 @@ http_packet *http_create_packet(tortella_packet *packet, u_int4 type, u_int4 sta
 	return ret;
 }
 
-/*
+/**
  * Crea l'header dedicato alla request settando tutti i campi in modo appropriato
  */
 http_header_request *http_create_header_request(http_header_request *header, u_int4 type, char *filename, \
 	u_int4 range_start, u_int4 range_end, u_int4 data_len) {
 	
-	//settaggio dei parametri comuni dell'header
+	//!settaggio dei parametri comuni dell'header
 	header->user_agent = "TorTella/0.1";
 	header->connection = "Keep-Alive";
 	header->range_start = range_start;
 	header->range_end = range_end;
-	//settaggio dei parametri in relazione al tipo di pacchetto
+	//!settaggio dei parametri in relazione al tipo di pacchetto
 	if(type==HTTP_REQ_POST) {
 		header->request = "POST * HTTP/1.1";
 		header->content_len = data_len;
@@ -131,12 +131,12 @@ http_header_request *http_create_header_request(http_header_request *header, u_i
 	return header;
 }
 
-/*
+/**
  * Crea l'header dedicato alla response settando tutti i campi in modo opportuno
  */
 http_header_response *http_create_header_response(http_header_response *header, u_int4 type, u_int4 status, u_int4 content_len) {
 
-	//settaggio dei parametri dell'header response
+	//!settaggio dei parametri dell'header response
 	header->server = "TorTella/0.1";
 	header->content_type = "application/binary";
 	header->content_len = content_len;
@@ -158,7 +158,7 @@ http_header_response *http_create_header_response(http_header_response *header, 
 	return header;
 }
 
-/*
+/**
  * Parsing del pacchetto http da binario a puntatore a carattere,
  */
 char *http_bin_to_char(http_packet *packet, int *len) {
@@ -168,13 +168,13 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 	if(packet->header_request!=NULL) {
 		http_header_request *header_request = packet->header_request;
 		if(type==HTTP_REQ_POST) {
-			//parsing del pacchetto di invio HTTP REQ POST
+			//!parsing del pacchetto di invio HTTP REQ POST
 			logger(HTTP_INFO, "[http_bin_to_char]HTTP_REQ_POST\n");
 			buffer = calloc(strlen(header_request->request)+2\
 				+strlen(header_request->user_agent)+strlen(HTTP_AGENT)+2\
 				+strlen(HTTP_CONTENT_LEN)+strlen(to_string(header_request->content_len))+2\
 				+strlen(HTTP_CONNECTION)+strlen(header_request->connection)+2+2\
-				+sizeof(tortella_header)+packet->data->header->desc_len+packet->data->header->data_len+1+1, 1); //TODO: memory leak
+				+sizeof(tortella_header)+packet->data->header->desc_len+packet->data->header->data_len+1+1, 1); //!TODO: memory leak
 
 			sprintf(buffer, "%s\r\nUser-Agent: %s\r\nContent-Length: %d\r\nConnection: %s\r\n\r\n", header_request->request,\
 				header_request->user_agent, header_request->content_len, header_request->connection);
@@ -190,7 +190,7 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 
 		}
 		else if(type==HTTP_REQ_GET) {
-			//parsing del pacchetto di invio HTTP REQ GET
+			//!parsing del pacchetto di invio HTTP REQ GET
 			buffer = calloc(strlen(header_request->request)+2\
 				+strlen(header_request->user_agent)+strlen(HTTP_AGENT)+2\
 				+strlen(HTTP_REQ_RANGE)+strlen(to_string(header_request->range_start))+1+strlen(to_string(header_request->range_end))+2\
@@ -203,7 +203,7 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 		}
 	}
 	else if(packet->header_response!=NULL) {
-		//parsing del pacchetto di risposta.
+		//!parsing del pacchetto di risposta.
 		http_header_response *header_response = packet->header_response;
 		if(type==HTTP_RES_GET || type==HTTP_RES_POST) {
 			
@@ -214,7 +214,7 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 			}
 			
 			if(packet->data_string!=NULL) {
-				//parsing dei dati, qualora presenti
+				//!parsing dei dati, qualora presenti
 				*len = strlen(header_response->response)+2
 					+strlen(HTTP_SERVER)+strlen(header_response->server)+2
 					+strlen(HTTP_CONTENT_TYPE)+strlen(header_response->content_type)+2
@@ -253,7 +253,7 @@ char *http_bin_to_char(http_packet *packet, int *len) {
 	return buffer;
 }
 
-/*
+/**
  * Parsing del parametro buffer in un pacchetto http.
  */
 http_packet *http_char_to_bin(const char *buffer) {
@@ -265,10 +265,10 @@ http_packet *http_char_to_bin(const char *buffer) {
 		char *result;
 
 		if((result=strstr(buffer, "GET"))!=NULL) { 
-			//parsing di un pacchetto di tipo GET
+			//!parsing di un pacchetto di tipo GET
 			packet->type = HTTP_REQ_GET;
 			http_header_request *header_request = (http_header_request*)calloc(1, sizeof(http_header_request));
-			//settaggio dei campi dell'header
+			//!settaggio dei campi dell'header
 			header_request->request = http_get_line(buffer, 0);
 			
 			header_request->user_agent = http_get_value(buffer, HTTP_AGENT);
@@ -279,7 +279,7 @@ http_packet *http_char_to_bin(const char *buffer) {
 			
 			header_request->connection = http_get_value(buffer, HTTP_CONNECTION);
 			
-			//settaggio dei campi del pacchetto
+			//!settaggio dei campi del pacchetto
 			packet->header_request = header_request;
 			packet->data = NULL;
 			packet->data_string = NULL;
@@ -287,12 +287,12 @@ http_packet *http_char_to_bin(const char *buffer) {
 
 		}
 		else if((result=strstr(buffer, "POST"))!=NULL) { 
-			//parsing di un pacchetto di tipo POST
+			//!parsing di un pacchetto di tipo POST
 			packet->type = HTTP_REQ_POST;
 			http_header_request *header_request = NULL;
 			
 			header_request = calloc(1, sizeof(http_header_request));
-			//settaggio dei campi dell'header
+			//!settaggio dei campi dell'header
 			header_request->request = http_get_line(buffer, 0);
 			header_request->user_agent = http_get_value(buffer, HTTP_AGENT);
 			header_request->content_len = atoi(http_get_value(buffer, HTTP_CONTENT_LEN));
@@ -303,7 +303,7 @@ http_packet *http_char_to_bin(const char *buffer) {
 			tortella_header *t_header = (tortella_header*)packet->data_string;
 			char *t_desc = tortella_get_desc(packet->data_string);
 			char *t_data = tortella_get_data(packet->data_string);
-			//settaggio dei campi del pacchetto
+			//!settaggio dei campi del pacchetto
 			t_packet->header = t_header;
 			t_packet->desc = t_desc;
 			t_packet->data = t_data;
@@ -311,34 +311,34 @@ http_packet *http_char_to_bin(const char *buffer) {
 			packet->data_len = header_request->content_len;
 		}
 		else if((result=strstr(buffer, "application/binary"))!=NULL) { 
-			//parsing del pacchetto di ricezione di una GET
+			//!parsing del pacchetto di ricezione di una GET
 			packet->type = HTTP_RES_GET;
 			http_header_response *header_response = (http_header_response*)malloc(sizeof(http_header_response));
-			//settaggio dell'header di risposta
+			//!settaggio dell'header di risposta
 			header_response->response = http_get_line(buffer, 0);
 			
 			header_response->server = http_get_value(buffer, HTTP_SERVER);
 			
 			header_response->content_len = atoi(http_get_value(buffer, HTTP_CONTENT_LEN));
-			//settaggio dei campi del pacchetto
+			//!settaggio dei campi del pacchetto
 			packet->header_response = header_response;
 			packet->data_string = strstr(buffer, "\r\n\r\n")+4;
 			packet->data = NULL;
 			packet->data_len = header_response->content_len;
 		}
 		else if((result=strstr(buffer, "text/html"))!=NULL) { 
-			//parsing del pacchetto di ricezione di una POST
+			//!parsing del pacchetto di ricezione di una POST
 			packet->type = HTTP_RES_POST;
 			http_header_response *header_response = (http_header_response*)malloc(sizeof(http_header_response));
 			
-			//settaggio dei campi dell'header di risposta
+			//!settaggio dei campi dell'header di risposta
 			header_response->response = http_get_line(buffer, 0);
 			
 			header_response->server = http_get_value(buffer, HTTP_SERVER);
 			
 			header_response->content_len = atoi(http_get_value(buffer, HTTP_CONTENT_LEN));
 			
-			//settaggio dei campi del pacchetto
+			//!settaggio dei campi del pacchetto
 			packet->header_response = header_response;
 			packet->data_string = strstr(buffer, "\r\n\r\n")+4;
 			packet->data = NULL;
@@ -349,7 +349,7 @@ http_packet *http_char_to_bin(const char *buffer) {
 	
 }
 
-/*
+/**
  * Ritorna il valore contenuto nel campo rappresentato da name all'interno del
  * pacchetto (buffer).
  */
@@ -371,7 +371,7 @@ char *http_get_value(const char *buffer, const char *name) {
 	
 }
 
-/*
+/**
  * Ritorna la riga i-esima del pacchetto (buffer) specificata nel parametro num. 
  */
 char *http_get_line(const char *buffer, u_int4 num) {

@@ -48,7 +48,7 @@ GList *init_read_file(const char *filename) {
 		tmp[i]=buffer;
 		
 		if(tmp[i]=='\n'){
-			//aggiunta dei peer vicini alla lista
+			//!aggiunta dei peer vicini alla lista
 			init_list=g_list_append(init_list,(gpointer)init_char_to_initdata(tmp));
 			memset(tmp,0,strlen(tmp));
 			i=0;

@@ -38,7 +38,7 @@ int servent_create_client(char *dst_ip, u_int4 dst_port) {
  * per gestirle
  */
 int servent_start_server(char *local_ip, u_int4 local_port) {
-	int serfd = servent_create_server(local_ip, local_port); //Avvia il server di ascolto
+	int serfd = servent_create_server(local_ip, local_port); //!Avvia il server di ascolto
 	if(serfd<0) {
 		logger(ALARM_INFO, "[servent_start]Errore nella creazione del server\n");
 		return -1;
@@ -46,7 +46,7 @@ int servent_start_server(char *local_ip, u_int4 local_port) {
 	pthread_t *serthread = (pthread_t*)malloc(sizeof(pthread_t));
 	pthread_create(serthread, NULL, servent_listen, (void*)serfd);
 	
-	//Aggiunta socket descriptor alle liste
+	//!Aggiunta socket descriptor alle liste
 	server_fd = g_list_prepend(server_fd, (gpointer)serfd);
 	server_thread = g_list_prepend(server_thread, (gpointer)serthread);
 	
@@ -61,11 +61,11 @@ int servent_start_server(char *local_ip, u_int4 local_port) {
  */
 servent_data *servent_start_client(char *dest_ip, u_int4 dest_port, u_int8 id) {
 	pthread_t *clithread = (pthread_t*)calloc(1, sizeof(pthread_t));
-	u_int8 cliid = new_connection_counter++; //Incrementa il contatore degli ID falsi
-	if(id >= conf_get_gen_start())	//Verifica che l'id inserito non sia falso (condizione di sicurezza)
+	u_int8 cliid = new_connection_counter++; //!Incrementa il contatore degli ID falsi
+	if(id >= conf_get_gen_start())	//!Verifica che l'id inserito non sia falso (condizione di sicurezza)
 		cliid = id;
 	
-	//Inizializzazione dati del peer all'interno della servent_data
+	//!Inizializzazione dati del peer all'interno della servent_data
 	servent_data *servent = (servent_data*)calloc(1, sizeof(servent_data));
 	servent->id = cliid;
 	logger(SYS_INFO, "[servent_start_client]cliid: %lld\n", cliid);
@@ -77,16 +77,16 @@ servent_data *servent_start_client(char *dest_ip, u_int4 dest_port, u_int8 id) {
 	servent->is_online = 0;
 	pthread_rwlock_init(&servent->rwlock_data, NULL);
 	
-	//Aggiunge il peer all'elenco degli utenti conosciuti (ma non necessariamente connessi)
+	//!Aggiunge il peer all'elenco degli utenti conosciuti (ma non necessariamente connessi)
 	data_add_user(servent->id, servent->nick, servent->ip, servent->port);
 
-	//Aggiunge la servent_data generata alla hashtable dei serventi
+	//!Aggiunge la servent_data generata alla hashtable dei serventi
 	g_hash_table_insert(servent_hashtable, (gpointer)to_string(cliid), (gpointer)servent);
-	//Lancia il client thread associato al peer
+	//!Lancia il client thread associato al peer
 	pthread_create(clithread, NULL, servent_connect, (void*)&cliid);
 	client_thread = g_list_prepend(client_thread, (gpointer)(*clithread));
 	
-	//Attende l'avvenuta ricezione del messaggio di OK (o timeout)
+	//!Attende l'avvenuta ricezione del messaggio di OK (o timeout)
 	char *ret = servent_pop_response(servent);
 	if(ret!=NULL && strcmp(ret, TIMEOUT)==0) {
 		servent->post_type = CLOSE_ID;
@@ -105,19 +105,19 @@ servent_data *servent_start_client(char *dest_ip, u_int4 dest_port, u_int8 id) {
  * \param init_servent Lista dei serventi necessari per il boot iniziale
  */
 int servent_start(GList *init_servent) {
-	//Inizializzazione servent locale
+	//!Inizializzazione servent locale
 	if(servent_init(conf_get_local_ip(), conf_get_local_port(), ONLINE_ID)<0) {
 		logger(SYS_INFO, "[servent_start]Error initializing data\n");
 		return -1;
 	}
 	
-	//Avvio server di ascolto richieste
+	//!Avvio server di ascolto richieste
 	if(servent_start_server(conf_get_local_ip(), conf_get_local_port())<0) {
 		logger(SYS_INFO, "[servent_start]Error starting server\n");
 		return -2;
 	}
 	
-	//Fase iniziale di reperimento degli utenti iniziali
+	//!Fase iniziale di reperimento degli utenti iniziali
 	if(init_servent!=NULL) {
 		if(servent_init_connection(init_servent)<0) {
 			logger(SYS_INFO, "[servent_start]Error boot connections\n");
@@ -139,7 +139,7 @@ int servent_start_timer(void) {
 }
 
 /**
- * Si connette alla lista dei peer specificati, se qualcuno non è disponibile lo salta.
+ * Si connette alla lista dei peer specificati, se qualcuno non e' disponibile lo salta.
  */
 int servent_init_connection(GList *init_servent) {
 	int i;
@@ -180,7 +180,7 @@ void servent_close_all(void) {
  */
 void servent_kill_all_thread(int sig) {
 	logger(SYS_INFO, "[servent_kill_all_thread]Killing threads\n");
-	servent_close_supernode(); //Viene utilizzata per il salvataggio delle chat su file (non utilizzata)
+	servent_close_supernode(); //!Viene utilizzata per il salvataggio delle chat su file (non utilizzata)
 	logger(SYS_INFO, "[servent_kill_all_thread]Closing supernode\n");
 	servent_close_all();
 
@@ -204,21 +204,21 @@ void servent_kill_all_thread(int sig) {
  */
 int servent_init(char *ip, u_int4 port, u_int1 status) {
 	
-	//Inizializza la lista delle chat conosciute leggendo da un file predefinito (non utilizzato)
+	//!Inizializza la lista delle chat conosciute leggendo da un file predefinito (non utilizzato)
 	servent_init_supernode();
-	//Inizializza il seed
+	//!Inizializza il seed
 	srandom(time(NULL));
-	//Recupera il numero iniziale da cui generare fake ID
+	//!Recupera il numero iniziale da cui generare fake ID
 	new_connection_counter = conf_get_connection_id_limit();
 	logger(SYS_INFO, "[servent_init]Local Peer initialized on %s:%d\n", conf_get_local_ip(), conf_get_local_port());
 	
 	servent_hashtable = g_hash_table_new_full(g_str_hash, g_str_equal, free, NULL);
 	
-	//----Routing-----
+	//!----Routing-----
 	search_packet_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
 	join_packet_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
 	leave_packet_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
-	//----------------
+	//!----------------
 	
 	local_servent = (servent_data*)calloc(1, sizeof(servent_data));
 	u_int8 id = local_servent->id = generate_id();
@@ -230,7 +230,7 @@ int servent_init(char *ip, u_int4 port, u_int1 status) {
 	local_servent->status = status;
 	local_servent->nick = conf_get_nick();
 	local_servent->is_online = 1;
-	//Aggiunta utente locale alle liste di utenti conosciuti
+	//!Aggiunta utente locale alle liste di utenti conosciuti
 	data_add_user(local_servent->id, local_servent->nick, local_servent->ip, local_servent->port);
 	
 	pthread_rwlock_init(&local_servent->rwlock_data, NULL);
@@ -251,21 +251,21 @@ int servent_init(char *ip, u_int4 port, u_int1 status) {
 
 /**
  * Funzione utilizzata per il recupero delle chat conosciute da file,
- * attualmente non più utilizzata.
+ * attualmente non piu' utilizzata.
  */
 void servent_init_supernode() {
-	//read_all();
+	//!read_all();
 }
 
 /**
  * Funzione utilizzata per il salvataggio delle chat conosciute su file,
- * attualmente non più utilizzata.
+ * attualmente non piu' utilizzata.
  */
 void servent_close_supernode() {
-	//write_all(MODE_TRUNC);
+	//!write_all(MODE_TRUNC);
 }
 
-//-----Gestione servent_data-----
+//!-----Gestione servent_data-----
 
 /**
  * Restituisce il servent_data associato all'id richiesto.
@@ -295,7 +295,7 @@ servent_data *servent_get_local(void) {
 	return local_servent;
 }
 
-//-----Gestione Queue-----
+//!-----Gestione Queue-----
 
 /**
  * Aggiunge alla coda di pacchetti da inviare ad uno specifico peer.
@@ -317,9 +317,9 @@ servent_data *servent_pop_queue(servent_data *sd) {
 		logger(ALARM_INFO, "[servent_pop_queue]Queue error\n");
 		return NULL;
 	}
-	//Ciclo utilizzato per attendere la richiesta di invio pacchetti
+	//!Ciclo utilizzato per attendere la richiesta di invio pacchetti
 	while((servent = (servent_data*)g_queue_pop_head(sd->queue))==NULL) {
-		usleep(100000);	//Attende prima di controllare di nuovo la coda
+		usleep(100000);	//!Attende prima di controllare di nuovo la coda
 	}
 	return servent;
 }
@@ -344,9 +344,9 @@ char *servent_pop_response(servent_data *sd) {
 		return NULL;
 	}
 	
-	int counter = 0; //Contatore utilizzato per dare un timeout al superamento di una soglia
+	int counter = 0; //!Contatore utilizzato per dare un timeout al superamento di una soglia
 	while((buf = (char*)g_queue_pop_head(sd->res_queue))==NULL) {
-		if(counter>10) { //Serve per il timeout
+		if(counter>10) { //!Serve per il timeout
 			buf = TIMEOUT;
 			break;
 		}
@@ -356,7 +356,7 @@ char *servent_pop_response(servent_data *sd) {
 	return buf;
 }
 
-//-----Routing-----
+//!-----Routing-----
 
 /**
  * Ritorna l'ID del pacchetto richiesto, se presente.
@@ -417,7 +417,7 @@ void servent_flush_data(void) {
 }
 
 
-//---------THREAD---------------
+//!---------THREAD---------------
 
 /**
  * Thread che riceve le richieste di connessione e avvia nuovi thread.
@@ -433,11 +433,11 @@ void *servent_listen(void *parm) {
 		logger(SYS_INFO, "[servent_listen]Received connection on socket: %d\n", connFd);
 		if(connFd!=0) {
 			thread = (pthread_t*)calloc(1, sizeof(pthread_t));
-			//Aggiunge alla lista dei socket descriptor di connessione
+			//!Aggiunge alla lista dei socket descriptor di connessione
 			server_connection_fd = g_list_prepend(server_connection_fd, (gpointer)connFd);
-			//Avvia il server thread
+			//!Avvia il server thread
 			pthread_create(thread, NULL, servent_respond, (void*)connFd);
-			//Aggiunge alla lista degli identificatori dei thread di connessione
+			//!Aggiunge alla lista degli identificatori dei thread di connessione
 			server_connection_thread = g_list_prepend(server_connection_thread, (gpointer)(*thread));
 		}
 	}
@@ -446,7 +446,7 @@ void *servent_listen(void *parm) {
 
 /**
  * Server thread che riceve i pacchetti e risponde adeguatamente. Ne esiste uno per ogni
- * peer a cui si è connessi. Questa funzione è il vero cuore di TorTella,
+ * peer a cui si e' connessi. Questa funzione e' il vero cuore di TorTella,
  * infatti gestisce tutti i comportamente dei programma in base ai pacchetti ricevuti.
  *
  * \param parm Socket descriptor della connessione
@@ -462,13 +462,13 @@ void *servent_respond(void *parm) {
 	
 	while(1) {
 		logger(SYS_INFO, "[servent_respond]Waiting\n");
-		//Attesa ricezione pacchetto HTTP
+		//!Attesa ricezione pacchetto HTTP
 		len = recv_http_packet(fd, &buffer);
 		logger(PAC_INFO, "[servent_respond]Data received len: %d, buffer: \nSTART\n%s\nEND\n", len, dump_data(buffer, len));
 		
 		if(len>0) {
 			logger(SYS_INFO, "[servent_respond]Converting\n");
-			//Riempimento della struttura dati http_packet con i valori ricevuti
+			//!Riempimento della struttura dati http_packet con i valori ricevuti
 			h_packet = http_char_to_bin((const char*)buffer);
 			if(h_packet!=NULL) {
 				logger(SYS_INFO, "[servent_respond]Http packet received, type=%d\n", h_packet->type);
@@ -476,17 +476,17 @@ void *servent_respond(void *parm) {
 					
 					logger(SYS_INFO, "[servent_respond]POST received\n");
 					
-					//Effettua le operazioni adeguatamente al tipo di pacchetto ricevuto
+					//!Effettua le operazioni adeguatamente al tipo di pacchetto ricevuto
 					if(h_packet->data==NULL || h_packet->data->header==NULL) {
 						logger(SYS_INFO, "[servent_respond]Invalid HTTP packet\n");
 						
-						//Imposta lo status del pacchetto di risposta da inviare
+						//!Imposta lo status del pacchetto di risposta da inviare
 						status = HTTP_STATUS_CERROR;
 					}
 					else if(h_packet->data->header->recv_id!=local_servent->id && h_packet->data->header->recv_id>=conf_get_gen_start()) {
 						/**
-						 * Entra in questa condizione se l'ID di ricezione del pacchetto è diverso dal locale,
-						 * ovvero il pacchetto non è destinato al peer che l'ha ricevuto. Inoltre controlla che
+						 * Entra in questa condizione se l'ID di ricezione del pacchetto e' diverso dal locale,
+						 * ovvero il pacchetto non e' destinato al peer che l'ha ricevuto. Inoltre controlla che
 						 * l'ID non sia falso.
 						 */
 						status = HTTP_STATUS_CERROR;
@@ -494,16 +494,16 @@ void *servent_respond(void *parm) {
 					else if(h_packet->data->header->desc_id==JOIN_ID) {
 						logger(SYS_INFO, "[servent_respond]JOIN received, packet_id: %lld\n", h_packet->data->header->id);
 
-						//Invio di un pacchetto di notifica di avvenuta ricezione del JOIN
+						//!Invio di un pacchetto di notifica di avvenuta ricezione del JOIN
 						status = HTTP_STATUS_OK;
 						send_post_response_packet(fd, status, 0, NULL);
 						logger(SYS_INFO, "[servent_respond]Sending post response\n");
-						//Si imposta lo status a 0 per evitare di inviare un doppio pacchetto di notifica
+						//!Si imposta lo status a 0 per evitare di inviare un doppio pacchetto di notifica
 						status = 0;
 						
-						//Verifica che il pacchetto ricevuto non sia un duplicato
+						//!Verifica che il pacchetto ricevuto non sia un duplicato
 						if(servent_get_join_packet(h_packet->data->header->id) == NULL) {
-							//Aggiunge il pacchetto ricevuto all'hashtable associata al JOIN
+							//!Aggiunge il pacchetto ricevuto all'hashtable associata al JOIN
 							servent_new_join_packet(h_packet->data->header->id);
 							
 							GList *servent_list;
@@ -512,19 +512,19 @@ void *servent_respond(void *parm) {
 								logger(SYS_INFO, "[servent_responde]conn_servent entry %lld doesn't found\n", h_packet->data->header->sender_id);
 								continue;
 							}
-							//Aggiunta dell'utente che ha inviato il JOIN nelle liste contenenti gli utenti
+							//!Aggiunta dell'utente che ha inviato il JOIN nelle liste contenenti gli utenti
 							data_add_user(GET_JOIN(h_packet->data)->user_id, tortella_get_data(h_packet->data_string), GET_JOIN(h_packet->data)->ip, GET_JOIN(h_packet->data)->port);
 							data_add_existing_user_to_chat(GET_JOIN(h_packet->data)->chat_id, GET_JOIN(h_packet->data)->user_id);
 							controller_add_user_to_chat(GET_JOIN(h_packet->data)->chat_id, GET_JOIN(h_packet->data)->user_id);
 							
 							logger(SYS_INFO, "[servent_respond]Sending JOIN packet to others peer\n");
 							
-							//Verifica che il ttl sia maggiore di uno per il rinvio del pacchetto agli altri peer
+							//!Verifica che il ttl sia maggiore di uno per il rinvio del pacchetto agli altri peer
 							if(GET_JOIN(h_packet->data)->ttl>1) {
 								logger(SYS_INFO, "[servent_respond]TTL > 1\n");
 								int i;
 								servent_list = g_hash_table_get_values(servent_hashtable);
-								//Recupero di tutti i peer a cui si è connessi per rinviare il pacchetto (flooding)
+								//!Recupero di tutti i peer a cui si e' connessi per rinviare il pacchetto (flooding)
 								for(i=0; i<g_list_length(servent_list); i++) {
 							
 									conn_servent = (servent_data*)g_list_nth_data(servent_list, i);
@@ -547,9 +547,9 @@ void *servent_respond(void *parm) {
 										sd->nick_req = tortella_get_data(h_packet->data_string);
 										sd->post_type = JOIN_ID;
 										UNLOCK(conn_servent->id);
-										//Invio del pacchetto al peer selezionato
+										//!Invio del pacchetto al peer selezionato
 										servent_send_packet(sd);
-										//Attesa ricezione risposta
+										//!Attesa ricezione risposta
 										servent_pop_response(sd);
 										logger(SYS_INFO, "[servent_respond]Retrasmitted JOIN packet %s to %s\n", sd->nick_req, sd->nick);
 									}
@@ -561,7 +561,7 @@ void *servent_respond(void *parm) {
 						logger(SYS_INFO, "[servent_respond]PING received from %lld to %lld\n", h_packet->data->header->sender_id, h_packet->data->header->recv_id);
 						
 						status = HTTP_STATUS_OK;
-						//invio del pacchetto di OK
+						//!invio del pacchetto di OK
 						send_post_response_packet(fd, status, 0, NULL);
 						logger(SYS_INFO, "[servent_respond]Sending post response\n");
 						status = 0;
@@ -597,13 +597,13 @@ void *servent_respond(void *parm) {
 						else {
 							/**
 							  * Entra in questo flusso quando il peer mittente non 
-							  * è ancora conosciuto dal peer locale. Serve per 
+							  * e' ancora conosciuto dal peer locale. Serve per 
 							  * stabilire una nuova connesione tra i due peer.
 							  */
 							logger(SYS_INFO, "[servent_respond]New PING\n");
 							/**
 							  * controllo che l'id del mittente sia falso in modo da capire 
-							  * che è la richiesta di una nuova connessione
+							  * che e' la richiesta di una nuova connessione
 							  */
 							if(h_packet->data->header->recv_id < conf_get_gen_start()) {
 								
@@ -620,10 +620,10 @@ void *servent_respond(void *parm) {
 								conn_servent->nick = h_packet->data->data;
 								conn_servent->id = h_packet->data->header->sender_id;
 								
-								//aggiunta dell'utente alla lista dei peer conosciuti.
+								//!aggiunta dell'utente alla lista dei peer conosciuti.
 								data_add_user(conn_servent->id, conn_servent->nick, conn_servent->ip, conn_servent->port);
 								
-								//Si inizializza il mutex
+								//!Si inizializza il mutex
 								pthread_rwlock_init(&conn_servent->rwlock_data, NULL);
 								
 								logger(SYS_INFO, "[servent_respond]Lookup ID: %s\n", to_string(id));
@@ -632,12 +632,12 @@ void *servent_respond(void *parm) {
 									g_hash_table_insert(servent_hashtable, (gpointer)to_string(id), (gpointer)conn_servent);
 								}
 								
-								//creazione nuovo client thread per gestire la connessione con il nuovo peer.
+								//!creazione nuovo client thread per gestire la connessione con il nuovo peer.
 								pthread_t *cli_thread = (pthread_t*)malloc(sizeof(pthread_t));
 								pthread_create(cli_thread, NULL, servent_connect, (void*)&id);
 								client_thread = g_list_prepend(client_thread, (gpointer)(*cli_thread));
 								
-								//attesa risposta di OK (o TIMEOUT).
+								//!attesa risposta di OK (o TIMEOUT).
 								servent_pop_response(conn_servent);
 							}
 							else {
@@ -665,7 +665,7 @@ void *servent_respond(void *parm) {
 									  */ 
 									if((strcmp(tmp_ip, get_dest_ip(fd))==0) && (tmp_port == GET_PING(h_packet->data)->port)) {
 										logger(SYS_INFO, "[servent_respond]Changing old ID: %lld with new ID: %lld\n", tmp->id, h_packet->data->header->sender_id);
-										//rimuove dalla hashtable la chiave con id fasullo
+										//!rimuove dalla hashtable la chiave con id fasullo
 										g_hash_table_remove(servent_hashtable, (gpointer)to_string(tmp->id));
 										
 										tmp->id = h_packet->data->header->sender_id;
@@ -673,7 +673,7 @@ void *servent_respond(void *parm) {
 										tmp->timestamp = h_packet->data->header->timestamp;
 										tmp->nick = h_packet->data->data;
 										tmp->is_online = 1;
-										//aggiunge l'utente alla lista dei peer conosciuti
+										//!aggiunge l'utente alla lista dei peer conosciuti
 										data_add_user(tmp->id, tmp->nick, tmp->ip, tmp->port);
 										
 										g_hash_table_insert(servent_hashtable, (gpointer)to_string(tmp->id),(gpointer)tmp);
@@ -691,14 +691,14 @@ void *servent_respond(void *parm) {
 						logger(SYS_INFO, "[servent_respond]LEAVE received, packet_id: %lld\n", h_packet->data->header->id);
 
 						status = HTTP_STATUS_OK;
-						//invio di un pacchetto di OK che conferma l'avvenuta ricezione del LEAVE
+						//!invio di un pacchetto di OK che conferma l'avvenuta ricezione del LEAVE
 						send_post_response_packet(fd, status, 0, NULL);
 						logger(SYS_INFO, "[servent_responde]Sending post response\n");
 						status = 0;
 						
-						//controllo dei pacchetti LEAVE duplicati
+						//!controllo dei pacchetti LEAVE duplicati
 						if(servent_get_leave_packet(h_packet->data->header->id) == NULL) {
-							//aggiunge il pacchetto alla lista dei pacchetti LEAVE
+							//!aggiunge il pacchetto alla lista dei pacchetti LEAVE
 							servent_new_leave_packet(h_packet->data->header->id);
 							
 							GList *servent_list;
@@ -710,7 +710,7 @@ void *servent_respond(void *parm) {
 							
 							u_int8 chat_id = GET_LEAVE(h_packet->data)->chat_id;
 						
-							//Sconnetti dalla chat l'utente
+							//!Sconnetti dalla chat l'utente
 							logger(SYS_INFO, "[servent_respond]Deleting user\n");
 							gdk_threads_enter();
 							controller_rem_user_from_chat(chat_id, GET_LEAVE(h_packet->data)->user_id);
@@ -720,7 +720,7 @@ void *servent_respond(void *parm) {
 						
 							logger(SYS_INFO, "[servent_respond]Sending LEAVE packet to others peer\n");
 						 
-							//controllo che il TTL sia maggiore di uno in modo da reinviare il pacchetto
+							//!controllo che il TTL sia maggiore di uno in modo da reinviare il pacchetto
 							if(GET_LEAVE(h_packet->data)->ttl>1) {
 								logger(SYS_INFO, "[servent_respond]TTL > 1\n");
 								int i;
@@ -744,9 +744,9 @@ void *servent_respond(void *parm) {
 											sd->chat_id_req = GET_LEAVE(h_packet->data)->chat_id;
 											sd->post_type = LEAVE_ID;
 											UNLOCK(conn_servent->id);
-											//invio del pacchetto al peer selezionato
+											//!invio del pacchetto al peer selezionato
 											servent_send_packet(sd);
-											//attesa della ricezione del messaggio di OK (o di TIMEOUT)
+											//!attesa della ricezione del messaggio di OK (o di TIMEOUT)
 											servent_pop_response(sd);
 											logger(SYS_INFO, "[servent_respond]Retrasmitted LEAVE packet to other peers\n");
 										}
@@ -767,20 +767,20 @@ void *servent_respond(void *parm) {
 						conn_servent->msg = h_packet->data->data;
 						conn_servent->msg_len = h_packet->data->header->data_len;
 						conn_servent->timestamp = h_packet->data->header->timestamp;
-						//prepara il messaggio in modo da aggiornare la GUI
+						//!prepara il messaggio in modo da aggiornare la GUI
 						char *send_msg = prepare_msg(conn_servent->timestamp, conn_servent->nick, conn_servent->msg, conn_servent->msg_len);
 						UNLOCK(h_packet->data->header->sender_id);
 						u_int8 chat_id = GET_MESSAGE(h_packet->data)->chat_id;
 						if(chat_id==0) {
 							logger(SYS_INFO, "[servent_respond]PM\n");
-							//aggiornamento della gui relativa ad un messaggio privato
+							//!aggiornamento della gui relativa ad un messaggio privato
 							gdk_threads_enter();
 							controller_add_msg(h_packet->data->header->sender_id, send_msg);
 							gdk_threads_leave();
 						}
 						else {
 							logger(SYS_INFO, "[servent_respond]CHAT\n");
-							//aggiornamento della gui relativa alla chat
+							//!aggiornamento della gui relativa alla chat
 							gdk_threads_enter();
 							controller_add_msg_to_chat(chat_id, send_msg);
 							gdk_threads_leave();
@@ -797,13 +797,13 @@ void *servent_respond(void *parm) {
 						logger(SYS_INFO, "[servent_respond]SEARCH ricevuto packet_id: %lld\n", h_packet->data->header->id);
 
 						status = HTTP_STATUS_OK;
-						//invio di un mpacchetto di avvenuta ricezione della SEARCH
+						//!invio di un mpacchetto di avvenuta ricezione della SEARCH
 						send_post_response_packet(fd, status, 0, NULL);
 						logger(SYS_INFO, "[servent_respond]Sending post response\n");
 						status = 0;
-						//controllo dei pacchetti SEARCH duplicati
+						//!controllo dei pacchetti SEARCH duplicati
 						if(servent_get_search_packet(h_packet->data->header->id) == NULL) {
-							//aggiunge il pacchetto alla lista dei pacchetti LEAVE
+							//!aggiunge il pacchetto alla lista dei pacchetti LEAVE
 							servent_new_search_packet(h_packet->data->header->id);
 						
 							GList *res;
@@ -814,7 +814,7 @@ void *servent_respond(void *parm) {
 								continue;
 							}
 							logger(SYS_INFO, "[servent_respond]conn_servent entry found\n");
-							//controllo dell'integrità del pacchetto
+							//!controllo dell'integrita' del pacchetto
 							if(h_packet->data_len>0) {
 								servent_data *sd;
 								RLOCK(conn_servent->id);
@@ -822,20 +822,20 @@ void *servent_respond(void *parm) {
 								UNLOCK(conn_servent->id);
 							
 								logger(SYS_INFO, "[servent_respond]Searching %s\n", tortella_get_data(h_packet->data_string));
-								//Ricerca nelle chat conosciute la chat richiesta dalla SEARCH
+								//!Ricerca nelle chat conosciute la chat richiesta dalla SEARCH
 								res = data_search_all_chat(tortella_get_data(h_packet->data_string));
 								logger(SYS_INFO, "[servent_respond]Results number %d\n", g_list_length(res));
 				
 								logger(SYS_INFO, "[servent_respond]Sending to ID: %lld\n", sd->id);
-								//Passa i risultati alla servent_data del peer remoto
+								//!Passa i risultati alla servent_data del peer remoto
 								sd->chat_res = res;
 								sd->packet_id = h_packet->data->header->id;
 								sd->post_type = SEARCHHITS_ID;	
-								//invio del pacchetto SEARCHHITS 
+								//!invio del pacchetto SEARCHHITS 
 								servent_send_packet(sd);
 								logger(SYS_INFO, "[servent_respond]Sending SEARCHHITS packet to searching peer\n");
 							}
-							//controllo che il TTL sia maggiore di uno in modo da reinviare il pacchetto
+							//!controllo che il TTL sia maggiore di uno in modo da reinviare il pacchetto
 							if(GET_SEARCH(h_packet->data)->ttl>1) {
 								logger(SYS_INFO, "[servent_respond]TTL > 1\n");
 								int i;
@@ -858,9 +858,9 @@ void *servent_respond(void *parm) {
 										sd->packet_id = h_packet->data->header->id;
 										sd->post_type = SEARCH_ID;
 										UNLOCK(conn_servent->id);
-										//reinvio del pacchetto SEARCH al peer selezionato
+										//!reinvio del pacchetto SEARCH al peer selezionato
 										servent_send_packet(sd);
-										//Aggiunta regola di routing alla tabella
+										//!Aggiunta regola di routing alla tabella
 										add_route_entry(h_packet->data->header->id, h_packet->data->header->sender_id, conn_servent->id);
 										logger(SYS_INFO, "[servent_respond]Retrasmitted SEARCH packet to other peers\n");
 									}
@@ -875,7 +875,7 @@ void *servent_respond(void *parm) {
 						logger(SYS_INFO, "[servent_respond]SEARCHHITS ricevuto\n");
 
 						status = HTTP_STATUS_OK;
-						//invio di un pacchetto di avvenuta ricezione del SEARCHHITS
+						//!invio di un pacchetto di avvenuta ricezione del SEARCHHITS
 						send_post_response_packet(fd, status, 0, NULL);
 						logger(SYS_INFO, "[servent_respond]Sending post response\n");
 						status = 0;
@@ -885,13 +885,13 @@ void *servent_respond(void *parm) {
 						 * con i relativi utenti.
 						 */
 						GList *chat_list = data_char_to_chatlist(tortella_get_data(h_packet->data_string), h_packet->data->header->data_len);
-						//Aggiunge le chat alle liste locali
+						//!Aggiunge le chat alle liste locali
 						data_add_all_to_chat(chat_list);
 						
-						//Ritorna la regola di routing associata all'ID del pacchetto
+						//!Ritorna la regola di routing associata all'ID del pacchetto
 						route_entry *entry = get_route_entry(h_packet->data->header->id);
 						if(entry!=NULL) {
-							//Entra se la regola esiste
+							//!Entra se la regola esiste
 							RLOCK(entry->sender_id);
 							servent_data *sd;
 							servent_data *conn_servent = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(entry->sender_id));
@@ -901,15 +901,15 @@ void *servent_respond(void *parm) {
 							sd->chat_res = chat_list;
 							sd->post_type = SEARCHHITS_ID; 
 							UNLOCK(entry->sender_id);
-							//Invia il pacchetto SEARCHHITS al peer presente nella regola di routing
+							//!Invia il pacchetto SEARCHHITS al peer presente nella regola di routing
 							servent_send_packet(sd);
 							logger(SYS_INFO, "[servent_respond]Routing packet from %lld to %lld\n", h_packet->data->header->sender_id, entry->sender_id);
-							//Elimina la regola o decrementa
+							//!Elimina la regola o decrementa
 							del_route_entry(h_packet->data->header->id);
 							logger(SYS_INFO, "[servent_respond]Route entry %lld deleted\n", h_packet->data->header->id); 
 						}
 						else {
-							//Se la regola non esiste vuol dire che il peer è colui che ha fatto la richiesta iniziale
+							//!Se la regola non esiste vuol dire che il peer e' colui che ha fatto la richiesta iniziale
 							int i=0;
 							chat *chat_val;
 
@@ -922,7 +922,7 @@ void *servent_respond(void *parm) {
 									chat *tmp = (chat*)g_list_nth_data(local_chat, j);
 									logger(SYS_INFO, "[servent_respond] title chat %s\n", tmp->title);
 									gdk_threads_enter();
-									//Aggiunge la chat alla lista dei risultati nella GUI
+									//!Aggiunge la chat alla lista dei risultati nella GUI
 									gui_add_chat(tmp->id, tmp->title);
 									gdk_threads_leave();
 								}
@@ -939,7 +939,7 @@ void *servent_respond(void *parm) {
 						UNLOCK(h_packet->data->header->sender_id);
 						
 						status = HTTP_STATUS_OK;
-						//Invia il pacchetto di risposta
+						//!Invia il pacchetto di risposta
 						send_post_response_packet(fd, status, 0, NULL);
 						logger(SYS_INFO, "[servent_respond]Sending post response\n");
 						status = 0;
@@ -947,30 +947,30 @@ void *servent_respond(void *parm) {
 						servent_data *sd;
 						COPY_SERVENT(conn_servent, sd);
 						sd->post_type= CLOSE_ID;
-						//Chiusura thread connessione
+						//!Chiusura thread connessione
 						servent_send_packet(sd);
 
 						logger(SYS_INFO, "[servent_respond]Deleting user\n");
 						
-						//Chiusura eventuali finestre PM
+						//!Chiusura eventuali finestre PM
 						gdk_threads_enter();
 						controller_receive_bye(conn_servent->id);
 						gdk_threads_leave();
 
-						//Rimozione dalle strutture dati
+						//!Rimozione dalle strutture dati
 						g_hash_table_remove(servent_hashtable, (gconstpointer)to_string(conn_servent->id));
 						data_del_user(conn_servent->id);
 						logger(SYS_INFO, "[servent_respond]Deleted user: %lld\n", conn_servent->id);
 						
-						//Chiusura forzata socket
+						//!Chiusura forzata socket
 						shutdown_socket(fd);
 						server_fd = g_list_remove(server_fd, (gconstpointer)fd);
 						server_connection_thread = g_list_remove(server_connection_thread, (gconstpointer)pthread_self());
-						//Esce dal server thread
+						//!Esce dal server thread
 						pthread_exit(NULL);
 					}
 					
-					//Invio la conferma di ricezione
+					//!Invio la conferma di ricezione
 					if(status>0) {
 						logger(SYS_INFO, "[servent_respond]Sending post response\n");
 						send_post_response_packet(fd, status, 0, NULL);
@@ -990,18 +990,18 @@ void *servent_respond(void *parm) {
 				servent_data* sd;
 				COPY_SERVENT(srv, sd);
 				sd->post_type = CLOSE_ID;
-				//Chiude il client thread associato al peer
+				//!Chiude il client thread associato al peer
 				servent_send_packet(sd);
 				UNLOCK(user_id);
 				
-				//Rimuove il peer dalla GUI e dalle strutture dati
+				//!Rimuove il peer dalla GUI e dalle strutture dati
 				gdk_threads_enter();
 				controller_receive_bye(user_id);
 				gdk_threads_leave();
 				data_destroy_user(user_id);
 			}
 			
-			//Chiusura forzata socket
+			//!Chiusura forzata socket
 			shutdown_socket(fd);
 			server_connection_fd = g_list_remove(server_connection_fd, (gconstpointer)fd);
 			server_connection_thread = g_list_remove(server_connection_thread, (gconstpointer)(pthread_self()));
@@ -1021,7 +1021,7 @@ void *servent_connect(void *parm) {
 	u_int8 id_dest = *((u_int8*)(parm));
 	logger(SYS_INFO, "[servent_connect]ID: %lld\n", id_dest);
 	
-	//Si prendono l'ip e la porta dalla lista degli id
+	//!Si prendono l'ip e la porta dalla lista degli id
 	servent_data *servent_peer = (servent_data*)g_hash_table_lookup(servent_hashtable, (gconstpointer)to_string(id_dest));
 	servent_data *servent_queue;
 	if(servent_peer == NULL) {
@@ -1031,7 +1031,7 @@ void *servent_connect(void *parm) {
 	char *ip_dest = servent_peer->ip;
 	u_int4 port_dest = servent_peer->port;
 	
-	//Creazione socket client
+	//!Creazione socket client
 	int fd = servent_create_client(ip_dest, port_dest);
 
 	client_fd = g_list_prepend(client_fd, (gpointer)fd);
@@ -1067,17 +1067,17 @@ void *servent_connect(void *parm) {
 	u_int1 status_req;
 	char *nick;
 
-	//Ora si entra nel ciclo infinito che serve per inviare tutte le richieste
+	//!Ora si entra nel ciclo infinito che serve per inviare tutte le richieste
 	while(1) {
 		logger(SYS_INFO, "[servent_connect]Waiting\n");
 		if(servent_peer==NULL) {
 			logger(SYS_INFO, "[servent_connect]Peer error\n");
 			pthread_exit(NULL);
 		}
-		//Attesa richiesta di invio pacchetto
+		//!Attesa richiesta di invio pacchetto
 		servent_queue = servent_pop_queue(servent_peer);
 		/**
-		 * Questo passo è fondamentale quando si effettua la connessione iniziale,
+		 * Questo passo e' fondamentale quando si effettua la connessione iniziale,
 		 * Quando viene inviato il nuovo ID tramite PING.
 		 */
 		id_dest = servent_peer->id;
@@ -1091,7 +1091,7 @@ void *servent_connect(void *parm) {
 		WLOCK(id_dest); 
 		logger(SYS_INFO, "[servent_connect]Post_type %d\n", servent_queue->post_type);
 		
-		//Si salvano tutti i dati nella struttura dati condivisa
+		//!Si salvano tutti i dati nella struttura dati condivisa
 		servent_peer->post_type = servent_queue->post_type;
 		servent_peer->chat_id_req = servent_queue->chat_id_req;
 		servent_peer->msg_len = servent_queue->msg_len;
@@ -1125,10 +1125,10 @@ void *servent_connect(void *parm) {
 		status_req = servent_peer->status_req;
 		nick = local_servent->nick;
 		
-		//Invio dei vari pacchetti
+		//!Invio dei vari pacchetti
 		if(post_type==HTTP_REQ_GET) {
-			//Invio di pacchetto GET (non utilizzata)
-			//send_get_request_packet(fd, char *filename, u_int4 range_start, u_int4 range_end);
+			//!Invio di pacchetto GET (non utilizzata)
+			//!send_get_request_packet(fd, char *filename, u_int4 range_start, u_int4 range_end);
 		}
 		else {
 			if(post_type==JOIN_ID) {
@@ -1142,7 +1142,7 @@ void *servent_connect(void *parm) {
 				send_bye_packet(fd, local_servent->id, id_dest);
 			}
 			else if(post_type==CLOSE_ID) {
-				//Richiesta di invio CLOSE, ovvero terminazione thread corrente
+				//!Richiesta di invio CLOSE, ovvero terminazione thread corrente
 				UNLOCK_F(servent_peer);
 				UNLOCK(local_servent->id);
 				shutdown_socket(fd);
@@ -1162,7 +1162,7 @@ void *servent_connect(void *parm) {
 			}
 			else if(post_type==SEARCHHITS_ID) {
 				int length;
-				//Converte la lista delle chat in stringa, per inviare tramite pacchetto
+				//!Converte la lista delle chat in stringa, per inviare tramite pacchetto
 				char *buf = data_chatlist_to_char(servent_queue->chat_res, &length);
 				if(buf==NULL) {
 					length=0;
@@ -1173,7 +1173,7 @@ void *servent_connect(void *parm) {
 				send_searchhits_packet(fd, packet_id, local_servent->id, id_dest, g_list_length(servent_queue->chat_res), length, buf);
 			}
 
-			//Attesa ricezione risposta
+			//!Attesa ricezione risposta
 			logger(SYS_INFO, "[servent_connect]Listening response\n");
 			len = recv_http_packet(fd, &buffer);
 			logger(SYS_INFO, "[sevente_connect]Received response\n");
@@ -1197,13 +1197,13 @@ void *servent_connect(void *parm) {
 					pthread_exit(NULL);
 				}
 				if(servent_peer->post_type != SEARCH_ID && servent_peer->post_type != SEARCHHITS_ID && servent_peer->post_type != CLOSE_ID) {
-					//Appende alla coda delle risposte il tipo di risposta ricevuta
+					//!Appende alla coda delle risposte il tipo di risposta ricevuta
 					servent_append_response(servent_peer, h_packet->header_response->response);
 					logger(SYS_INFO, "[servent_connect]Appended\n");
 				}
 			}
 			else {
-				//In caso di timeout appende alla coda delle risposte l'errore
+				//!In caso di timeout appende alla coda delle risposte l'errore
 				logger(SYS_INFO, "[servent_connect]Appending response TIMEOUT\n");
 				servent_append_response(servent_peer, TIMEOUT);
 			}
@@ -1216,7 +1216,7 @@ void *servent_connect(void *parm) {
 
 /**
  * Thread utilizzato per gestire il meccanismo di failure detection e per pulire
- * la lista dei pacchetti ricevuti. L'intervallo di tempo è impostato nel file
+ * la lista dei pacchetti ricevuti. L'intervallo di tempo e' impostato nel file
  * di configurazione.
  */
 void *servent_timer(void *parm) {
@@ -1237,20 +1237,20 @@ void *servent_timer(void *parm) {
 				COPY_SERVENT(data, tmp);
 				UNLOCK(data->id);
 				tmp->post_type = PING_ID;
-				//Invio PING al peer selezionato
+				//!Invio PING al peer selezionato
 				servent_send_packet(tmp);
-				//Attende la risposta
+				//!Attende la risposta
 				ret = servent_pop_response(tmp);
 				if(ret!=NULL && strcmp(ret, TIMEOUT)==0) {
-					//Entra in questo flusso se c'è stato un timeout (failure detection)
+					//!Entra in questo flusso se c'e' stato un timeout (failure detection)
 					logger(SYS_INFO, "[servent_timer]Timer expired per %lld\n", data->id);
-					//Elimina il peer dalla GUI e dalle strutture dati
+					//!Elimina il peer dalla GUI e dalle strutture dati
 					gdk_threads_enter();
 					controller_receive_bye(data->id);
 					gdk_threads_leave();
 					data_destroy_user(data->id);
 					
-					//Uccide il client thread associato al peer
+					//!Uccide il client thread associato al peer
 					tmp->post_type = CLOSE_ID;
 					servent_send_packet(tmp);
 				}
@@ -1258,7 +1258,7 @@ void *servent_timer(void *parm) {
 			}
 		}
 		
-		//Libera le hashtable dei pacchetti
+		//!Libera le hashtable dei pacchetti
 		servent_flush_data();
 		logger(SYS_INFO, "[servent_timer]Sleeping\n");
 		sleep(conf_get_timer_interval());

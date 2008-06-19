@@ -34,7 +34,7 @@
 #define GET_LISTHITS(packet)	((listhits_desc*)packet->desc)
 #define GET_BYE(packet)			((bye_desc*)packet->desc)
 
-//Descriptor ID
+//!Descriptor ID
 #define PING_ID			0x01
 #define LIST_ID			0x03
 #define LISTHITS_ID		0x04
@@ -46,7 +46,7 @@
 #define BYE_ID			0x11
 #define CLOSE_ID 		0x12
 
-//Status ID
+//!Status ID
 #define ONLINE_ID	0x80
 #define BUSY_ID		0x81
 #define AWAY_ID		0x82
@@ -80,7 +80,7 @@ typedef struct tortella_header tortella_header;
 struct ping_desc {
 	u_int4 port;
 	u_int1 status;
-	//Campo dati: nickname
+	//!Campo dati: nickname
 
 };
 typedef struct ping_desc ping_desc;
@@ -108,7 +108,7 @@ struct listhits_desc {
 	u_int1 ttl;
 	u_int1 hops;
 	u_int8 chat_id;
-	//Campo dati: elenco utenti della chat
+	//!Campo dati: elenco utenti della chat
 };
 typedef struct listhits_desc listhits_desc;
 
@@ -130,7 +130,7 @@ struct join_desc {
 	char ip[16];
 	u_int1 ttl;
 	u_int1 hops;
-	//Campo dati: nickname
+	//!Campo dati: nickname
 
 };
 typedef struct join_desc join_desc;
@@ -159,11 +159,11 @@ typedef struct leave_desc leave_desc;
  */
 /** struttura dati per l'invio del messaggio ad una specifica chat,
  * tenendo memoria per l'appunto in tlae struttura l'ID della chat a cui
- * è diretto il messaggio di testo.
+ * e' diretto il messaggio di testo.
  */
 struct message_desc {
 	u_int8 chat_id;		
-	//Campo dati: il msg
+	//!Campo dati: il msg
 
 };
 typedef struct message_desc message_desc;
@@ -175,15 +175,15 @@ typedef struct message_desc message_desc;
  * +-------+
  */
 /** struct per il flooding del pacchetto SEARCH. Ogni utente
- * invierà una richiesta di ricerca, e in tale
- * struttura verrà decrementato il valore del TTL e incrementato quello 
+ * inviera' una richiesta di ricerca, e in tale
+ * struttura verra' decrementato il valore del TTL e incrementato quello 
  * dell'HOPS per ogni nodo attraversato dal pacchetto durante il suo percorso
  * nella rete.
  */
 struct search_desc {
 	u_int1 ttl;
 	u_int1 hops;
-	//Campo dati: stringa ricerca
+	//!Campo dati: stringa ricerca
 
 };
 typedef struct search_desc search_desc;
@@ -196,7 +196,7 @@ typedef struct search_desc search_desc;
  */
 struct searchhits_desc {
 	u_int4 num_res;
-	//Campo dati: risultati ricerca
+	//!Campo dati: risultati ricerca
 };
 typedef struct searchhits_desc searchhits_desc;
 
@@ -219,8 +219,8 @@ typedef struct bye_desc bye_desc;
  */
 struct tortella_packet {
 	tortella_header *header;
-	char *desc;	//desc_len contenuta nell'header del pacchetto
-	char *data;	//data_len contenuta nell'header del pacchetto
+	char *desc;	//!desc_len contenuta nell'header del pacchetto
+	char *data;	//!data_len contenuta nell'header del pacchetto
 };
 typedef struct tortella_packet tortella_packet;
 
@@ -233,7 +233,7 @@ typedef struct tortella_packet tortella_packet;
 char *tortella_bin_to_char(tortella_packet *packet, u_int4 *len);
 
 /**
- * Svolge le funzionalità di parser inverso rispetto alla funzione tortella_bin_to_char. 
+ * Svolge le funzionalita' di parser inverso rispetto alla funzione tortella_bin_to_char. 
  * La procedura riceve come parametro il buffer, contenente i dati, i quali vengono memorizzati nella 
  * struttura dati tortella_packet.
  */
@@ -260,7 +260,7 @@ tortella_header *tortella_create_header(u_int8 id, u_int4 desc_id, u_int8 sender
 
 /**
  * funzione che sioccupa della creazione contemporanea sia della struttura dati relativa all'header del pacchetto,
- * sia della struttura dati relativo al l'intero pacchetto tortella. In realtà tale funzione contiene la chiamata
+ * sia della struttura dati relativo al l'intero pacchetto tortella. In realta' tale funzione contiene la chiamata
  * alla funzione tortella_create_header e tortella_create_packet. 
  */
 tortella_packet *tortella_create_packet_header(u_int8 id, u_int4 desc_id, u_int8 sender_id, u_int8 recv_id, u_int4 desc_len, u_int4 data_len, char *desc, char *data);
@@ -275,4 +275,4 @@ char *tortella_get_desc(const char *buffer);
 
 char *tortella_get_data(const char *buffer);
 
-#endif //TORTELLA_PROTOCOL_H
+#endif //!TORTELLA_PROTOCOL_H

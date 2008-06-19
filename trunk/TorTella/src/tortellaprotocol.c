@@ -37,7 +37,7 @@ char *tortella_bin_to_char(tortella_packet *packet, u_int4 *len) {
 	iter += header_len;
 	
 	memcpy(iter, desc, desc_len);
-	iter += desc_len;		//Si posiziona all'inizio del campo data
+	iter += desc_len;		//!Si posiziona all'inizio del campo data
 	memcpy(iter, packet->data, data_len);
 
 	iter += data_len;
@@ -46,7 +46,7 @@ char *tortella_bin_to_char(tortella_packet *packet, u_int4 *len) {
 }
 
 /**
- * Svolge le funzionalità di parser inverso rispetto alla funzione tortella_bin_to_char. 
+ * Svolge le funzionalita' di parser inverso rispetto alla funzione tortella_bin_to_char. 
  * La procedura riceve come parametro il buffer, contenente i dati, i quali vengono memorizzati nella 
  * struttura dati tortella_packet.
  */
@@ -134,7 +134,7 @@ tortella_header *tortella_create_header(u_int8 id, u_int4 desc_id, u_int8 sender
 
 /**
  * funzione che sioccupa della creazione contemporanea sia della struttura dati relativa all'header del pacchetto,
- * sia della struttura dati relativo al l'intero pacchetto tortella. In realtà tale funzione contiene la chiamata
+ * sia della struttura dati relativo al l'intero pacchetto tortella. In realta' tale funzione contiene la chiamata
  * alla funzione tortella_create_header e tortella_create_packet. 
  */
 tortella_packet *tortella_create_packet_header(u_int8 id, u_int4 desc_id, u_int8 sender_id, u_int8 recv_id, u_int4 desc_len, u_int4 data_len, char *desc, char *data) {
