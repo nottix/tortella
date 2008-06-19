@@ -4,7 +4,7 @@ Nel presente capitolo verrà fornita una rapida guida d'installazione per l'uten
 Per generare il Makefile bisogna seguire i seguenti passi: 
 \begin{enumerate}
 \item Posizionarsi nella radice del progetto; 
-\item Eseguire il file ./autogen.sh;
+\item Eseguire il file \lstinline{./autogen.sh};
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{etc/autogen}
@@ -12,7 +12,7 @@ Per generare il Makefile bisogna seguire i seguenti passi:
 \label{autogen}
 \end{center}
 \end{figure}
-\item Eseguire il ./configure sempre nella radice del progetto;
+\item Eseguire il \lstinline{./configure} sempre nella radice del progetto;
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{etc/configure}
@@ -20,7 +20,7 @@ Per generare il Makefile bisogna seguire i seguenti passi:
 \label{configure}
 \end{center}
 \end{figure}
-\item Ora il Makefile è pronto, per compilare basta eseguire make dalla radice del progetto.
+\item Ora il Makefile è pronto, per compilare basta eseguire \lstinline{make} dalla radice del progetto.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{etc/make}
@@ -71,14 +71,14 @@ Per quanto concerne il file di inizializzazione, questo dovrebbe essere struttur
 Una volta che i file sono stati creati, è necessario posizionarli nelle directory corrette:
 \begin{itemize}
 \item Il file di esecuzione nella directory src;
-\item file di configurazione in src/conf; 
-\item file di init in src/data.
+\item file di configurazione in \lstinline{src/conf};
+\item file di init in \lstinline{src/data}.
 \end{itemize}
 Se i file sono nelle posizioni corrette si può avviare l'esecuzione. Per l'esecuzione su una sola macchina è necessario avviare almeno due peer seguendo questi semplici passi:
 \begin{enumerate}
 \item Posizionarsi in src;
-\item Eseguire ./tortella ./conf/tortella.conf
-\item Eseguire ./tortella ./conf/tortella1.conf ./data/init_data.  
+\item Eseguire \lstinline{./tortella ./conf/tortella.conf};
+\item Eseguire \lstinline{./tortella ./conf/tortella1.conf ./data/init\_data}. 
 \end{enumerate}
 \section{Esecuzione}
 L'esecuzione qui presentata viene eseguita su macchina locale simulando la presenza di tre peer nella rete. I tre peer, che per comodità verranno chiamati simo, lore, ibra saranno inizialmente connessi nel seguente modo: simo non conosce alcun peer vicino, lore e ibra invece conosceranno come unico vicino simo. I tre peer avviano l'applicazione e simo crea una chat dal nome "prova":
@@ -86,14 +86,14 @@ L'esecuzione qui presentata viene eseguita su macchina locale simulando la prese
 \begin{center}
 \includegraphics[scale=0.5]{etc/crea_chat.png}
 \caption{Creazione della chat}
-\label{crea\_chat}
+\label{creachat}
 \end{center}
 \end{figure}
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{etc/apertura_chat.png}
 \caption{Apertura della chat}
-\label{apertura\_chat}
+\label{aperturachat}
 \end{center}
 \end{figure}
 Lore cerca la chat "prova" e si connette:
@@ -101,14 +101,14 @@ Lore cerca la chat "prova" e si connette:
 \begin{center}
 \includegraphics[scale=0.5]{etc/ricerca_lore.png}
 \caption{Ricerca della chat}
-\label{ricerca\_lore}
+\label{ricercalore}
 \end{center}
 \end{figure}
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{etc/join_lore.png}
 \caption{Join di lore}
-\label{join\_lore}
+\label{joinlore}
 \end{center}
 \end{figure}
 ibra crea una chat di nome "pippo"
@@ -116,7 +116,7 @@ ibra crea una chat di nome "pippo"
 \begin{center}
 \includegraphics[scale=0.5]{etc/crea_chat2.png}
 \caption{Creazione di una nuova chat}
-\label{crea\_chat2}
+\label{creachat2}
 \end{center}
 \end{figure}
 Nell'attesa che qualcuno si connetta alla chat appena creata, ibra cerca la chat "prova" e si connette
@@ -124,7 +124,7 @@ Nell'attesa che qualcuno si connetta alla chat appena creata, ibra cerca la chat
 \begin{center}
 \includegraphics[scale=0.5]{etc/ricerca_chat_2.png}
 \caption{Ricerca della chat prova}
-\label{ricerca\_chat\_2}
+\label{ricercachat2}
 \end{center}
 \end{figure}
 \begin{figure}[H]
@@ -139,7 +139,7 @@ I tre utenti comunicano tra di loro
 \begin{center}
 \includegraphics[scale=0.5]{etc/conversazione_chat.png}
 \caption{Conversazione tra gli utenti}
-\label{conversazione\_chat}
+\label{conversazionechat}
 \end{center}
 \end{figure}
 lore invia un messaggio solo a simo (in realtà avrebbe potuto mandarlo a più utenti, ma essendo la chat composta da soli 3 utenti non avrebbe avuto senso mandare il messaggio a tutti)
@@ -147,7 +147,7 @@ lore invia un messaggio solo a simo (in realtà avrebbe potuto mandarlo a più u
 \begin{center}
 \includegraphics[scale=0.5]{etc/invio_sottolista.png}
 \caption{Invio di un messaggio ad un sottoinsieme degli utenti}
-\label{invio\_sottolista}
+\label{inviosottolista}
 \end{center}
 \end{figure}
 lore invia un messaggio privato a ibra, che viene ricevuto correttamente da quest'ultimo
@@ -155,14 +155,14 @@ lore invia un messaggio privato a ibra, che viene ricevuto correttamente da ques
 \begin{center}
 \includegraphics[scale=0.5]{etc/pm_ibra.png}
 \caption{Invio di un messaggio privato}
-\label{pm\_ibra}
+\label{pmibra}
 \end{center}
 \end{figure}
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.5]{etc/ricezione\_pm.png}
+\includegraphics[scale=0.5]{etc/ricezione_pm.png}
 \caption{Ricezione di un messaggio privato}
-\label{ricezione\_pm}
+\label{ricezionepm}
 \end{center}
 \end{figure}
 infine lore effettua il leave dalla chat e in seguito simo chiude l'applicazione inviando un bye ad ibra
@@ -170,13 +170,13 @@ infine lore effettua il leave dalla chat e in seguito simo chiude l'applicazione
 \begin{center}
 \includegraphics[scale=0.5]{etc/leave_lore.png}
 \caption{Leave dalla chat prova}
-\label{leave\_lore}
+\label{leavelore}
 \end{center}
 \end{figure}
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{etc/bye_simo.png}
 \caption{Ricezione di un bye}
-\label{bye\_simo}
+\label{byesimo}
 \end{center}
 \end{figure}
