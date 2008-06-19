@@ -289,8 +289,8 @@ route_entry *get_route_entry(u_int8 packet_id);
 u_int8 get_iddest_route_entry(u_int8 id);
 \end{lstlisting}
 \section{Servent}
-L’architettura di un sistema peer‐to‐peer prevede che ogni entità sia in grado di funzionare sia da client che da server. Ogni peer deve quindi essere realizzato come un servent. La parte server dovrà gestire i messaggi in arrivo dalla rete e quella client dovrà invece provvedere a inviare dati agli altri peer. Questo porta alla necessità di avere un sistema di gestione di tipo concorrente. L'utilizzo di thread, per la gestione concorrente delle richieste, 
-ha permesso una maggiore agevolazione nella implementazione della comunicazione client-server.
+L’architettura di un sistema \textit{peer to peer} prevede che ogni entità sia in grado di funzionare sia da client che da server. Ogni peer deve quindi essere realizzato come un servent. La parte server dovrà gestire i messaggi in arrivo dalla rete e quella client dovrà invece provvedere a inviare dati agli altri peer. Questo porta alla necessità di avere un sistema di gestione di tipo concorrente. L'utilizzo di thread, per la gestione concorrente delle richieste, 
+ha permesso una maggiore agevolazione nella implementazione della comunicazione \textit{client server}.
 \paragraph{servent\_data}
 Per la comunicazione tra i thread relativi ad un peer è stata predisposta una struttura dati per la condivisione delle informazioni, ovvero la \texttt{servent\_data}:
 \begin{lstlisting}
@@ -350,9 +350,38 @@ La funzione ha il compito di avviare il lato server del peer locale. Inizialment
 \begin{lstlisting}
 int servent_start_server(char *local_ip, u_int4 local_port)
 \end{lstlisting}
-\paragraph{servent\_init	\_connection()}
+\paragraph{servent\_init\_connection()}
 La funzione ha il compito di inizializzare il lato client del servente locale, e di avviare una connessione per ogni peer vicino presente nella lista \texttt{init\_servent}, la quale viene riempita con i dati relativi ai peer vicini inizialmente conosciuti. Il numero di peer considerati come “vicini” per ognuno dei nodi componenti la rete è stato scelto a priori, e  i relativi indirizzi ip e numero di porta sono salvati in un file di configurazione (init\_data.txt). 
 \begin{lstlisting}  
 int servent_init_connection(GList *init_servent)
 \end{lstlisting}
 \paragraph{servent\_connect()}
+
+\section{Data Manager}
+
+\section{Init}
+Il modulo in questione consente di effettuare il bootstrap dell'applicazione, poichè permette ad un peer di conoscere i propri vicini (appositamente memorizzati in un file). Il file dei peer vicini è strutturato nel seguente modo:
+\begin{lstlisting}
+ip;porta;
+ip;porta;
+...
+\end{lstlisting}
+Per la memorizzazione dei record presenti all'interno del file è stata utilizzata la seguente struttura dati:
+\begin{lstlisting}
+struct init_data {
+	char *ip;
+	u_int4 port;
+};
+typedef struct init_data init_data;
+\end{lstlisting}
+e per la gestione di questi sono state utilizzate le seguenti funzioni.
+\paragraph{init\_char\_to\_initdata()}
+Riceve come parametro un buffer contenente un record del file e istanzia la struttura dati settando in modo opportuno ip e porta.
+\begin{lstlisting}
+init_data *init_char_to_initdata(char *buffer)
+\end{lstlisting}
+\paragraph{init\_read\_file()}
+Legge il file in cui sono contenuti i record dei "vicini" e aggiunge tutti i peer presenti all'interno del file in una lista contenente strutture di tipo init\_data. Si serve della funzione \texttt{init\_char\_to\_init\_data()} per l'istanziaziazione delle strutture dati.
+\begin{lstlisting}
+GList *init_read_file(const char *filename)
+\end{lstlisting}
