@@ -13,6 +13,8 @@
 \usepackage{latexsym}
 \usepackage{float}
 \usepackage{listings}
+\usepackage[usenames,dvips]{color}
+\usepackage{multicol}
 
 \linespread{1.3}
 \makeindex
@@ -22,6 +24,9 @@
 \lstset{basicstyle=\scriptsize}
 \lstset{stringstyle=\ttfamily}
 \lstset{showstringspaces=false}
+%\lstset{backgroundcolor=\color{SkyBlue}}
+\lstset{morecomment=[s]{/*}{*/}}
+\lstset{morecomment=[n]{/*}{*/}}
 
 \begin{document}
 \include{title}
@@ -34,10 +39,12 @@
 \include{cap/abstract}
 \include{cap/introduzione}
 \include{cap/gnutellaVsTortella}
-%\include{cap/tortella}
+\include{cap/tortellaApplication}
 \include{cap/architettura}
 \include{cap/ambienteDiSviluppo}
-%\include{cap/view}
+\include{cap/installazioneEdEsecuzione}
+\include{cap/conclusioni}
+%\include{cap/appendice}
 
 \listoftables
 \listoffigures
