@@ -1,4 +1,4 @@
-\chapter{Architettura ed Implementazione}
+\chapter{Architettura ed Implementazione}\label{architettura}
 L'applicazione è stata progettata seguendo un approccio modulare, per consentire una migliore leggibilità del codice e una più facile manutenibilità dello stesso. L'applicazione è composta da vari moduli:
 \begin{description}
 \item[Socket Manager:] gestione delle connessioni TCP.
@@ -54,7 +54,7 @@ int recv_sized_packet(int sock_descriptor,char** buf, int max_len)
 \end{lstlisting}
 \section{Tortella Protocol}
 Questo modulo contiene tutte le definizioni, le funzioni e le macro che implementano il protocollo TorTella. Ci sono tutte le definizioni dei pacchetti e dei descrittori trasportati, che sono i seguenti:
-\begin{lstlisting}[frame=single]
+\begin{lstlisting}[frame=trBL]
 #define PING_ID			0x01
 #define LIST_ID			0x03
 #define LISTHITS_ID		0x04
@@ -168,7 +168,7 @@ tortella_packet *tortella_char_to_bin(char *packet)
 \end{lstlisting}
 \section{Http Manager}
 La gestione dei pacchetti HTTP, il cui protocollo è stato definito nel precedente capitolo, viene affrontato all'interno di questo modulo. Di seguito vengono riportate le strutture dati rappresentanti i pacchetti:
-\begin{lstlisting}
+\begin{lstlisting}[frame=trBL]
 struct http_header_request {
 	char *request;
 	char *user_agent;
@@ -199,7 +199,7 @@ typedef struct http_packet http_packet;
 \end{lstlisting}
 Come è possibile notare sono state definite 3 tipi di strutture dati, dove le prime due sono utilizzate per la creazione dell'header a seconda se il messaggio da inviare si di richiesta o di risposta, invece la terza struttura è utilizzata per definire l'intero pacchetto http. Sia nell'header di request che nell'header di response viene memorizzata, la lunghezza dell'intero pacchetto, la tipologia di dei dati contenuti(html,image..), che nel nostro caso saranno solamente di tipo binario e la versione del tipo di protocollo utilizzato (Tortella 0.1). Le uniche differenze presenti sono dovute, al tipo di informazione (richiesta o risposta) contenuta negli headers, e all'identificazione nell'header request del tipo di connessione instaurata (di tipo persistente) tra due peer.
 Al fine di rendere più agevole la creazione di un generico pacchetto sono state definite delle macro all'interno dell header file:
-\begin{lstlisting}
+\begin{lstlisting}[frame=trBL]
 #define HTTP_REQ_GET		0x40
 #define	HTTP_RES_GET		0x41
 #define HTTP_REQ_POST		0x42
@@ -242,35 +242,36 @@ Il modulo in questione consente di creare ed inviare pacchetti TorTella e HTTP. 
 \item Invio del pacchetto;
 \end{enumerate}
 Di seguito si riportano le definizioni delle funzioni:
-\begin{lstlisting}
-int send_search_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int1 ttl, u_int1 hops, u_int4 string_len, char *string);
-
-int send_searchhits_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int4 num_res, u_int4 res_len, char *res);
-
-int send_join_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int1 status, u_int8 user_id, u_int8 chat_id, char *nick, u_int4 port, char *ip, u_int1 ttl, u_int1 hops);
-
-int send_leave_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int8 user_id, u_int8 chat_id, u_int1 ttl, u_int1 hops);
-
-int send_ping_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, char *nick, u_int4 port, u_int1 status);
-
-int send_list_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 ttl, u_int1 hops, u_int8 chat_id);
-
-int send_listhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int4 user_num, u_int4 res_len, char *res, u_int8 chat_id);
-
+\begin{lstlisting}[frame=trBL]
+int send_search_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id,
+   u_int8 recv_id, u_int1 ttl, u_int1 hops, u_int4 string_len, char *string);
+int send_searchhits_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id,
+   u_int8 recv_id, u_int4 num_res, u_int4 res_len, char *res);
+int send_join_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id,
+   u_int8 recv_id, u_int1 status, u_int8 user_id, u_int8 chat_id, char *nick,
+   u_int4 port, char *ip, u_int1 ttl, u_int1 hops);
+int send_leave_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, 
+   u_int8 recv_id, u_int8 user_id, u_int8 chat_id, u_int1 ttl, u_int1 hops);
+int send_ping_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, 
+   char *nick, u_int4 port, u_int1 status);
+int send_list_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id,
+   u_int1 ttl, u_int1 hops, u_int8 chat_id);
+int send_listhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id,
+   u_int4 user_num, u_int4 res_len, char *res, u_int8 chat_id);
 int send_bye_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id);
-
-int send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id, u_int4 msg_len, char *msg);
-
-int send_post_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char *data);
-
-int send_get_request_packet(u_int4 fd, char *filename, u_int4 range_start, u_int4 range_end);
-
-int send_get_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char *data);
+int send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id,
+   u_int8 chat_id, u_int4 msg_len, char *msg);
+int send_post_response_packet(u_int4 fd, u_int4 status, u_int4 data_len,
+   char *data);
+int send_get_request_packet(u_int4 fd, char *filename, u_int4 range_start,
+   u_int4 range_end);
+int send_get_response_packet(u_int4 fd, u_int4 status, u_int4 data_len,
+   char *data);
 \end{lstlisting}
 \section{Route Manager}
 Il modulo è stato implementato per la gestione delle regole di backward-routing dei pacchetti di tipo Search-SearchHits. Il peer da cui parte la richiesta deve ricevere un pacchetto SearchHits da ogni peer che ha ricevuto la richiesta; per realizzare tale meccanismo si utilizzano le regole di routing. In particolare, ogni peer che riceve un pacchetto Search deve memorizzare nella tabella di routing un record relativo al percorso che dovrà effettuare il SearchHits di risposta.
 Per il funzionamento di questo meccanismo è stata utilizzata una hashtable contenente la struttura dati di seguito elencata:
-\begin{lstlisting}
+\begin{lstlisting}[frame=trBL]
 struct route_entry {
 	u_int8 sender_id;
 	u_int8 recv_id;
@@ -279,21 +280,18 @@ struct route_entry {
 typedef struct route_entry route_entry;
 \end{lstlisting}
 Le regole vengono gestite attraverso le seguenti funzioni:
-\begin{lstlisting}
-int add_route_entry(u_int8 packet_id, u_int8 sender_id, u_int8 recv_id);
-
-int del_route_entry(u_int8 id);
-
-route_entry *get_route_entry(u_int8 packet_id);
-
-u_int8 get_iddest_route_entry(u_int8 id);
+\begin{lstlisting}[frame=trBL]
+int add_route_entry(u_int8 packet_id, u_int8 sender_id, u_int8 recv_id)
+int del_route_entry(u_int8 id)
+route_entry *get_route_entry(u_int8 packet_id)
+u_int8 get_iddest_route_entry(u_int8 id)
 \end{lstlisting}
 \section{Servent}
 L’architettura di un sistema \textit{peer to peer} prevede che ogni entità sia in grado di funzionare sia da client che da server. Ogni peer deve quindi essere realizzato come un servent. La parte server dovrà gestire i messaggi in arrivo dalla rete e quella client dovrà invece provvedere a inviare dati agli altri peer. Questo porta alla necessità di avere un sistema di gestione di tipo concorrente. L'utilizzo di thread, per la gestione concorrente delle richieste, 
 ha permesso una maggiore agevolazione nella implementazione della comunicazione \textit{client server}.
 \paragraph{servent\_data}
 Per la comunicazione tra i thread relativi ad un peer è stata predisposta una struttura dati per la condivisione delle informazioni, ovvero la \texttt{servent\_data}:
-\begin{lstlisting}
+\begin{lstlisting}[frame=trBL]
 struct servent_data {
 	u_int8 id;
 	GQueue *queue;	
@@ -392,7 +390,7 @@ La \texttt{servent\_respond()} è il cuore del sistema e consente la ricezione d
 Tale modulo comunica principalmente con i moduli: \textit{Packet Manager}, \textit{Http Manager}, \textit{Controller}.
 \paragraph{servent\_send\_packet()}
 Per richiedere l'invio dei pacchetti verso un peer è necessario chiamare tale funzione, la quale si occupa di inserire in una coda la richiesta di invio effettuata. In particolare opera nel seguente modo:
-\begin{lstlisting}
+\begin{lstlisting}[frame=trBL]
 void servent_send_packet(servent_data *sd) {
 	if(sd != NULL) 
 		g_queue_push_tail(sd->queue, (gpointer)sd);
@@ -401,7 +399,7 @@ void servent_send_packet(servent_data *sd) {
 Come si può notare dal codice, la funzione prede come parametro una \texttt{servent\_data}. In realtà viene passata una copia della struttura originale utilizzata per condividere memoria, in questo modo si evitano richieste sovrapposte con eventuale invio di pacchetti errati. Infatti, se non si fosse attuata tale tecnica si sarebbe potuto incorrere in errore nel seguente caso: Il peer locale chiede di inviare un pacchetto di tipo Ping ad uno specifico servente; il peer locale chiede, inoltre, di inviare un pacchetto di tipo Join allo stesso servente; la \texttt{servent\_connect()} che riceve la richiesta di invio potrebbe inviare il pacchetto Ping con i dati del Join. Con il metodo adotatto si evitano problemi di questo genere.
 \paragraph{servent\_pop\_queue()}
 Quest'altra funzione viene utilizzata dai \textit{client thread} per riceve le richieste di invio pacchetti.
-\begin{lstlisting}
+\begin{lstlisting}[frame=trBL]
 servent_data *servent_pop_queue(servent_data *sd) {
 	servent_data *servent;
 	if(sd==NULL || sd->queue==NULL) {
@@ -409,8 +407,8 @@ servent_data *servent_pop_queue(servent_data *sd) {
 		return NULL;
 	}
 	//Ciclo utilizzato per attendere la richiesta di invio pacchetti
-	while((servent = (servent_data*)g_queue_pop_head(sd->queue))==NULL) {
-		usleep(100000);	//Attende prima di controllare di nuovo la coda
+	while((servent = g_queue_pop_head(sd->queue))==NULL) {
+		usleep(100000);
 	}
 	return servent;
 }
@@ -529,42 +527,27 @@ int controller_exit()
 Del primo blocco di funzioni fa parte anche la \texttt{controller\_init\_gui()} (si veda a tal proposito l'appendice). Il secondo blocco comprende tutte le funzioni che permettono ad esempio di: visualizzare un messaggio ricevuto, aggiornare l'elenco dei partecipanti alla chat, aprire una nuova finestra in caso di ricezione di un messaggio privato. Di seguito si presentano le funzioni utilizzate:
 \begin{lstlisting}
 int controller_change_status(u_int1 status)
-
 int controller_manipulating_status(u_int8 user_id, u_int1 status)
-
 int controller_create(const char *title)
-
 int controller_add_user_to_chat(u_int8 chat_id, u_int8 id)
-
 int controller_rem_user_from_chat(u_int8 chat_id, u_int8 id)
-
 int controller_add_msg_to_chat(u_int8 chat_id, char *msg)
-
 int controller_add_msg(u_int8 sender_id, char *msg)
 \end{lstlisting}
 Le funzioni facenti parte dell'ultimo blocco sono fondamentali per il corretto funzionamento dell'applicazione, poichè preparano le strutture dati dei serventi e permettono l'invio dei pacchetti da parte del servente, inserendo le strutture dati in un'apposita coda in caso di invio e rimuovendo da un'altra in caso di ricezione di messaggi di risposta.
 Di seguito si presentano le funzioni utilizzate:
 \begin{lstlisting}
 int controller_send_chat_users(u_int8 chat_id, u_int4 msg_len, char *msg)
-
-int controller_send_subset_users(u_int8 chat_id, u_int4 msg_len, char *msg, GList *users)
-
+int controller_send_subset_users(u_int8 chat_id, u_int4 msg_len, 
+   char *msg, GList *users)
 int controller_send_pm(u_int4 msg_len, char *msg, u_int8 recv_id)
-
 int controller_leave_all_chat()
-
 int controller_connect_users(GList *users)
-
 int controller_check_users_con(GList *users)
-
 int controller_send_bye()
-
 int controller_receive_bye()
-
 u_int8 controller_search(const char *query)
-
 int controller_join_flooding (u_int8 chat_id)
-
 int controller_leave_flooding(u_int8 chat_id)
 \end{lstlisting}
 A tal proposito si presenta la funzione \texttt{send\_join\_packet()} come esempio:

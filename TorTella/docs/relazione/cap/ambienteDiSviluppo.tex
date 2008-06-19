@@ -19,9 +19,12 @@ Lo sviluppo di un software peer to peer necessita dell’implementazione di un s
 \section{Libreria pthread}
 La libreria \textit{pthread}\index{ptrhead} è conforme allo standard \textit{POSIX}\index{POSIX}, ed offre delle funzioni e dei dati particolari che consentono alle applicazioni di utilizzare diversi flussi di esecuzione (thread per l’appunto) all’interno di un solo processo. 
 Innanzitutto è stata utilizzata la funzione
-\begin{center}
-\texttt{int pthread\_create(pthread\_t *thread, const pthread\_attr\_t *attr, void*(*start\_routine)(void *), void *arg)}\index{int pthread\_create(pthread\_t *thread, const pthread\_attr\_t *attr, void*(*start\_routine)(void *), void *arg)}
-\end{center}
+\begin{lstlisting}
+int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
+                               void*(*start_routine)(void *), void *arg)
+int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
+                               void*(*start_routine)(void *), void *arg)
+\end{lstlisting}
 che consente la creazione e l’esecuzione di un nuovo thread. La funzione \texttt{pthread\_create()}\index{pthread\_create()} accetta come parametro un riferimento ad un dato di tipo \texttt{pthread\_t}\index{pthread\_t}, nel quale viene memorizzato l’identificativo del thread che viene creato. Il secondo parametro, di tipo \texttt{pthread\_attr\_t}\index{pthread\_attr\_t}, consente di valorizzare i parametri del nuovo thread. Se tale valore è nullo, vengono utilizzati dei parametri di default. Il terzo parametro è un puntatore ad una routine precedentemente definita, che contiene le istruzioni che vengono eseguite in maniera indipendente dalle altre grazie al nuovo thread. Nel quarto parametro possono, infine, essere specificati i parametri che devono essere passati a tale routine per la sua esecuzione, raggruppati in una struttura (se presenti in un numero maggiore di uno). Una volta che più thread sono stati messi in esecuzione, occorre dedicare particolare attenzione alla loro sincronizzazione nel caso di accesso a risorse condivise. A tal proposito sono stati utilizzati due diversi tipi di dati 
 definiti dalla libreria “pthread”, che vengono riportati di seguito:
 \begin{description}
@@ -29,20 +32,19 @@ definiti dalla libreria “pthread”, che vengono riportati di seguito:
 \item[pthread\_rwlock\_t]: semaforo per l'accesso in mutua esclusione che distingue tra accessi in lettura ed accessi in scrittura.
 \end{description}
 Questi tipi di dati sono stati spesso utilizzati all’interno delle componenti realizzate, poiché hanno consentito la gestione dei conflitti in cui sarebbero potuti occorrere i thread. Per quanto riguarda la \texttt{pthread\_mutex\_t}\index{pthread\_mutex\_t} si è fatto uso solo della funzione \texttt{pthread\_mutex\_init}\index{pthread\_mutex\_init} riportata di seguito:
-\begin{center}
-\texttt{int pthread\_mutex\_init(pthread\_mutex\_t *mutex, const pthread\_mutexattr\_t *attr)}
-\end{center}
+\begin{lstlisting}
+int pthread\_mutex\_init(pthread\_mutex\_t *mutex,
+                             const pthread\_mutexattr\_t *attr)
+\end{lstlisting}
 Si è deciso di utilizzare delle funzioni che operano una la distinzione tra access in lettura e quello in scrittura in modo da evitare inutili serializzazioni dei dati:
-\begin{center}
 \begin{lstlisting}
 int pthread_rwlock_wrlock(pthread_rwlock_t *rwlock);
 int pthread_rwlock_rdlock(pthread_rwlock_t *rwlock);
 int pthread_rwlock_unlock(pthread_rwlock_t *rwlock);
 \end{lstlisting}
-\end{center}
 La prima funzione applica un lock in scrittura al \textit{rwlock}\index{rwlock}. Il thread chiamante acquisice il lock se nessun altro thread possiede il read-write lock rwlock, altrimenti il thread è bloccato fin quando non acquisice il lock. La funzione \texttt{pthread\_rwlock\_rdlock}\index{pthread\_rwlock\_rdlock} applica un lock in lettura a rwlock. Il thread chiamante acquisisce il lock in lettura se non esiste nessun lock in scrittura bloccati, altrimenti il thread viene bloccato fino all’acquisizione della risorsa. L’ultima funzione viene chiamata semplicemente per rilasciare il lock su rwlock.
 La libreria pthread è stata utilizzata, e lo è ancora, in molte applicazioni che necessitano del supporto di multipli flussi di esecuzione al suo interno; a tal proposito, è possibile reperire una grande mole di informazioni a riguardo sul Web, che possono essere utilizzate per meglio comprendere l’utilizzo che se ne è fatto.
 \section{Liste, Hashtable e Code}
 L'utilizzo di diversi tipi di collezioni, al fine di gestire qualsiasi tipo di informazione riguardante o la chat o gli utenti o i diversi tipi di pacchetto, ha caratterizzato l'intero processo di implementazione.
-In una prima fase si è deciso di utilizzare una versione ad-hoc di tali collezioni,che sono risultate poco efficenti dal punto di vista prestazionale. A tale ragione sono state utilizzate le strutture fornite dalla libreria glib, le quali forniscono un'implementazione più performante delle elementari funzioni di manipolazione.
-In particolare sono state utilizzate le code per gestire il meccanismo di invio concorrente dei pacchetti da parte di più peer;ovvero prima di inviare un pacchetto il servente aggiunge questo nella coda,associata alla sua struttura dati, per poi inviare in modo sequenziale tutti i pacchetti presenti nella coda stessa.
+In una prima fase si è deciso di utilizzare una versione ad-hoc di tali collezioni,che sono risultate poco efficenti dal punto di vista prestazionale. A tale ragione sono state utilizzate le strutture fornite dalla libreria \textit{glib}\index{glib}, le quali forniscono un'implementazione più performante delle elementari funzioni di manipolazione.
+In particolare sono state utilizzate le code per gestire il meccanismo di invio concorrente dei pacchetti da parte di più peer;ovvero prima di inviare un pacchetto il servente aggiunge questo nella coda, associata alla sua struttura dati, per poi inviare in modo sequenziale tutti i pacchetti presenti nella coda stessa.
