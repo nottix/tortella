@@ -1,4 +1,5 @@
 \chapter{Installazione ed Esecuzione}
+\lstset{basicstyle=\normalsize}
 Nel presente capitolo verrà fornita una rapida guida d'installazione per l'utente e verrà illustrato un esempio di funzionamento dell'applicazione.
 \section{Installazione}
 Per generare il Makefile bisogna seguire i seguenti passi: 
@@ -7,7 +8,7 @@ Per generare il Makefile bisogna seguire i seguenti passi:
 \item Eseguire il file \lstinline{./autogen.sh};
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.5]{etc/autogen}
+\includegraphics[scale=0.5]{etc/autogen.png}
 \caption{autogen}
 \label{autogen}
 \end{center}
@@ -15,7 +16,7 @@ Per generare il Makefile bisogna seguire i seguenti passi:
 \item Eseguire il \lstinline{./configure} sempre nella radice del progetto;
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.5]{etc/configure}
+\includegraphics[scale=0.5]{etc/configure.png}
 \caption{configure}
 \label{configure}
 \end{center}
@@ -23,13 +24,13 @@ Per generare il Makefile bisogna seguire i seguenti passi:
 \item Ora il Makefile è pronto, per compilare basta eseguire \lstinline{make} dalla radice del progetto.
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.5]{etc/make}
+\includegraphics[scale=0.5]{etc/make.png}
 \caption{make}
 \label{make}
 \end{center}
 \end{figure}
 \end{enumerate}
-\section{Avvio dell'applicazione}
+\section{Configurazione}
 Prima di avviare il programma è necessario che i file vengano creati correttamente. A tal proposito si presenta un esempio di come dev'essere strutturato il file di configurazione e un esempio di come dev'essere strutturato il file contenente i "vicini" conosciuti:
 \begin{lstlisting}
 #TorTella Configuration file
@@ -62,8 +63,8 @@ local_ip = 127.0.0.1;
 local_port = 2110;
 nick = simo;
 \end{lstlisting}
-Si consiglia all'utente inesperto di cambiare solamente i parametri relativi all'ip, alla porta locale e al nickname da utilizzare.
-Per quanto concerne il file di inizializzazione, questo dovrebbe essere strutturato in questo modo:
+I primi due parametri sono relativi alla caratterizzazione del backlog massimo e della dimensione massima di un blocco di dati, di un socket di connessione. In particolare il parametro \texttt{qlen}\index{qlen} è utilizzato per impostare il numero massimo di  connessioni che possono essere gestite da un server, invece \texttt{buffer\_len} serve per imporre la dimensione massima del buffer che deve contenere una parte del pacchetto ricevuto. Tale frammento sarà poi concatenato con i restanti frammenti. La variabile \texttt{path}\index{path}, serve invece per memorizzare il percorso relativo in cui vengono salvati i log file, ampiamente utilizzato durante la fase di debugging e testing dell'intera applicazione. Il parametro \texttt{gen\_start}\index{gen\_start}, viene adottato nel meccanismo di identificazione univoco dell'utente, ovvero il valore impostato nel file serve come criterio di comparazione per la validazione del identificativo, associato all'utente stesso. In particolare distingue i fake ID con gli ID reali. Il parametro \texttt{timer\_interval}\index{timer\_interval} indica l'intervallo di tempo che il meccanismo di failure detection deve far passare tra i controlli. Il parametro \texttt{new\_connection\_counter}\index{new\_connection\_counter} indica il valore iniziale dei fake ID. Il parametro \texttt{verbose}\index{verbose} indica il livello di dettaglio delle stampe. Infine gli ultimi tre parametri sono necessari nella fase inizializzazione di ogni peer componente la rete, in quanto forniscono il relativo indirizzo ip, numero di porta del socket e nickname da assegnare all'utente.
+Si consiglia all'utente inesperto di cambiare solamente gli ultimi tre parametri. Per quanto concerne il file di inizializzazione, questo dovrebbe essere strutturato in questo modo:
 \begin{lstlisting}
 127.0.0.1;2110;
 127.0.0.1;2120;
@@ -180,3 +181,4 @@ infine lore effettua il leave dalla chat e in seguito simo chiude l'applicazione
 \label{byesimo}
 \end{center}
 \end{figure}
+\lstset{basicstyle=\scriptsize}
