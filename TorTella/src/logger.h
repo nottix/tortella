@@ -71,8 +71,8 @@ char *get_timestamp();
 
 /**
  * Si comporta come una printf, ma oltre alla stampa a video viene eseguita anche
- * una scrittura su file in base al livello di verbosità.
+ * una scrittura su file in base al livello di verbosita'.
  */
 int logger(int type, const char* text, ...);
 
-#endif //LOGGER_H
+#endif //!LOGGER_H

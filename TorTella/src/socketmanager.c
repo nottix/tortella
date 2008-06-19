@@ -34,12 +34,12 @@ int create_tcp_socket(const char *dst_ip, int dst_port)
 	struct sockaddr_in sAddr;
 	int sockfd;
 
-	// creazione socket
+	//! creazione socket
 	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		logger(SOCK_INFO, "[create_tcp_socket]Errore nella creazione del socket tcp");
 		return -1;
 	}
-	//inizializzazione a 0 della struttura sockaddr_in
+	//!inizializzazione a 0 della struttura sockaddr_in
 	memset((char *) &sAddr, 0, sizeof(sAddr));
 	sAddr.sin_family = AF_INET;
 	if (dst_port > 0)
@@ -52,12 +52,12 @@ int create_tcp_socket(const char *dst_ip, int dst_port)
 		logger(SOCK_INFO, "[create_tcp_socket]Errore nella porta: [%d]\n", dst_port);
 		return -1;
 	}
-	//Per convertire l' indirizzo IP dalla notazione puntata in formato ASCII al network byte order in formato binario
+	//!Per convertire l' indirizzo IP dalla notazione puntata in formato ASCII al network byte order in formato binario
 	if (inet_pton(AF_INET, dst_ip, &sAddr.sin_addr) <= 0) {
 		logger(SOCK_INFO, "[create_tcp_socket]Errore nella conversione dell'indirizzo IP: [%s]\n", dst_ip);
 		return -1;
 	}
-	//funzione che permette al client TCP di aprire una connessione ad un server TCP
+	//!funzione che permette al client TCP di aprire una connessione ad un server TCP
 	if (connect(sockfd, (struct sockaddr *) &sAddr, sizeof(sAddr)) < 0) {
 		logger(SOCK_INFO, "[create_tcp_socket]Unable to connect to: %s:%d\n", dst_ip, dst_port);
 		return -1;
@@ -68,7 +68,7 @@ int create_tcp_socket(const char *dst_ip, int dst_port)
 	/**
 	 * funzione che permette di impostare le caratteristiche del socket.
 	 * In questa funzione grazie all'utilizzo del parametro SO_KEEPALIVE si 
-	 * ha la possibilità di gestire le persistenza delle connessioni. 
+	 * ha la possibilita' di gestire le persistenza delle connessioni. 
 	 */ 
 	if(setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, &reuse, sizeof(int)) < 0) {
 		logger(SOCK_INFO, "[create_tcp_socket]Error in setsockopt SO_KEEPALIVE\n");
@@ -85,12 +85,12 @@ int create_listen_tcp_socket(const char *src_ip, int src_port)
 {
 	int listenfd = 0;
 	struct sockaddr_in sAddr;
-	// creazione socket
+	//! creazione socket
 	if ((listenfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		logger(SOCK_INFO, "[create_listen_tcp_socket]Errore nella creazione del socket tcp");
 		return -1;
 	}
-	//inizializzazione a 0 della struttura sockaddr_in
+	//!inizializzazione a 0 della struttura sockaddr_in
 	memset((char *) &sAddr, 0, sizeof(sAddr));
 	sAddr.sin_family = AF_INET;
 	if (src_port > 0)
@@ -103,7 +103,7 @@ int create_listen_tcp_socket(const char *src_ip, int src_port)
 		logger(SOCK_INFO, "[create_listen_tcp_socket]Errore nella porta: [%d]\n", src_port);
 		return -1;
 	}
-	//Per convertire l' indirizzo IP dalla notazione puntata in formato ASCII al network byte order in formato binario
+	//!Per convertire l' indirizzo IP dalla notazione puntata in formato ASCII al network byte order in formato binario
 	if (inet_pton(AF_INET, src_ip, &sAddr.sin_addr) <= 0) {
 		logger(SOCK_INFO, "[create_listen_tcp_socket]Errore nella conversione dell'indirizzo IP: [%s]\n", src_ip);
 		return -1;
@@ -113,8 +113,8 @@ int create_listen_tcp_socket(const char *src_ip, int src_port)
 	/**
 	 * funzione che permette di impostare le caratteristiche del socket.
 	 * In questa funzione grazie all'utilizzo del parametro SO_REUSEADDR si 
-	 * ha la possibilità di riutilizzare un indirizzo locale,modificando il comportamento
-	 * della bind che fallisce in caso l'indirizzo sia già in uso in un altro socket. 
+	 * ha la possibilita' di riutilizzare un indirizzo locale,modificando il comportamento
+	 * della bind che fallisce in caso l'indirizzo sia gia' in uso in un altro socket. 
 	 */
 	if(setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int)) < 0) {
 		logger(SOCK_INFO, "[create_listen_tcp_socket]Error in setsockopt SO_REUSEADDR\n");
@@ -123,7 +123,7 @@ int create_listen_tcp_socket(const char *src_ip, int src_port)
 	/**
 	 * funzione che permette di impostare le caratteristiche del socket.
 	 * In questa funzione grazie all'utilizzo del parametro SO_KEEPALIVE si 
-	 * ha la possibilità di gestire le persistenza delle connessioni. 
+	 * ha la possibilita' di gestire le persistenza delle connessioni. 
 	 */
 	if(setsockopt(listenfd, SOL_SOCKET, SO_KEEPALIVE, &reuse, sizeof(int)) < 0) {
 		logger(SOCK_INFO, "[create_listen_tcp_socket]Error in setsockopt SO_KEEPALIVE\n");
@@ -161,7 +161,7 @@ int delete_socket(int sock_descriptor)
 		return -1;
 	}
 
-	// funzione utilizzata per permettere la chiusura attiva della connessione identificata dal descrittore
+	//! funzione utilizzata per permettere la chiusura attiva della connessione identificata dal descrittore
 	if (close(sock_descriptor) < 0) {
 		logger(SOCK_INFO, "[delete_socket]Socket shutdown error");
 		return -1;
@@ -175,7 +175,7 @@ int delete_socket(int sock_descriptor)
 int listen_http_packet(int listen_socket)
 {
 	int connFd = 0;
-	//permette  al server di prendere dal backlog la prima connessione completato sul socket specificato
+	//!permette  al server di prendere dal backlog la prima connessione completato sul socket specificato
 	if ((connFd=accept(listen_socket, (struct sockaddr *) NULL, NULL)) < 0) {
 		logger(SOCK_INFO, "[listen_http_packet]Errore nell'accept\n");
 		return -1;
@@ -214,8 +214,8 @@ int send_packet(int sock_descriptor, char *buffer, int len)
 		logger(SOCK_INFO, "[send_packet]Buffer non valido, sock_descriptor = %d\n", sock_descriptor);
 		return -3;
 	}
-	// Questa blocco si potrebbe ritentare per n volte, dove n e' un
-	// parametro di configurazione.
+	//! Questa blocco si potrebbe ritentare per n volte, dove n e' un
+	//! parametro di configurazione.
 	if ((char_write=write(sock_descriptor, buffer, len)) != len) {
 		logger(SOCK_INFO, "[send_packet]Perdita dati in trasmissione");
 		return -2;

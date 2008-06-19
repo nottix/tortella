@@ -1,4 +1,4 @@
-/*
+/**
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,8 +16,8 @@
 
 #include "controller.h"
 
-/*
- * Lancia l'applicazione, inizializzando il controller in due modalità differenti
+/**
+ * Lancia l'applicazione, inizializzando il controller in due modalita' differenti
  * a seconda dei parametri passati da riga di comando. Il primo parametro dev'essere
  * il path del file di configurazione, mentre il secondo (opzionale nel caso non si
  * conosca alcun vicino) dev'essere il path del file in cui sono inseriti ip e 
@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 		return 0;
 	}	
 	
-	//inizializzazione del controller
+	//!inizializzazione del controller
 	if(argc==2) {
 		controller_init(argv[1], NULL);
 	}
@@ -41,11 +41,11 @@ int main(int argc, char *argv[])
 		controller_init(argv[1], argv[2]);
 	}
 	
-	//inizializzazione dei thread
+	//!inizializzazione dei thread
 	g_thread_init(NULL);
 	gdk_threads_init();
 	
-	//inizializzazione della gui
+	//!inizializzazione della gui
 	gtk_init (&argc, &argv);
 	controller_init_gui();
 	

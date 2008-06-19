@@ -24,7 +24,7 @@ int send_search_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 rec
 	tortella_packet* packet = (tortella_packet*)malloc(sizeof(tortella_packet));
 	tortella_header* header = (tortella_header*)malloc(sizeof(tortella_header));
 	
-	header->id = (packet_id>0 ? packet_id : generate_id()); //Genera un nuovo ID se non specificato negli argomenti
+	header->id = (packet_id>0 ? packet_id : generate_id()); //!Genera un nuovo ID se non specificato negli argomenti
 	header->desc_id = SEARCH_ID;
 	header->sender_id = sender_id;
 	header->recv_id = recv_id;

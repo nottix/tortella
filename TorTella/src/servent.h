@@ -56,49 +56,49 @@
 
 /**
  * Tale struttura dati viene utilizzata per le operazioni di comunicazioni
- * con un servente a cui si è connessi. Ne è presente una anche per il peer locale
+ * con un servente a cui si e' connessi. Ne e' presente una anche per il peer locale
  */
 struct servent_data {
-	u_int8 id;				//ID del peer rappresentato dalla struttura dati
-	GQueue *queue;			//Coda utilizzata per serializzare le richieste di invio pacchetti
-	GQueue *res_queue;		//Coda utilizzata per serializzare le risposte dei pacchetti inviati
+	u_int8 id;				//!ID del peer rappresentato dalla struttura dati
+	GQueue *queue;			//!Coda utilizzata per serializzare le richieste di invio pacchetti
+	GQueue *res_queue;		//!Coda utilizzata per serializzare le risposte dei pacchetti inviati
 	char *ip;
 	u_int4 port;
-	u_int1 status;			//Stato del peer (ONLINE, BUSY, AWAY)
+	u_int1 status;			//!Stato del peer (ONLINE, BUSY, AWAY)
 	char *nick;
-	time_t timestamp;		//Timestamp ricezione pacchetto
+	time_t timestamp;		//!Timestamp ricezione pacchetto
 	
-	GList *chat_list;		//Lista delle chat a cui è connesso il peer
+	GList *chat_list;		//!Lista delle chat a cui e' connesso il peer
 
-	pthread_rwlock_t rwlock_data;	//Serve per sincronizzare gli accessi ai dati del peer
+	pthread_rwlock_t rwlock_data;	//!Serve per sincronizzare gli accessi ai dati del peer
 	
-	char *msg; 				//Messaggio da inviare
-	u_int4 msg_len;			//Lunghezza messaggio
+	char *msg; 				//!Messaggio da inviare
+	u_int4 msg_len;			//!Lunghezza messaggio
 	
-	GList *chat_res; 		//Risultati della ricerca richiesta dal peer
-	u_int1 ttl;				//ttl da inviare
-	u_int1 hops;			//hops da inviare
-	u_int8 packet_id;		//ID del pacchetto da ritrasmettere
+	GList *chat_res; 		//!Risultati della ricerca richiesta dal peer
+	u_int1 ttl;				//!ttl da inviare
+	u_int1 hops;			//!hops da inviare
+	u_int8 packet_id;		//!ID del pacchetto da ritrasmettere
 	
-	u_int4 post_type;		//Tipo di pacchetto da inviare
-	u_int1 is_online;		//Flag che indica se il peer è pronto a ricevere pacchetti (viene impostato alla ricezione del primo PING): 1 e 0
+	u_int4 post_type;		//!Tipo di pacchetto da inviare
+	u_int1 is_online;		//!Flag che indica se il peer e' pronto a ricevere pacchetti (viene impostato alla ricezione del primo PING): 1 e 0
 
-	//FLOODING
-	u_int8 user_id_req;		//Utente che si vuole connettere alla chat con id: chat_id_req
-	u_int8 chat_id_req; 	//Chat a cui connettersi o creare
-	u_int4 port_req;		//PORT del join da rinviare
-	char *nick_req;			//NICK del join da rinviare
-	char *ip_req;			//IP del join da rinviare
-	u_int1 status_req;		//Status per il redirect del join
-	char *title;			//Titolo chat da creare o ricercare
-	u_int4 title_len;		//Lunghezza del titolo
+	//!FLOODING
+	u_int8 user_id_req;		//!Utente che si vuole connettere alla chat con id: chat_id_req
+	u_int8 chat_id_req; 	//!Chat a cui connettersi o creare
+	u_int4 port_req;		//!PORT del join da rinviare
+	char *nick_req;			//!NICK del join da rinviare
+	char *ip_req;			//!IP del join da rinviare
+	u_int1 status_req;		//!Status per il redirect del join
+	char *title;			//!Titolo chat da creare o ricercare
+	u_int4 title_len;		//!Lunghezza del titolo
 	
 };
 typedef struct servent_data servent_data;
 
-static GHashTable *servent_hashtable;	//Hashtable di servent_data, una per ogni peer
+static GHashTable *servent_hashtable;	//!Hashtable di servent_data, una per ogni peer
 
-//---Routing Hashtables-----
+//!---Routing Hashtables-----
 
 static GHashTable *search_packet_hashtable = NULL;
 
@@ -106,23 +106,23 @@ static GHashTable *join_packet_hashtable = NULL;
 
 static GHashTable *leave_packet_hashtable = NULL;
 
-//---------------------------
+//!---------------------------
 
-static servent_data *local_servent;		//Dati del peer locale
+static servent_data *local_servent;		//!Dati del peer locale
 
-static u_int8 new_connection_counter;	//Limite inferiore generazione ID
+static u_int8 new_connection_counter;	//!Limite inferiore generazione ID
 
-static pthread_t *timer_thread;			//identificatore timer thread;
+static pthread_t *timer_thread;			//!identificatore timer thread;
 
-static GList *client_fd;				//Lista client socket
-static GList *server_fd;				//Lista server socket in attesa di connessioni
-static GList *server_connection_fd;		//Lista server socket connessi
+static GList *client_fd;				//!Lista client socket
+static GList *server_fd;				//!Lista server socket in attesa di connessioni
+static GList *server_connection_fd;		//!Lista server socket connessi
 
-static GList *client_thread;			//Lista identificatori client thread
-static GList *server_thread;			//Lista identificatori server thread in attesa di connessioni
-static GList *server_connection_thread;	//Lista identificatori server thread connessi
+static GList *client_thread;			//!Lista identificatori client thread
+static GList *server_thread;			//!Lista identificatori server thread in attesa di connessioni
+static GList *server_connection_thread;	//!Lista identificatori server thread connessi
 
-//Macro di utilità
+//!Macro di utilita'
 
 #define WLOCK(servent)			logger(SYS_INFO, "[WLOCK]Try locking %lld\n", servent); \
 								if(servent_get(servent)!=NULL) { \
@@ -145,7 +145,7 @@ static GList *server_connection_thread;	//Lista identificatori server thread con
 #define UNLOCK_F(servent)		pthread_rwlock_unlock( &(((servent)->rwlock_data)) ); \
 								logger(SYS_INFO, "[UNLOCK_F]Unlock %lld\n", servent->id);
 
-//Tale macro viene utilizzata per copiare un servent_data in un altro
+//!Tale macro viene utilizzata per copiare un servent_data in un altro
 #define COPY_SERVENT(servent, copy)			copy=calloc(1, sizeof(servent_data)); \
 											memcpy(copy, servent, sizeof(servent_data))
 
@@ -190,7 +190,7 @@ int servent_start(GList *init_servent);
 int servent_start_timer(void);
 
 /**
- * Si connette alla lista dei peer specificati, se qualcuno non è disponibile lo salta.
+ * Si connette alla lista dei peer specificati, se qualcuno non e' disponibile lo salta.
  */
 int servent_init_connection(GList *init_servent);
 
@@ -212,17 +212,17 @@ int servent_init(char *ip, u_int4 port, u_int1 status);
 
 /**
  * Funzione utilizzata per il recupero delle chat conosciute da file,
- * attualmente non più utilizzata.
+ * attualmente non piu' utilizzata.
  */
 void servent_init_supernode();
 
 /**
  * Funzione utilizzata per il salvataggio delle chat conosciute su file,
- * attualmente non più utilizzata.
+ * attualmente non piu' utilizzata.
  */
 void servent_close_supernode();
 
-//-----Gestione servent_data-----
+//!-----Gestione servent_data-----
 
 /**
  * Restituisce il servent_data associato all'id richiesto.
@@ -244,7 +244,7 @@ GList *servent_get_keys(void);
  */
 servent_data *servent_get_local(void);
 
-//-----Gestione Queue-----
+//!-----Gestione Queue-----
 
 /**
  * Aggiunge alla coda di pacchetti da inviare ad uno specifico peer.
@@ -277,7 +277,7 @@ char *servent_pop_response(servent_data *sd);
  */
 void servent_flush_data(void);
 
-//-----Routing-----
+//!-----Routing-----
 
 /**
  * Ritorna l'ID del pacchetto richiesto, se presente.
@@ -315,7 +315,7 @@ char *servent_get_leave_packet(u_int8 id);
  */
 void servent_new_leave_packet(u_int8 id);
 
-//---------THREAD---------------
+//!---------THREAD---------------
 
 /**
  * Thread che riceve le richieste di connessione e avvia nuovi thread.
@@ -326,7 +326,7 @@ void *servent_listen(void *parm);
 
 /**
  * Server thread che riceve i pacchetti e risponde adeguatamente. Ne esiste uno per ogni
- * peer a cui si è connessi. Questa funzione è il vero cuore di TorTella,
+ * peer a cui si e' connessi. Questa funzione e' il vero cuore di TorTella,
  * infatti gestisce tutti i comportamente dei programma in base ai pacchetti ricevuti.
  *
  * \param parm Socket descriptor della connessione
@@ -340,9 +340,9 @@ void *servent_connect(void *parm);
 
 /**
  * Thread utilizzato per gestire il meccanismo di failure detection e per pulire
- * la lista dei pacchetti ricevuti. L'intervallo di tempo è impostato nel file
+ * la lista dei pacchetti ricevuti. L'intervallo di tempo e' impostato nel file
  * di configurazione.
  */
 void *servent_timer(void *parm);
 
-#endif //SERVENT_H
+#endif //!SERVENT_H

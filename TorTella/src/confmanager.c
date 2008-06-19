@@ -19,10 +19,10 @@ int conf_read(const char *filename) {
 		
 		if(tmp[i]=='\n'){
 			if(strchr(tmp, '#')!=NULL) {
-				//printf("Comment\n");
+				//!printf("Comment\n");
 			}
 			else if(strlen(tmp)<=2) {
-				//printf("Empty line\n");
+				//!printf("Empty line\n");
 			}
 			else {
 				conf_save_value(tmp);

@@ -63,15 +63,15 @@ static GHashTable *chat_hashtable;
  * user_id;user_nick;user_ip;user_port;
  * ...
  *
- * In modalità TRUNC crea ogni volta un nuovo file, mentre
- * nella modalità APPEND modifica il file esistente.
+ * In modalita' TRUNC crea ogni volta un nuovo file, mentre
+ * nella modalita' APPEND modifica il file esistente.
  * Non utilizzata.
  */
 
 int write_to_file(const char *filename, chat *chat_str, u_int4 mode);
 
 /**
- * Salva tutte le chat su un file in modalità TRUNC. Chiama la funzione write_to_file
+ * Salva tutte le chat su un file in modalita' TRUNC. Chiama la funzione write_to_file
  * per ogni chat contenuta nella hashtable.
  * Non utilizzata.
  */
@@ -117,7 +117,7 @@ int data_add_user(u_int8 id, const char *nick, const char *ip, u_int4 port);
 
 /**
  * Aggiunge un utente presente nella hashtable dei client alla hashtable di utenti
- * della chat poichè non ancora presente all'interno di quest'ultima.
+ * della chat poiche' non ancora presente all'interno di quest'ultima.
  */
 int data_add_existing_user_to_chat(u_int8 chat_id, u_int8 id);
 
@@ -145,7 +145,7 @@ int data_del_user(u_int8 id);
 int data_del_user_from_chat(u_int8 chat_id, u_int8 id);
 
 /**
- * Funzione wrapper non più utilizzata. Invoca la funzione data_search_chat
+ * Funzione wrapper non piu' utilizzata. Invoca la funzione data_search_chat
  */
 chat *data_search_chat_local(const char *title);
 
@@ -162,12 +162,12 @@ chat *data_search_chat(const char *title);
 GList *data_search_all_chat(const char *title);
 
 /**
- * Funzione wrapper non più utilizzata.
+ * Funzione wrapper non piu' utilizzata.
  */
 GList *data_search_all_local_chat(const char *title);
 
 /**
- * Cerca un chatclient nella hashtable dei chatclient. Non più utilizzata.
+ * Cerca un chatclient nella hashtable dei chatclient. Non piu' utilizzata.
  */
 chatclient *data_search_chatclient(const char *nick);
 
@@ -217,9 +217,9 @@ chat *data_get_chat(u_int8 chat_id);
 chatclient *data_get_chatclient(u_int8 id);
 
 /**
- * Rimuove un utente da tutte le hashtable delle chat in cui è presente e infine
+ * Rimuove un utente da tutte le hashtable delle chat in cui e' presente e infine
  * lo rimuove dalla hashtable dei chatclient.
  */
 int data_destroy_user(u_int8 id);
 
-#endif //SUPERNODEDATA_H
+#endif //!SUPERNODEDATA_H

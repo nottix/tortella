@@ -14,30 +14,30 @@
 #include "logger.h"
 #include "common.h"
 
-//LOGGER
-static int verbose = 3; //Valore standard di verbosità
+//!LOGGER
+static int verbose = 3; //!Valore standard di verbosita'
 
-//SOCKET
-static int qlen = 5; //Coda di servizio per ricezione SYNC
-static int buffer_len = 1024; //Lunghezza buffer ricevzione/trasmissione
+//!SOCKET
+static int qlen = 5; //!Coda di servizio per ricezione SYNC
+static int buffer_len = 1024; //!Lunghezza buffer ricevzione/trasmissione
 
-//PACKET
+//!PACKET
 static char *path = "/tmp/";
 
-//UTILS
-static u_int8 gen_start = 100000; //fake IDs start range
+//!UTILS
+static u_int8 gen_start = 100000; //!fake IDs start range
 
-//SERVENT
+//!SERVENT
 static int max_len = 4000;
 static int max_thread = 20;
 static int max_fd = 100;
-static u_int4 timer_interval = 20; //Intervallo del PING timer
-static u_int8 connection_id_limit = 10000; //Limite inferiore dei fake ID generati
+static u_int4 timer_interval = 20; //!Intervallo del PING timer
+static u_int8 connection_id_limit = 10000; //!Limite inferiore dei fake ID generati
 
-//SUPERNODE
+//!SUPERNODE
 static char *datadir = "./data";
 
-//SERVENT
+//!SERVENT
 static char *local_ip;
 static u_int4 local_port;
 static char *nick;

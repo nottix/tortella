@@ -60,4 +60,4 @@ int send_get_request_packet(u_int4 fd, char *filename, u_int4 range_start, u_int
 /** invio di un pacchetto http di risposta */
 int send_get_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char *data);
 
-#endif //PACKETMANAGER_H
+#endif //!!PACKETMANAGER_H

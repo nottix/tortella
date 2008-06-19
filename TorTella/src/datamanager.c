@@ -23,8 +23,8 @@
  * user_id;user_nick;user_ip;user_port;
  * ...
  *
- * In modalità TRUNC crea ogni volta un nuovo file, mentre
- * nella modalità APPEND modifica il file esistente. 
+ * In modalita' TRUNC crea ogni volta un nuovo file, mentre
+ * nella modalita' APPEND modifica il file esistente. 
  * Non utilizzata.
  */
 int write_to_file(const char *filename, chat *chat_str, u_int4 mode) {
@@ -70,7 +70,7 @@ int write_to_file(const char *filename, chat *chat_str, u_int4 mode) {
 }
 
 /**
- * Salva tutte le chat su un file in modalità TRUNC. Chiama la funzione write_to_file
+ * Salva tutte le chat su un file in modalita' TRUNC. Chiama la funzione write_to_file
  * per ogni chat contenuta nella hashtable.
  * Non utilizzata.
  */
@@ -192,7 +192,7 @@ int data_add_chat(u_int8 id, const char *title) {
 	if(g_hash_table_lookup(chat_hashtable, (gpointer)to_string(id))!=NULL) {
 		return -1;
 	}
-	//creazione della nuova chat
+	//!creazione della nuova chat
 	chat *chat_str = (chat*)calloc(1, sizeof(chat));
 	chat_str->id = id;
 	chat_str->title = (char*)strdup(title);
@@ -201,7 +201,7 @@ int data_add_chat(u_int8 id, const char *title) {
 	
 	logger(SYS_INFO, "[add_chat]Table created\n");
 	
-	g_hash_table_insert(chat_hashtable, (gpointer)to_string(id), (gpointer)chat_str); //Aggiunta la chat alla hashtable
+	g_hash_table_insert(chat_hashtable, (gpointer)to_string(id), (gpointer)chat_str); //!Aggiunta la chat alla hashtable
 	
 	return 0;
 }
@@ -222,14 +222,14 @@ int data_add_all_to_chat(GList *chats) {
 	GList *user_list;
 	for(; i<g_list_length(chats); i++) {
 		elem = (chat*)g_list_nth_data(chats, i);
-		//aggiunta della chat alla hashtable chat_hashtable
+		//!aggiunta della chat alla hashtable chat_hashtable
 		data_add_chat(elem->id, elem->title);
 		if(elem->users!=NULL) {
 			logger(SYS_INFO, "[add_all_to_chat]User list not empty\n");
 			user_list = g_hash_table_get_values(elem->users);
 			for(j=0; j<g_list_length(user_list); j++) {
 				user = (chatclient*)g_list_nth_data(user_list, j);
-				//aggiunta degli utenti alla chat
+				//!aggiunta degli utenti alla chat
 				data_add_user_to_chat(elem->id, user->id, user->nick, user->ip, user->port);
 			}
 		}
@@ -251,7 +251,7 @@ int data_del_chat(u_int8 id) {
 
 /**
  * Aggiunge un utente presente nella hashtable dei client alla hashtable di utenti
- * della chat poichè non ancora presente all'interno di quest'ultima.
+ * della chat poiche' non ancora presente all'interno di quest'ultima.
  */
 int data_add_existing_user_to_chat(u_int8 chat_id, u_int8 id) {
 	if(chat_hashtable==NULL || chatclient_hashtable==NULL)
@@ -262,7 +262,7 @@ int data_add_existing_user_to_chat(u_int8 chat_id, u_int8 id) {
 		chatclient *chatclient_elem = (chatclient*)g_hash_table_lookup(chatclient_hashtable, to_string(id));
 		if(chatclient_elem!=NULL) {
 			logger(SYS_INFO, "[data_add_existing_user_to_chat] adding user nick: %s\n", chatclient_elem->nick);
-			//inserimento del chatclient nella hashtable degli utenti della chat chat_elem.
+			//!inserimento del chatclient nella hashtable degli utenti della chat chat_elem.
 			g_hash_table_insert(chat_elem->users, (gpointer)to_string(chatclient_elem->id), (gpointer)chatclient_elem);
 			return 1;
 		}
@@ -305,7 +305,7 @@ int data_add_user_to_chat(u_int8 chat_id, u_int8 id, const char *nick, const cha
 	
 	data_add_user(id, nick, ip, port);
 	
-	//creazione del nuovo chatclient
+	//!creazione del nuovo chatclient
 	chatclient *chatclient_str = (chatclient*)calloc(1, sizeof(chatclient));
 	chatclient_str->id = id;
 	chatclient_str->nick = (char*)strdup(nick);
@@ -318,7 +318,7 @@ int data_add_user_to_chat(u_int8 chat_id, u_int8 id, const char *nick, const cha
 		return -1;
 	}
 	
-	//inserimento del chatclient nella hashtable degli utenti della chat.
+	//!inserimento del chatclient nella hashtable degli utenti della chat.
 	pthread_mutex_lock(&chat_str->mutex);
 	if(g_hash_table_lookup(chat_str->users, (gpointer)to_string(id))==NULL) {
 		g_hash_table_insert(chat_str->users, (gpointer)to_string(id), (gpointer)chatclient_str);
@@ -334,11 +334,11 @@ int data_add_user_to_chat(u_int8 chat_id, u_int8 id, const char *nick, const cha
  */
 int data_add_user(u_int8 id, const char *nick, const char *ip, u_int4 port) {
 	
-	//istanzia l'hashtable qualora non sia presente.
+	//!istanzia l'hashtable qualora non sia presente.
 	if(chatclient_hashtable==NULL)
 		chatclient_hashtable = g_hash_table_new(g_str_hash, g_str_equal);
 	
-	//creazione del nuovo chatclient e inserimento nella relativa hashtable
+	//!creazione del nuovo chatclient e inserimento nella relativa hashtable
 	chatclient *chatclient_str = (chatclient*)malloc(sizeof(chatclient));
 	chatclient_str->id = id;
 	chatclient_str->nick = (char*)nick;
@@ -377,7 +377,7 @@ int data_del_user_from_chat(u_int8 chat_id, u_int8 id) {
 }
 
 /**
- * Funzione wrapper non più utilizzata. Invoca la funzione data_search_chat
+ * Funzione wrapper non piu' utilizzata. Invoca la funzione data_search_chat
  */
 chat *data_search_chat_local(const char *title) {
 	return data_search_chat(title);
@@ -423,9 +423,9 @@ GList *data_search_all_chat(const char *title) {
 	int j;
 	for(j=0; j<g_list_length(listchat); j++) {
 		chatval = (chat*)g_list_nth_data(listchat, j);
-		//controllo che ci sia almeno una sottostringa in comune tra il titolo inserito e le chat presenti.
+		//!controllo che ci sia almeno una sottostringa in comune tra il titolo inserito e le chat presenti.
 		if(strstr(chatval->title, title)!=NULL) {
-			//aggiunge la chat alla lista.
+			//!aggiunge la chat alla lista.
 			listallchat = g_list_prepend(listallchat, (gpointer)chatval);
 		}
 	}
@@ -433,14 +433,14 @@ GList *data_search_all_chat(const char *title) {
 }
 
 /**
- * Funzione wrapper non più utilizzata.
+ * Funzione wrapper non piu' utilizzata.
  */
 GList *data_search_all_local_chat(const char *title) {
 	return data_search_all_chat(title);
 }
 
 /**
- * Cerca un chatclient nella hashtable dei chatclient. Non più utilizzata.
+ * Cerca un chatclient nella hashtable dei chatclient. Non piu' utilizzata.
  */
 chatclient *data_search_chatclient(const char *nick) {
 	if(nick==NULL || chatclient_hashtable==NULL) {
@@ -607,13 +607,13 @@ GList *data_char_to_userlist(const char *buffer, int len) {
 	GList *user_list = NULL;	
 	while((token = strtok_r(buffer2, "\n", &saveptr))!=NULL) {
 		
-		//creazione del nuovo chatclient e settaggio dei parametri tramite tokenizzazione del buffer
+		//!creazione del nuovo chatclient e settaggio dei parametri tramite tokenizzazione del buffer
 		chatclient *chat_client=(chatclient *)calloc(1, sizeof(chatclient));	
 		chat_client->id=atoll(strtok_r(token, ";", &saveptr2));
 		chat_client->nick=strdup(strtok_r(NULL, ";", &saveptr2));
 		chat_client->ip=strdup(strtok_r(NULL, ";", &saveptr2));
 		chat_client->port= atoi(strtok_r(NULL, ";", &saveptr2));
-		//inserimento del nuovo chatclient nella lista
+		//!inserimento del nuovo chatclient nella lista
 		user_list = g_list_append(user_list, (gpointer)chat_client);
 		buffer2 = NULL;
 	}
@@ -647,7 +647,7 @@ chatclient *data_get_chatclient(u_int8 id) {
 }
 
 /**
- * Rimuove un utente da tutte le hashtable delle chat in cui è presente e infine
+ * Rimuove un utente da tutte le hashtable delle chat in cui e' presente e infine
  * lo rimuove dalla hashtable dei chatclient.
  */
 int data_destroy_user(u_int8 id) {
@@ -657,14 +657,14 @@ int data_destroy_user(u_int8 id) {
 	
 	GList *chats = g_hash_table_get_values(chat_hashtable);
 	int i=0;
-	//per ogni chat rimuove l'utente dalla hashtable degli utenti connessi (qualora presente)
+	//!per ogni chat rimuove l'utente dalla hashtable degli utenti connessi (qualora presente)
 	for(; i<g_list_length(chats); i++) {
 		chat *chat_val = (chat*)g_list_nth_data(chats, i);
 		if(chat_val!=NULL) {
 			g_hash_table_remove(chat_val->users, (gconstpointer)to_string(id));
 		}
 	}
-	//rimuove l'utente dalla hashtable dei chatclient
+	//!rimuove l'utente dalla hashtable dei chatclient
 	data_del_user(id);
 	return 0;
 }
