@@ -1,5 +1,5 @@
 \chapter{Gnutella vs TorTella}
-Gnutella è un protocollo per la ricerca distribuita. Sebbene tale protocollo  supporti un paradigma di ricerca tradizionale del tipo client / server centralizzato, ciò che lo differenzia da altri protocolli è la sua architettura decentralizzata. In questo modello ogni client è un server e viceversa, proprio per questo ogni entità è chiamata servent. Questi forniscono un’interfaccia lato client tramite la quale gli utenti possono inoltrare query e vedere i risultati della ricerca e allo stesso tempo accettano anche query da altri serventi. Una rete di serventi che implementa il protocollo Gnutella è altamente tollerante ai guasti grazie alla sua natura distribuita, poiché se un sottoinsieme di serventi dovesse subire un guasto, le operazioni della rete non verrebbero comunque interrotte.
+Gnutella è un protocollo per la ricerca distribuita. Sebbene tale protocollo  supporti un paradigma di ricerca tradizionale del tipo client/server centralizzato, ciò che lo differenzia da altri protocolli è la sua \textit{architettura decentralizzata}\index{architettura decentralizzata}. In questo modello ogni client è un server e viceversa, proprio per questo ogni entità è chiamata servent. Questi forniscono un’interfaccia lato client tramite la quale gli utenti possono inoltrare \textit{query}\index{query} e vedere i risultati della ricerca e allo stesso tempo accettano anche query da altri serventi. Una rete di serventi che implementa il protocollo Gnutella è altamente tollerante ai guasti grazie alla sua natura distribuita, poiché se un sottoinsieme di serventi dovesse subire un guasto, le operazioni della rete non verrebbero comunque interrotte.
 \section{Protocollo Gnutella}
 Il protocollo Gnutella\footnote{Protocollo versione 0.4} definisce il modo in cui i serventi comunicano attraverso la rete. Esso consiste in un insieme di descrittori utilizzati per la comunicazione dei dati attraverso i serventi ed un insieme di regole che governano lo scambio di questi descrittori, che sono:
 \begin{description}
@@ -19,14 +19,14 @@ Il protocollo Gnutella\footnote{Protocollo versione 0.4} definisce il modo in cu
    {\includegraphics[scale=0.7]{etc/queryqueryhit.jpg}
 	\label{queryqueryhit}}
  \end{figure}
-I messaggi di Pong e di QueryHit vengono inviati tramite backward routing, ovvero i descrittori seguono lo stesso percorso dei rispettivi descrittori ping/query a ritroso. Il backward routing viene individuato tramite gli identificatori univoci dei messaggi, questo implica che se un servente dovesse ricevere un descrittore di tipo pong/queryhit con id pari a N e questi non abbia ricevuto precedentemente un descrittore di tipo ping/query con id pari a N il pacchetto verrebbe scartato.
+I messaggi di Pong e di QueryHit vengono inviati tramite \textit{backward routing}\index{backward routing}, ovvero i descrittori seguono lo stesso percorso dei rispettivi descrittori ping/query a ritroso. Il backward routing viene individuato tramite gli identificatori univoci dei messaggi, questo implica che se un servente dovesse ricevere un descrittore di tipo pong/queryhit con id pari a N e questi non abbia ricevuto precedentemente un descrittore di tipo ping/query con id pari a N il pacchetto verrebbe scartato.
 \section{Protocollo TorTella}
-Il protocollo TorTella nasce prendendo spunto da Gnutella, a cui sono state apportate delle modifiche per renderlo in linea alle necessità dell’applicativo sviluppato. L’architettura adottata da TorTella è stata inizialmente di tipo decentralizzata ibrida, ma vista la presenza di un point of failure a causa della presenza di un server centrale dedicato alle registrazioni, si è deciso di migrare verso un’architettura di tipo completamente decentralizzata. 
+Il protocollo \textit{TorTella}\index{TorTela} nasce prendendo spunto da Gnutella, a cui sono state apportate delle modifiche per renderlo in linea alle necessità dell’applicativo sviluppato. L’architettura adottata da TorTella è stata inizialmente di tipo decentralizzata ibrida, ma vista la presenza di un point of failure a causa della presenza di un server centrale dedicato alle registrazioni, si è deciso di migrare verso un’architettura di tipo completamente decentralizzata. 
 Di seguito si riportano alcune caratteristiche del protocollo TorTella, le analogie e le differenze con Gnutella:
 \subsection{Descrittori TorTella}
 Il protocollo realizzato eredita da Gnutella alcuni descrittori e ne definisce di nuovi per far fronte alle esigenze dell’applicazione:
 \begin{description}
-\item[Ping] a differenza del descrittore originario non viene inviato in flooding, ma indirizzato verso un unico peer. Viene utilizzato per stabilire nuove connessioni, per notificare i cambiamenti di stato dell'utente e per gestire il meccanismo di failure detection. Composto da due campi, il primo rappresentante il numero di porta e il secondo rappresentante lo status dell’utente. Un pacchetto con un descrittore di tipo Ping conterrà nel campo dati il nickname del peer che lo invia.
+\item[Ping] a differenza del descrittore originario non viene inviato in flooding, ma indirizzato verso un unico peer. Viene utilizzato per stabilire nuove connessioni, per notificare i cambiamenti di stato dell'utente e per gestire il meccanismo di failure detection. Composto da due campi, il primo rappresentante il numero di porta e il secondo rappresentante lo status dell’utente. Un pacchetto con un descrittore di tipo Ping conterrà nel campo dati il \textit{nickname}\index{nickname} del peer che lo invia.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.7]{etc/ping.jpg}
@@ -34,7 +34,7 @@ Il protocollo realizzato eredita da Gnutella alcuni descrittori e ne definisce d
 \label{ping}
 \end{center}
 \end{figure}
-\item[Join] viene inviato in flooding per accedere ad una chat creata precedentemente da un generico utente. Contiene dati riguardanti l'utente che ha generato inizialmente il pacchetto, in modo da consentire a tutti i peer riceventi di conoscere tale servente. Contiene il campo status e l’id della chat a cui si vuole connettere, id dell'utente che vuole connettersi, porta e ip del peer mittente, ttl e hops. Il campo dati contiene il nickname.
+\item[Join] viene inviato in flooding per accedere ad una chat creata precedentemente da un generico utente. Contiene dati riguardanti l'utente che ha generato inizialmente il pacchetto, in modo da consentire a tutti i peer riceventi di conoscere tale servente. Contiene il campo status e l’id della chat a cui si vuole connettere,id dell'utente che vuole connettersi,porta e ip del peer mittente,ttl e hops. Il campo dati contiene il nickname.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.7]{etc/join.jpg}
