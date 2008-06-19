@@ -1,1 +1,182 @@
 \chapter{Installazione ed Esecuzione}
+Nel presente capitolo verrà fornita una rapida guida d'installazione per l'utente e verrà illustrato un esempio di funzionamento dell'applicazione.
+\section{Installazione}
+Per generare il Makefile bisogna seguire i seguenti passi: 
+\begin{enumerate}
+\item Posizionarsi nella radice del progetto; 
+\item Eseguire il file ./autogen.sh;
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{etc/autogen}
+\caption{autogen}
+\label{autogen}
+\end{center}
+\end{figure}
+\item Eseguire il ./configure sempre nella radice del progetto;
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{etc/configure}
+\caption{configure}
+\label{configure}
+\end{center}
+\end{figure}
+\item Ora il Makefile è pronto, per compilare basta eseguire make dalla radice del progetto.
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{etc/make}
+\caption{make}
+\label{make}
+\end{center}
+\end{figure}
+\end{enumerate}
+\section{Avvio dell'applicazione}
+Prima di avviare il programma è necessario che i file vengano creati correttamente. A tal proposito si presenta un esempio di come dev'essere strutturato il file di configurazione e un esempio di come dev'essere strutturato il file contenente i "vicini" conosciuti:
+\begin{lstlisting}
+#TorTella Configuration file
+
+#LOGGER
+verbose = 3;
+
+#SOCKET
+qlen = 5;
+buffer_len = 4096;
+
+#PACKET
+path = /tmp/tortella1;
+
+#UTILS
+gen_start = 100000;
+
+#SERVENT
+max_len = 4000;
+max_thread = 20;
+max_fd = 100;
+timer_interval = 20;
+new_connection_counter = 10000;
+
+#SUPERNODE
+datadir = ./data;
+
+#SERVENT
+local_ip = 127.0.0.1;
+local_port = 2110;
+nick = simo;
+\end{lstlisting}
+Si consiglia all'utente inesperto di cambiare solamente i parametri relativi all'ip, alla porta locale e al nickname da utilizzare.
+Per quanto concerne il file di inizializzazione, questo dovrebbe essere strutturato in questo modo:
+\begin{lstlisting}
+127.0.0.1;2110;
+127.0.0.1;2120;
+\end{lstlisting}
+Una volta che i file sono stati creati, è necessario posizionarli nelle directory corrette:
+\begin{itemize}
+\item Il file di esecuzione nella directory src;
+\item file di configurazione in src/conf; 
+\item file di init in src/data.
+\end{itemize}
+Se i file sono nelle posizioni corrette si può avviare l'esecuzione. Per l'esecuzione su una sola macchina è necessario avviare almeno due peer seguendo questi semplici passi:
+\begin{enumerate}
+\item Posizionarsi in src;
+\item Eseguire ./tortella ./conf/tortella.conf
+\item Eseguire ./tortella ./conf/tortella1.conf ./data/init_data.  
+\end{enumerate}
+\section{Esecuzione}
+L'esecuzione qui presentata viene eseguita su macchina locale simulando la presenza di tre peer nella rete. I tre peer, che per comodità verranno chiamati simo, lore, ibra saranno inizialmente connessi nel seguente modo: simo non conosce alcun peer vicino, lore e ibra invece conosceranno come unico vicino simo. I tre peer avviano l'applicazione e simo crea una chat dal nome "prova":
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{etc/crea_chat.png}
+\caption{Creazione della chat}
+\label{crea\_chat}
+\end{center}
+\end{figure}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{etc/apertura_chat.png}
+\caption{Apertura della chat}
+\label{apertura\_chat}
+\end{center}
+\end{figure}
+Lore cerca la chat "prova" e si connette:
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{etc/ricerca_lore.png}
+\caption{Ricerca della chat}
+\label{ricerca\_lore}
+\end{center}
+\end{figure}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{etc/join_lore.png}
+\caption{Join di lore}
+\label{join\_lore}
+\end{center}
+\end{figure}
+ibra crea una chat di nome "pippo"
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{etc/crea_chat2.png}
+\caption{Creazione di una nuova chat}
+\label{crea\_chat2}
+\end{center}
+\end{figure}
+Nell'attesa che qualcuno si connetta alla chat appena creata, ibra cerca la chat "prova" e si connette
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{etc/ricerca_chat_2.png}
+\caption{Ricerca della chat prova}
+\label{ricerca\_chat\_2}
+\end{center}
+\end{figure}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{etc/join2.png}
+\caption{Join di ibra}
+\label{join2}
+\end{center}
+\end{figure}
+I tre utenti comunicano tra di loro
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{etc/conversazione_chat.png}
+\caption{Conversazione tra gli utenti}
+\label{conversazione\_chat}
+\end{center}
+\end{figure}
+lore invia un messaggio solo a simo (in realtà avrebbe potuto mandarlo a più utenti, ma essendo la chat composta da soli 3 utenti non avrebbe avuto senso mandare il messaggio a tutti)
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{etc/invio_sottolista.png}
+\caption{Invio di un messaggio ad un sottoinsieme degli utenti}
+\label{invio\_sottolista}
+\end{center}
+\end{figure}
+lore invia un messaggio privato a ibra, che viene ricevuto correttamente da quest'ultimo
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{etc/pm_ibra.png}
+\caption{Invio di un messaggio privato}
+\label{pm\_ibra}
+\end{center}
+\end{figure}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{etc/ricezione\_pm.png}
+\caption{Ricezione di un messaggio privato}
+\label{ricezione\_pm}
+\end{center}
+\end{figure}
+infine lore effettua il leave dalla chat e in seguito simo chiude l'applicazione inviando un bye ad ibra
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{etc/leave_lore.png}
+\caption{Leave dalla chat prova}
+\label{leave\_lore}
+\end{center}
+\end{figure}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{etc/bye_simo.png}
+\caption{Ricezione di un bye}
+\label{bye\_simo}
+\end{center}
+\end{figure}
