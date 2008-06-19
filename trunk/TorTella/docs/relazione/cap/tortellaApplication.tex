@@ -19,3 +19,11 @@ Da questo elenco di azioni si può notare che avviene un invio del pacchetto Pin
 \label{bootstrap}
 \end{center}
 \end{figure}
+Il meccanismo di identificazione dell'ID di ogni nodo, connesso alla rete, si basa principalmente su un controllo con un parametro (\texttt{gen\_start}), opportunamente inizializzato nel file di configurazione. Seguendo l'esempio presentato in figura \ref{bootstrap}, il Nodo 1 dopo aver ricevuto il Ping dal Nodo 2 con il vero ID, esegue il controllo che il nuovo ID sia di valore maggiore rispetto a quello del parametro \texttt{gen\_start}\index{gen\_start}.
+\section{Flooding}
+Il meccanismo di \textit{flooding}\index{flooding} realizzato è stato ispirato a quello del protocollo \textit{Gnutella}, in cui quasi ogni pacchetto viene inviato in flooding. Nel caso di \textit{TorTella} vengono inviati in flooding i seguenti pacchetti: Search, SearchHits (\textit{backward routing}\footnote{segue a ritroso lo stesso cammino del rispettivo messaggio di Search}\index{backward routing}), Join e Leave.
+\subsection{Search e SearchHits}
+
+\subsection{Join}
+
+\subsection{Leave}
