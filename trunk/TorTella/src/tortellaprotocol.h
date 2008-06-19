@@ -80,7 +80,7 @@ typedef struct tortella_header tortella_header;
 struct ping_desc {
 	u_int4 port;
 	u_int1 status;
-	//Cambo dati: nickname
+	//Campo dati: nickname
 
 };
 typedef struct ping_desc ping_desc;
