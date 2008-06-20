@@ -6,7 +6,7 @@ Per quanto riguarda la concorrenza si è preferito l'uso dei thread (\textit{pro
 \begin{itemize}
 \item La creazione di un nuovo thread è in genere più veloce della creazione di un nuovo processo in quanto la prima utilizza lo stesso \textit{process address}\index{process address} space del processo creatore. 
 \item Risulta essere minore anche il tempo di terminazione di un thread piuttosto che di un processo. 
-\item L'utilzzo dello stesso process address space da parte di due thread comporta uno switching tra gli stessi molto più veloce che tra due processi. 
+\item L'utilizzo dello stesso process address space da parte di due thread comporta uno switching tra gli stessi molto più veloce che tra due processi. 
 \item ll tempo di comunicazione tra due thread, per quanto detto, risulta certamente essere minore del tempo richiesto per la comunicazione tra due processi. Questo perchè basta utilizzare delle variabili globali invece dei meccanismi di condivisione di memoria.
 \item Utilizzando il multithreading si sfruttano maggiormente i \textit{processori multicore}\index{processori multicore}.
 \end{itemize}
@@ -42,9 +42,9 @@ int pthread_rwlock_wrlock(pthread_rwlock_t *rwlock);
 int pthread_rwlock_rdlock(pthread_rwlock_t *rwlock);
 int pthread_rwlock_unlock(pthread_rwlock_t *rwlock);
 \end{lstlisting}
-La prima funzione applica un lock in scrittura al \textit{rwlock}\index{rwlock}. Il thread chiamante acquisice il lock se nessun altro thread possiede il read-write lock rwlock, altrimenti il thread è bloccato fin quando non acquisice il lock. La funzione \texttt{pthread\_rwlock\_rdlock}\index{pthread\_rwlock\_rdlock} applica un lock in lettura a rwlock. Il thread chiamante acquisisce il lock in lettura se non esiste nessun lock in scrittura bloccati, altrimenti il thread viene bloccato fino all’acquisizione della risorsa. L’ultima funzione viene chiamata semplicemente per rilasciare il lock su rwlock.
+La prima funzione applica un lock in scrittura al \textit{rwlock}\index{rwlock}. Il thread chiamante acquisisce il lock se nessun altro thread possiede il read-write lock rwlock, altrimenti il thread è bloccato fin quando non acquisisce il lock. La funzione \texttt{pthread\_rwlock\_rdlock}\index{pthread\_rwlock\_rdlock} applica un lock in lettura a rwlock. Il thread chiamante acquisisce il lock in lettura se non esiste nessun lock in scrittura bloccati, altrimenti il thread viene bloccato fino all’acquisizione della risorsa. L’ultima funzione viene chiamata semplicemente per rilasciare il lock su rwlock.
 La libreria pthread è stata utilizzata, e lo è ancora, in molte applicazioni che necessitano del supporto di multipli flussi di esecuzione al suo interno; a tal proposito, è possibile reperire una grande mole di informazioni a riguardo sul Web, che possono essere utilizzate per meglio comprendere l’utilizzo che se ne è fatto.
 \section{Liste, Hashtable e Code}
 L'utilizzo di diversi tipi di collezioni, al fine di gestire qualsiasi tipo di informazione riguardante o la chat o gli utenti o i diversi tipi di pacchetto, ha caratterizzato l'intero processo di implementazione.
-In una prima fase si è deciso di utilizzare una versione ad-hoc di tali collezioni,che sono risultate poco efficenti dal punto di vista prestazionale. A tale ragione sono state utilizzate le strutture fornite dalla libreria \textit{glib}\index{glib}, le quali forniscono un'implementazione più performante delle elementari funzioni di manipolazione.
+In una prima fase si è deciso di utilizzare una versione ad-hoc di tali collezioni,che sono risultate poco efficienti dal punto di vista prestazionale. A tale ragione sono state utilizzate le strutture fornite dalla libreria \textit{glib}\index{glib}, le quali forniscono un'implementazione più performante delle elementari funzioni di manipolazione.
 In particolare sono state utilizzate le code per gestire il meccanismo di invio concorrente dei pacchetti da parte di più peer;ovvero prima di inviare un pacchetto il servente aggiunge questo nella coda, associata alla sua struttura dati, per poi inviare in modo sequenziale tutti i pacchetti presenti nella coda stessa.
