@@ -2,7 +2,7 @@
 L'applicazione è stata progettata seguendo un approccio modulare, per consentire una migliore leggibilità del codice e una più facile manutenibilità dello stesso. L'applicazione è composta da vari moduli:
 \begin{description}
 \item[Socket Manager:] gestione delle connessioni TCP.
-\item[Tortella Protocol:] definizione del protocollo utilizzato.
+\item[TorTella Protocol:] definizione del protocollo utilizzato.
 \item[Http Manager:] creazione dei pacchetti http e relativi parser.
 \item[Packet Manager:] intermediario tra il livello http e quello dei socket.
 \item[Route Manager:] gestione delle regole di routing per i pacchetti di flooding.
@@ -28,7 +28,7 @@ Moduli di supporto:
 \end{figure}
 Nella figura \ref{schemaarchitetturale} si possono notare le interdipendenze tra moduli, in particolare l'importanza del modulo servent, che rappresenta il cuore dell'applicazione. Di fondamentale importanza è anche il controller, che gestisce la comunicazione tra la GUI e il resto dell'applicazione, nonchè il bootstrap con le relative connessioni iniziali ai peer.
 \section{Socket Manager}
-Lo strato software che gestisce l'instaurazione di una connessione di tipo persistente, e di tutto il relativo processo di comunicazione tra due o piu nodi viene gestito dal file socketmanager.c. Poichè un servente deve comportarsi sia da client che da server. A tal proposito verranno analizzate i due processi di creazione dei socket.
+Lo strato software che gestisce l'instaurazione di una connessione di tipo persistente, e di tutto il relativo processo di comunicazione tra due o più nodi viene gestito dal file socketmanager.c. Poichè un servente deve comportarsi sia da client che da server. A tal proposito verranno analizzate i due processi di creazione dei socket.
 \paragraph{create\_tcp\_socket()}
 La funzione ha il compito di creare un socket di connessione remota, ovvero di instaurare una connessione remota ad un server TCP. Come è possibile capire il tipo di comunicazione è orientata alla connessione, permettendo il trasferimento di un flusso continuo di dati.
 Dopo la fase di inizializzazione del socket e l'apertura della connessione verso il server, viene eseguita la chiamata di sistema setsockopt() con il flag SO\_KEEPALIVE , al fine di caratterizzare la connessione precedentemente instaurata, ovvero creando un tipo di connessione persistente\footnote{Per connessione persistente si intende la presenza di un timer che viene reinizializzato ogni volta che avviene uno scambio di informazioni tra peer. Allo scadere del timer, il socket viene chiuso}.
@@ -36,7 +36,7 @@ Dopo la fase di inizializzazione del socket e l'apertura della connessione verso
 int create_tcp_socket(const char* dst_ip, int dst_port)
 \end{lstlisting}
 \paragraph{create\_listen\_tcp\_socket} 
-Il compito di inizializzare il lato server del peer, creando un un socket d'ascolto, è affidato alla funzione sopra riportata. Dopo l'istanziazione del socket, vengono effettuate le chiamate bind() e listen(), le quali hanno il compito rispettivamente di inizializzare l'indirizzo IP locale e il relativo processo e di porre il socket dallo stato di CLOSED a quello di LISTEN. Come nel caso precedente viene utilizzata la syscall setosockopt(), la quale non si occupa solo di mantenere la connessione in uno stato permanente, ma anche di poter riutilizzare l'indirizzo locale. Usando il flag \texttt{SO\_REUSEADDR} fra la chiamata a socket() e quella a bind() si consente a quest'ultima di avere comunque successo anche se la connessione è attiva o si trova nello stato di TIME\_WAIT.  
+Il compito di inizializzare il lato server del peer, creando un un socket d'ascolto, è affidato alla funzione sopra riportata. Dopo la creazione del socket, vengono effettuate le chiamate bind() e listen(), le quali hanno il compito rispettivamente di inizializzare l'indirizzo IP locale e il relativo processo e di porre il socket dallo stato di CLOSED a quello di LISTEN. Come nel caso precedente viene utilizzata la syscall setosockopt(), la quale non si occupa solo di mantenere la connessione in uno stato permanente, ma anche di poter riutilizzare l'indirizzo locale. Usando il flag \texttt{SO\_REUSEADDR} fra la chiamata a socket() e quella a bind() si consente a quest'ultima di avere comunque successo anche se la connessione è attiva o si trova nello stato di TIME\_WAIT.  
 Le operazioni riguardanti la ricezione del flusso di pacchetti e relativo invio  sono gestite rispettivamente dalle funzioni: recv\_packet(), send\_packet(), le quali attraverso le chiamate di sistema standard della programmazione di rete si occupano di svolgere le funzioni di scrittura e lettura sui sockets d'interesse. Particolare attenzione deve essere rivolta alla funzione di lettura dei dati, in quanto è stato previsto un meccanismo di frammentazione dei pacchetti in blocchi, di dimensione massima (4096 byte) pari a quella impostata nel parametro buffer\_len, presente nel file di configurazione iniziale (tortella.conf).
 \begin{lstlisting}
 int create_listen_tcp_socket(const char* src_ip, int src_port)
@@ -52,7 +52,7 @@ Quest'ultima funzione consente la ricezione dei dati da un peer. E' stata proget
 \begin{lstlisting}
 int recv_sized_packet(int sock_descriptor,char** buf, int max_len)
 \end{lstlisting}
-\section{Tortella Protocol}
+\section{TorTella Protocol}
 Questo modulo contiene tutte le definizioni, le funzioni e le macro che implementano il protocollo TorTella. Ci sono tutte le definizioni dei pacchetti e dei descrittori trasportati, che sono i seguenti:
 \begin{lstlisting}[frame=trBL]
 #define PING_ID			0x01
@@ -85,7 +85,7 @@ typedef struct tortella_header tortella_header;
 struct ping_desc {
 	u_int4 port;
 	u_int1 status;
-	//Cambo dati: nickname
+	//Campo dati: nickname
 };
 typedef struct ping_desc ping_desc;
 
@@ -197,8 +197,8 @@ struct http_packet {
 };
 typedef struct http_packet http_packet;
 \end{lstlisting}
-Come è possibile notare sono state definite 3 tipi di strutture dati, dove le prime due sono utilizzate per la creazione dell'header a seconda se il messaggio da inviare si di richiesta o di risposta, invece la terza struttura è utilizzata per definire l'intero pacchetto http. Sia nell'header di request che nell'header di response viene memorizzata, la lunghezza dell'intero pacchetto, la tipologia di dei dati contenuti(html,image..), che nel nostro caso saranno solamente di tipo binario e la versione del tipo di protocollo utilizzato (Tortella 0.1). Le uniche differenze presenti sono dovute, al tipo di informazione (richiesta o risposta) contenuta negli headers, e all'identificazione nell'header request del tipo di connessione instaurata (di tipo persistente) tra due peer.
-Al fine di rendere più agevole la creazione di un generico pacchetto sono state definite delle macro all'interno dell header file:
+Come è possibile notare sono state definite 3 tipi di strutture dati, dove le prime due sono utilizzate per la creazione dell'header a seconda se il messaggio da inviare si di richiesta o di risposta, invece la terza struttura è utilizzata per definire l'intero pacchetto http. Sia nell'header di request che nell'header di response viene memorizzata, la lunghezza dell'intero pacchetto, la tipologia di dei dati contenuti(html,image..), che nel nostro caso saranno solamente di tipo binario e la versione del tipo di protocollo utilizzato (TorTella 0.1). Le uniche differenze presenti sono dovute, al tipo di informazione (richiesta o risposta) contenuta negli header, e all'identificazione nell'header request del tipo di connessione instaurata (di tipo persistente) tra due peer.
+Al fine di rendere più agevole la creazione di un generico pacchetto sono state definite delle macro all'interno dell' header file:
 \begin{lstlisting}[frame=trBL]
 #define HTTP_REQ_GET		0x40
 #define	HTTP_RES_GET		0x41
@@ -222,7 +222,7 @@ Al fine di rendere più agevole la creazione di un generico pacchetto sono state
 \end{lstlisting}
 Tutte le funzionalità relative al parsing dei dati contenuti nel pacchetto http sono svolte dalle seguenti funzioni:
 \paragraph{http\_bin\_to\_char()}
-La funzione si occupa di leggere i dati memorizzati in una struttura dati per poi salvare gli stessi in un buffer di caratteri. Nel momento in cui vi è la chiamata a tale funzione vengono passati come parametro sia l'intero pacchetto http che la sua lunghezza. L'algoritmo di parsing dopo aver controllato che il pacchetto ricevuto non sia vuoto provvede all'istanziazione di un buffer, il quale avrà dimensioni differenti  in base al tipo di messaggio contenente il pacchetto (REQ\_POST-REQ\_GET-RES\_POST-RES\_GET). Ogni campo dell'header, all'interno del buffer, viene delimitato con due caratteri separatori \texttt{$\setminus r\setminus n$}, in modo da permettere un'identificazione migliore delle varie informazioni, nel caso in cui si abbia la necessità di riconvertire tutti i dati nelle loro strutture d'appartenenza (\texttt{http\_char\_to\_bin}). Dopo di ciò viene fatto uso di un puntatore temporaneo, il quale dopo essere stato inizializzato con l'indirizzo del primo byte del buffer, viene spostato della sua lunghezza, in modo da poter appendere in seguito tutte le informazioni relative al campo dati del pacchetto http (vedi appendice).
+La funzione si occupa di leggere i dati memorizzati in una struttura dati per poi salvare gli stessi in un buffer di caratteri. Nel momento in cui vi è la chiamata a tale funzione vengono passati come parametro sia l'intero pacchetto http che la sua lunghezza. L'algoritmo di parsing dopo aver controllato che il pacchetto ricevuto non sia vuoto provvede alla creazione di un buffer, il quale avrà dimensioni differenti  in base al tipo di messaggio contenente il pacchetto (REQ\_POST-REQ\_GET-RES\_POST-RES\_GET). Ogni campo dell'header, all'interno del buffer, viene delimitato con due caratteri separatori \texttt{$\setminus r\setminus n$}, in modo da permettere un'identificazione migliore delle varie informazioni, nel caso in cui si abbia la necessità di riconvertire tutti i dati nelle loro strutture d'appartenenza (\texttt{http\_char\_to\_bin}). Dopo di ciò viene fatto uso di un puntatore temporaneo, il quale dopo essere stato inizializzato con l'indirizzo del primo byte del buffer, viene spostato della sua lunghezza, in modo da poter appendere in seguito tutte le informazioni relative al campo dati del pacchetto http (vedi appendice).
 \begin{lstlisting}
 char *http_bin_to_char(http_packet *packet, int *len)
 \end{lstlisting}
@@ -341,7 +341,7 @@ Per l'accesso alla \texttt{servent\_data} di un peer vengono utilizzati dei mecc
 
 All'avvio dell'applicazione un'istanza del controller si occupa di chiamare la funzione \texttt{servent\_start()}, la quale ha il compito di inizializzare tutti i parametri del servente locale, di istanziare il lato server dello stesso, mettendolo in attesa di connessioni da altri peer, ed infine di avviare il suo lato client. A tale proposito all'interno della funzione vi sono tre chiamate di funzione,le quali hanno rispettivamente il compito di svolgere le attività elencate precedentemente. Di seguito vengono mostrati le dichiarazioni, presenti nell'header file, delle tre procedure con relativa spiegazione.
 \paragraph{servent\_init()}
-La funzione, come affermato in precedenza, si occupa di inizializzare i parametri del servente locale, identificando  il suo indirizzo ip, numero di porta e status iniziale, i quali vengono reperiti dal file di configurazione tortella.conf. Inoltre viene inzializzato il mutex relativo alla sua struttura dati
+La funzione, come affermato in precedenza, si occupa di inizializzare i parametri del servente locale, identificando  il suo indirizzo ip, numero di porta e status iniziale, i quali vengono reperiti dal file di configurazione tortella.conf. Inoltre viene inizializzato il mutex relativo alla sua struttura dati
 \begin{lstlisting}
 int servent_init(char *ip, u_int4 port, u_int1 status)
 \end{lstlisting}
@@ -357,7 +357,7 @@ int servent_init_connection(GList *init_servent)
 \end{lstlisting}
 \paragraph{servent\_connect()}
 Questa funzione è stata realizzata per consentire la gestione della parte client di un peer, ovvero il \textit{client thread}. E' stata strutturata considerando la modalità di funzionamento a che deve avere. Infatti, essendo il thread che consente l'invio dei pacchetti ad uno specifico peer, sono state collocate le operazioni da svolgere all'interno di un ciclo while infinito. Grazie a questa tecnica è possibile inviare pacchetti ad un peer in qualsiasi momento, in particolare basta inserire in una coda apposita (spiegata più avanti) la richiesta da effettuare a tale thread. Tale funzione soddisfa le richieste sequenzialmente, effettuando l'invio e l'attesa di risposta.
-Questo \textit{client thread} consente, ai modulli superiori, di rilevare errori di invio e ricezione dei peer destinatari. Infatti, grazie ad un'ulteriore coda di messaggi di risposta si possono controllare eventuali \textit{timeout} dei pacchetti. Tale coda viene riempita dalla \texttt{servent\_connect()} nel momento in cui riceve una conferma di ricezione pacchetto.
+Questo \textit{client thread} consente, ai moduli superiori, di rilevare errori di invio e ricezione dei peer destinatari. Infatti, grazie ad un'ulteriore coda di messaggi di risposta si possono controllare eventuali \textit{timeout} dei pacchetti. Tale coda viene riempita dalla \texttt{servent\_connect()} nel momento in cui riceve una conferma di ricezione pacchetto.
 \begin{lstlisting}
 void *servent_connect(void *parm)
 \end{lstlisting}
@@ -398,7 +398,7 @@ void servent_send_packet(servent_data *sd) {
 		g_queue_push_tail(sd->queue, (gpointer)sd);
 }
 \end{lstlisting}
-Come si può notare dal codice, la funzione prede come parametro una \texttt{servent\_data}. In realtà viene passata una copia della struttura originale utilizzata per condividere memoria, in questo modo si evitano richieste sovrapposte con eventuale invio di pacchetti errati. Infatti, se non si fosse attuata tale tecnica si sarebbe potuto incorrere in errore nel seguente caso: Il peer locale chiede di inviare un pacchetto di tipo Ping ad uno specifico servente; il peer locale chiede, inoltre, di inviare un pacchetto di tipo Join allo stesso servente; la \texttt{servent\_connect()} che riceve la richiesta di invio potrebbe inviare il pacchetto Ping con i dati del Join. Con il metodo adotatto si evitano problemi di questo genere.
+Come si può notare dal codice, la funzione prede come parametro una \texttt{servent\_data}. In realtà viene passata una copia della struttura originale utilizzata per condividere memoria, in questo modo si evitano richieste sovrapposte con eventuale invio di pacchetti errati. Infatti, se non si fosse attuata tale tecnica si sarebbe potuto incorrere in errore nel seguente caso: Il peer locale chiede di inviare un pacchetto di tipo Ping ad uno specifico servente; il peer locale chiede, inoltre, di inviare un pacchetto di tipo Join allo stesso servente; la \texttt{servent\_connect()} che riceve la richiesta di invio potrebbe inviare il pacchetto Ping con i dati del Join. Con il metodo adottato si evitano problemi di questo genere.
 \paragraph{servent\_pop\_queue()}
 Quest'altra funzione viene utilizzata dai \textit{client thread} per riceve le richieste di invio pacchetti.
 \begin{lstlisting}[frame=trBL]
@@ -423,7 +423,7 @@ void *servent_timer(void *parm)
 \end{lstlisting}
 
 \section{Data Manager}
-Il modulo datamanager si occupa di gesttire tutti i meccanismi di accesso e di ricerca di una o più chat. Le principali strutture dati utilizzate sono chatclient e chat; la prima contiene le informazioni di un utente connesso ad una chat, invece la seconda mantiene le informazioni relative ad una specifica chat, considerando l'ID, il titolo, la lista di tutti gli utenti presenti in quel momento ed infine un mutex utilizzato per la gestione dell'accesso concorrente alla chat stessa. 
+Il modulo datamanager si occupa di gestire tutti i meccanismi di accesso e di ricerca di una o più chat. Le principali strutture dati utilizzate sono chatclient e chat; la prima contiene le informazioni di un utente connesso ad una chat, invece la seconda mantiene le informazioni relative ad una specifica chat, considerando l'ID, il titolo, la lista di tutti gli utenti presenti in quel momento ed infine un mutex utilizzato per la gestione dell'accesso concorrente alla chat stessa. 
 \begin{lstlisting}
 struct chatclient {
 	u_int8 id;
@@ -451,7 +451,7 @@ int read_from_file(const char *filename)
 
 int read_all(void)
 \end{lstlisting}  
-Dall'analisi dettagliata del modulo è possibile identificare due sezioni, la prima, come affermato precedentemente, si occupa degli accessi alle varie chat, invece la seconda ha il compito di gestire tutti gli algortimi di parsing dei dati. Di seguito sono riportate le funzioni principali utilizzate per la gestione di una chat:
+Dall'analisi dettagliata del modulo è possibile identificare due sezioni, la prima, come affermato precedentemente, si occupa degli accessi alle varie chat, invece la seconda ha il compito di gestire tutti gli algoritmi di parsing dei dati. Di seguito sono riportate le funzioni principali utilizzate per la gestione di una chat:
 \begin{lstlisting}
 int data_add_chat(u_int8 id, const char *title)
 
@@ -469,7 +469,7 @@ chat *data_search_chat(const char *title)
 
 chatclient *data_search_chatclient(const char *nick)
 \end{lstlisting}
-Tutte le funzioni,sopra riportate, sono state implementate tenendo conto del meccanismo di memorizzazione utilizzato. Nell'header file, in particolare, sono state definite due hashtable, le quali hanno il compito di memorizzare tutte le chat e tutti gli utenti presenti nella rete. In particolare tutte le funzioni adibite al parsing si occupano o di scandire il buffer contenente i dati memorizzandoli nelle relative strutture dati, o di effettuare il processo conversione inverso. Le informazioni relative alle chat sono salvate nel seguent formato:\\
+Tutte le funzioni,sopra riportate, sono state implementate tenendo conto del meccanismo di memorizzazione utilizzato. Nell'header file, in particolare, sono state definite due hashtable, le quali hanno il compito di memorizzare tutte le chat e tutti gli utenti presenti nella rete. In particolare tutte le funzioni adibite al parsing si occupano o di scandire il buffer contenente i dati memorizzandoli nelle relative strutture dati, o di effettuare il processo conversione inverso. Le informazioni relative alle chat sono salvate nel seguente formato:\\
 \texttt{
 \vdots\\
 		|chat\_id;title;\\
@@ -479,7 +479,7 @@ Tutte le funzioni,sopra riportate, sono state implementate tenendo conto del mec
 \vdots\\
 }
 Come è possibile notare ogni chat è delimitata dal carattere separatore \texttt{|}, il quale caratterizza l'inizio e la fine di ogni dato relativo alla chat identificata con il campo chat\_id e title. Nelle righe successive sono mostrati tutti gli utenti connessi alla chat con il relativo \textit{ID, nickname, indirizzo, ip} e numero di porta del socket associato.
-La decisione di suddividere in tal modo ogni informazione nasce principalmente dalla necessità di identificare in modo semplice ogni dato e dalla necessità di sviluppara un parser abbastanza semplice e veloce.  
+La decisione di suddividere in tal modo ogni informazione nasce principalmente dalla necessità di identificare in modo semplice ogni dato e dalla necessità di sviluppare un parser abbastanza semplice e veloce.  
 
 \section{Init}
 Il modulo in questione consente di effettuare il bootstrap dell'applicazione, poichè permette ad un peer di conoscere i propri vicini (appositamente memorizzati in un file). Il file dei peer vicini è strutturato nel seguente modo:
@@ -503,7 +503,7 @@ Riceve come parametro un buffer contenente un record del file e istanzia la stru
 init_data *init_char_to_initdata(char *buffer)
 \end{lstlisting}
 \paragraph{init\_read\_file()}
-Legge il file in cui sono contenuti i record dei "vicini" e aggiunge tutti i peer presenti all'interno del file in una lista contenente strutture di tipo init\_data. Si serve della funzione \texttt{init\_char\_to\_init\_data()} per l'istanziaziazione delle strutture dati.
+Legge il file in cui sono contenuti i record dei "vicini" e aggiunge tutti i peer presenti all'interno del file in una lista contenente strutture di tipo init\_data. Si serve della funzione \texttt{init\_char\_to\_init\_data()} per l'istanziazione delle strutture dati.
 \begin{lstlisting}
 GList *init_read_file(const char *filename)
 \end{lstlisting}

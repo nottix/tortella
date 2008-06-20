@@ -21,7 +21,7 @@ Il protocollo Gnutella\footnote{Protocollo versione 0.4} definisce il modo in cu
  \end{figure}
 I messaggi di Pong e di QueryHit vengono inviati tramite \textit{backward routing}\index{backward routing}, ovvero i descrittori seguono lo stesso percorso dei rispettivi descrittori ping/query a ritroso. Il backward routing viene individuato tramite gli identificatori univoci dei messaggi, questo implica che se un servente dovesse ricevere un descrittore di tipo pong/queryhit con id pari a N e questi non abbia ricevuto precedentemente un descrittore di tipo ping/query con id pari a N il pacchetto verrebbe scartato.
 \section{Protocollo TorTella}
-Il protocollo \textit{TorTella}\index{TorTela} nasce prendendo spunto da Gnutella, a cui sono state apportate delle modifiche per renderlo in linea alle necessità dell’applicativo sviluppato. L’architettura adottata da TorTella è stata inizialmente di tipo decentralizzata ibrida, ma vista la presenza di un point of failure a causa della presenza di un server centrale dedicato alle registrazioni, si è deciso di migrare verso un’architettura di tipo completamente decentralizzata. 
+Il protocollo \textit{TorTella}\index{TorTella} nasce prendendo spunto da Gnutella, a cui sono state apportate delle modifiche per renderlo in linea alle necessità dell’applicativo sviluppato. L’architettura adottata da TorTella è stata inizialmente di tipo decentralizzata ibrida, ma vista la presenza di un point of failure a causa della presenza di un server centrale dedicato alle registrazioni, si è deciso di migrare verso un’architettura di tipo completamente decentralizzata. 
 Di seguito si riportano alcune caratteristiche del protocollo TorTella, le analogie e le differenze con Gnutella:
 \subsection{Descrittori TorTella}
 Il protocollo realizzato eredita da Gnutella alcuni descrittori e ne definisce di nuovi per far fronte alle esigenze dell’applicazione:
@@ -50,7 +50,7 @@ Il protocollo realizzato eredita da Gnutella alcuni descrittori e ne definisce d
 \label{leave}
 \end{center}
 \end{figure}
-\item[Message] utiizzato per identificare i pacchetti di tipo messaggio. Contiene l’id della chat a cui recapitare il messaggio. Nel campo dati c'è il testo del messaggio.
+\item[Message] utilizzato per identificare i pacchetti di tipo messaggio. Contiene l’id della chat a cui recapitare il messaggio. Nel campo dati c'è il testo del messaggio.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.7]{etc/message.jpg}
@@ -59,7 +59,7 @@ Il protocollo realizzato eredita da Gnutella alcuni descrittori e ne definisce d
 \end{center}
 \end{figure}
 \item[Search] simile al descrittore Query di Gnutella. Contiene i campi TTL e hops. Nel campo dati è contenuta la stringa di ricerca.
-\item[Searchhits] simile al descrittore QueryHit di Gnutella; contiene inoltre, la lista degli utenti partecipanti alle chat rispondenti alla richiesta. Contiene il numero di chat trovate sulla base della query inserita. Il campo dati contiene i risultati della ricerca.
+\item[SearchHits] simile al descrittore QueryHit di Gnutella; contiene inoltre, la lista degli utenti partecipanti alle chat rispondenti alla richiesta. Contiene il numero di chat trovate sulla base della query inserita. Il campo dati contiene i risultati della ricerca.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.7]{etc/search.jpg}
@@ -75,7 +75,7 @@ Il protocollo realizzato eredita da Gnutella alcuni descrittori e ne definisce d
 \end{center}
 \end{figure}
 \item[List] serve per richiedere la lista degli utenti connessi ad una specifica chat (non più utilizzato perchè gestito dalla Search). Composto dall’id della chat, ttl e hops.
-\item[ListHits] serve per ritornare la lista degli utenti connessi ad una specifica chat (non più utilizzato perchè gestito dalla SearchHits). Composo da il numero di utenti, l'id della chat, ttl e hops. Nel campo dati c'è l'elenco degli utenti della chat.
+\item[ListHits] serve per ritornare la lista degli utenti connessi ad una specifica chat (non più utilizzato perchè gestito dalla SearchHits). Composto da il numero di utenti, l'id della chat, ttl e hops. Nel campo dati c'è l'elenco degli utenti della chat.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.7]{etc/list.jpg}
@@ -94,7 +94,7 @@ Il protocollo realizzato eredita da Gnutella alcuni descrittori e ne definisce d
 \end{description}
 
 \subsection{Pacchetto TorTella}
-Il pachetto TorTella è incluso nel campo dati HTTP ed è composto da 3 campi: un header di 40 byte, un campo descriptor e un campo relativo ai dati di dimensione variabile.
+Il pacchetto TorTella è incluso nel campo dati HTTP ed è composto da 3 campi: un header di 40 byte, un campo descriptor e un campo relativo ai dati di dimensione variabile.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.38]{etc/tortellapacket.jpg}
@@ -153,6 +153,6 @@ Si presentano di seguito l’header utilizzato per la realizzazione del protocol
 \begin{center}
 \texttt{TTL(0) = TTL(i)  + Hops(i)}
 \end{center}
-\item[Payload Length:] La lunghezza del descrittore successivo a quest’header. Il prossimo descriptor header si trova esattamente Payload Length bytes dalla fine di questo header.
+\item[Payload Length:] La lunghezza del descrittore successivo a quest’header. Il prossimo descriptor header si trova esattamente Payload Length byte dalla fine di questo header.
 \end{description}
 Come si può notare, l’header TorTella non presenta i campi TTL e Hops poiché questi servono solo ed esclusivamente nel caso di invio di pacchetti di flooding, quindi si è pensato di collocare questi due campi all’interno del campo descriptor; inoltre vengono aggiunti i campi sender\_id e receiver\_id per gestire al meglio l’invio e la ricezione dei pacchetti. Il campo descrittore presenta una lunghezza variabile a seconda del descriptor\_id presente nell’header.
