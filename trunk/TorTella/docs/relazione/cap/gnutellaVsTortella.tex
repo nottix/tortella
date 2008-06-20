@@ -139,8 +139,8 @@ Si presentano di seguito l’header utilizzato per la realizzazione del protocol
 \end{center}
 \end{figure}
 \begin{description}
-\item[Descriptor\_ID] una stringa di 16 byte che identifica univocamente il descrittore sulla rete;
-\item[Payload Descriptor]
+\item[Descriptor\_ID:] una stringa di 16 byte che identifica univocamente il descrittore sulla rete;
+\item[Payload Descriptor:] I descrittori sono i seguenti:
 \begin{itemize}
 	\item 0x00 = Ping
 	\item 0x01 = Pong
@@ -148,11 +148,11 @@ Si presentano di seguito l’header utilizzato per la realizzazione del protocol
 	\item 0x80 = Query
 	\item 0x81 = QueryHits	
 \end{itemize}
-\item[TTL] Time to live. Il numero di volte che il descrittore sarà inoltrato dai serventi Gnutella prima che esso sia rimosso dalla rete. Ogni servente decrementerà il TTL prima di inoltrarlo ad un altro servente. Quando il TTL è pari a zero, il descrittore non verrà più inoltrato;
-\item[Hops] Il numero di volte che il descrittore è stato inoltrato. Il TTL e il campo Hops devono soddisfare la seguente condizione: 
+\item[TTL:] Time to live. Il numero di volte che il descrittore sarà inoltrato dai serventi Gnutella prima che esso sia rimosso dalla rete. Ogni servente decrementerà il TTL prima di inoltrarlo ad un altro servente. Quando il TTL è pari a zero, il descrittore non verrà più inoltrato;
+\item[Hops:] Il numero di volte che il descrittore è stato inoltrato. Il TTL e il campo Hops devono soddisfare la seguente condizione: 
 \begin{center}
 \texttt{TTL(0) = TTL(i)  + Hops(i)}
 \end{center}
-\item[Payload Length] La lunghezza del descrittore successivo a quest’header. Il prossimo descriptor header si trova esattamente Payload Length bytes dalla fine di questo header.
+\item[Payload Length:] La lunghezza del descrittore successivo a quest’header. Il prossimo descriptor header si trova esattamente Payload Length bytes dalla fine di questo header.
 \end{description}
 Come si può notare, l’header TorTella non presenta i campi TTL e Hops poiché questi servono solo ed esclusivamente nel caso di invio di pacchetti di flooding, quindi si è pensato di collocare questi due campi all’interno del campo descriptor; inoltre vengono aggiunti i campi sender\_id e receiver\_id per gestire al meglio l’invio e la ricezione dei pacchetti. Il campo descrittore presenta una lunghezza variabile a seconda del descriptor\_id presente nell’header.
