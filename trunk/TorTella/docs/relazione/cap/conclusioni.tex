@@ -1,1 +1,11 @@
 \chapter{Conclusioni e sviluppi futuri}\label{conclusioni}
+E' stato sviluppato un software P2P per lo scambio di messaggi tra due o più utenti facendo uso del
+linguaggio C e dell'API del socket di Berkeley.
+L'API del socket di Berkeley è stata utilizzata per la gestire la connessione tra processi remoti, permettendo 
+l'instaurazione di connessioni di tipo persistente; inoltre è stato inserito un livello software ex-novo, il quale si comporta come un'interfaccia d'accesso per la comunicazione tra lo strato TCP e quello HTTP su cui si basa l'intero processo di scmabio di pacchetti.
+I vari test che sono stati eseguiti hanno dimostrato che il sistema riesce a mantenere un buon grado di stabilità e velocità, senza mai trovarsi in uno stato di inconsisteza.
+Nonostante ciò effettuando un'analisi più dettagliata si possono notare alcune inefficenze, soprattuto per quello che riguarda la gestione dell'invio conocorrente dei pacchetti. 
+A tale proposito è stato deciso di adottare un meccanismo di sequenzializzazione dei pacchetti basato sull'utilizzo di particolari strutture come le code e su un algoritmo di polling basato sullo switching del thread client nello stato di sleep.
+In questo modo ogni client non rischierà di perdere alcun segnale di notifica ,proveniente dal lato server,per l'invio di un pacchetto.
+Una possibile risoluzione al fine di evitare lo sleeping del thread potrebbe essere l'introduzione di un pthread_cond_timedwait(), ovvero una funzione che gestisce la sospensione del thread solo nel caso in cui la condizione posta sia verificata.
+Per quello che rigurada lo sviluppo di funzionalità aggiuntive si potrebbe pensare alla possibilità di effettuare il trasferimento di file tra gli utenti di una chat.   
