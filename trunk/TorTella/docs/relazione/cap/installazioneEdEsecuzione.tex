@@ -5,7 +5,10 @@ Nel presente capitolo verrà fornita una rapida guida d'installazione per l'uten
 Per generare il Makefile bisogna seguire i seguenti passi: 
 \begin{enumerate}
 \item Posizionarsi nella radice del progetto; 
-\item Eseguire il file \lstinline{./autogen.sh};
+\item Eseguire il comando \texttt{./configure}. Se invece si vuole installare l'applicazione in una directory differente da quella standard \texttt{/usr} si può eseguire il comando 
+\lstinline{./configure --prefix=<installdir>}, in questo modo è possibile installare l'applicazione senza i privilegi di \textit{root}\index{root};
+\begin{itemize}
+\item Se il \textit{configure} non è disponibile eseguire lo script \texttt{./autogen.sh} e poi tornare al passo 2;
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{etc/autogen.png}
@@ -13,7 +16,7 @@ Per generare il Makefile bisogna seguire i seguenti passi:
 \label{autogen}
 \end{center}
 \end{figure}
-\item Eseguire il \lstinline{./configure} sempre nella radice del progetto;
+\end{itemize}
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{etc/configure.png}
@@ -21,7 +24,7 @@ Per generare il Makefile bisogna seguire i seguenti passi:
 \label{configure}
 \end{center}
 \end{figure}
-\item Ora il Makefile è pronto, per compilare basta eseguire \lstinline{make} dalla radice del progetto.
+\item Ora il Makefile è pronto, per compilare basta eseguire \texttt{make} dalla radice del progetto.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{etc/make.png}
@@ -29,15 +32,16 @@ Per generare il Makefile bisogna seguire i seguenti passi:
 \label{make}
 \end{center}
 \end{figure}
+\item Per installare l'applicazione sul sistema si deve eseguire \texttt{make install}. Tale comando installerà \textit{TorTella}, i suoi file di configurazione, il suo \texttt{init\_data} e le sue man pages nella directory prescelta.
 \end{enumerate}
 E' anche possibile generare la documentazione del codice tramite le seguenti operazioni:
 \begin{enumerate}
-\item Posizionarsi nella directory \lstinline{./docs};
-\item Eseguire il comando \lstinline{doxygen doxygen.conf}.
+\item Posizionarsi nella directory \texttt{./docs};
+\item Eseguire il comando \texttt{doxygen doxygen.conf}.
 \end{enumerate}
-La documentazione verrà generata nella directory \lstinline{./docs/documentation} nei formati \textit{latex}, \textit{html} e \textit{manpages}.
+La documentazione verrà generata nella directory \texttt{./docs/documentation} nei formati \textit{latex}, \textit{html} e \textit{man}.
 \section{Configurazione}
-Prima di avviare il programma è necessario che i file vengano creati correttamente. A tal proposito si presenta un esempio di come dev'essere strutturato il file di configurazione e un esempio di come dev'essere strutturato il file contenente i "vicini" conosciuti:
+Prima di avviare il programma è necessario che i file vengano creati correttamente. A tal proposito si presenta un esempio di come dev'essere strutturato il file di configurazione ed un esempio di come dev'essere strutturato il file contenente i "vicini" conosciuti (\texttt{init\_data}\index{init\_data}):
 \begin{lstlisting}
 #TorTella Configuration file
 
@@ -61,9 +65,6 @@ max_fd = 100;
 timer_interval = 20;
 new_connection_counter = 10000;
 
-#SUPERNODE
-datadir = ./data;
-
 #SERVENT
 local_ip = 127.0.0.1;
 local_port = 2110;
@@ -75,19 +76,17 @@ Si consiglia all'utente inesperto di cambiare solamente gli ultimi tre parametri
 127.0.0.1;2110;
 127.0.0.1;2120;
 \end{lstlisting}
-Una volta che i file sono stati creati, è necessario posizionarli nelle directory corrette:
-\begin{itemize}
-\item Il file di esecuzione nella directory src;
-\item file di configurazione in \lstinline{src/conf};
-\item file di init in \lstinline{src/data}.
-\end{itemize}
-Se i file sono nelle posizioni corrette si può avviare l'esecuzione. Per l'esecuzione su una sola macchina è necessario avviare almeno due peer seguendo questi semplici passi:
+Per l'esecuzione su una sola macchina è necessario avviare almeno due peer seguendo questi semplici passi:
 \begin{enumerate}
-\item Posizionarsi in src;
-\item Eseguire \lstinline{./tortella ./conf/tortella.conf};
-\item Eseguire \lstinline{./tortella ./conf/tortella1.conf ./data/init\_data}. 
+\item Aprire una shell di comando;
+\item posizionarsi nella directory d'installazione dell'applicazione <installdir>;
+\item eseguire \texttt{./tortella ./etc/tortella.conf};
+\item aprire un'altra shell di comando;
+\item posizionarsi nella directory d'installazione dell'applicazione <installdir>;
+\item eseguire \texttt{./tortella ./etc/tortella1.conf ./share/init\_data}. 
 \end{enumerate}
 \section{Esecuzione}
+Ovviamente i percorsi dei file di configurazione e di init possono essere diversi, l'importante è che all'avvio di TorTella vengano specificati i path esatti.
 L'esecuzione qui presentata viene eseguita su macchina locale simulando la presenza di tre peer nella rete. I tre peer, che per comodità verranno chiamati simo, lore, ibra saranno inizialmente connessi nel seguente modo: simo non conosce alcun peer vicino, lore e ibra invece conosceranno come unico vicino simo. I tre peer avviano l'applicazione e simo crea una chat dal nome "prova":
 \begin{figure}[H]
 \begin{center}

@@ -1,0 +1,170 @@
+.TH "socketmanager.h" 3 "17 Jun 2008" "Version 0.1" "TorTella" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+socketmanager.h \- 
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <sys/types.h>\fP
+.br
+\fC#include <sys/socket.h>\fP
+.br
+\fC#include 'common.h'\fP
+.br
+\fC#include 'httpmanager.h'\fP
+.br
+
+.SS "Definizioni"
+
+.in +1c
+.ti -1c
+.RI "#define \fBLP_NONE\fP   100"
+.br
+.RI "\fI*Lunghezza buffer ricevzione/trasmissione*/ \fP"
+.ti -1c
+.RI "#define \fBLP_WRITE\fP   LP_NONE +1"
+.br
+.ti -1c
+.RI "#define \fBLP_READ\fP   LP_NONE +2"
+.br
+.in -1c
+.SS "Funzioni"
+
+.in +1c
+.ti -1c
+.RI "int \fBcreate_tcp_socket\fP (const char *dst_ip, int dst_port)"
+.br
+.RI "\fICrea un socket di connessione remota ovvero si connette ad un server remoto. \fP"
+.ti -1c
+.RI "int \fBcreate_listen_tcp_socket\fP (const char *src_ip, int src_port)"
+.br
+.RI "\fICrea un socket d'ascolto ovver un server TCP in attesa di connessioni. \fP"
+.ti -1c
+.RI "int \fBdelete_socket\fP (int sock_descriptor)"
+.br
+.RI "\fIElimina un socket ovvero chiude una connessione, mettendo il socket nello stato di TIME_WAIT. \fP"
+.ti -1c
+.RI "int \fBlisten_http_packet\fP (int listen_socket)"
+.br
+.RI "\fIfunzione che ritorna il nuovo descrittore di socket e l'indirizzo del client connesso, nel caso la chiamata di sistema accept() abbia avuto un esito positivo \fP"
+.ti -1c
+.RI "int \fBrecv_http_packet\fP (int con_socket, char **buffer)"
+.br
+.RI "\fILegge il pacchetto in ingresso e ritorna il numero di caratteri. \fP"
+.ti -1c
+.RI "int \fBsend_packet\fP (int sock_descriptor, char *buffer, int len)"
+.br
+.RI "\fIPermette di scrivere sul socket connesso specificato dal relativo descrittore. \fP"
+.ti -1c
+.RI "int \fBrecv_packet\fP (int sock_descriptor, char **buffer)"
+.br
+.RI "\fIAttende la ricezione di un pacchetto, avente come dimensione massima quella pari al valore assunto dal paramtero BUFFER_LEN. \fP"
+.ti -1c
+.RI "int \fBrecv_sized_packet\fP (int sock_descriptor, char **buf, int \fBmax_len\fP)"
+.br
+.RI "\fIAttende la ricezione di un pacchetto, prefissando il valore massimo(max_len) di byte di un blocco di dati del paccheto. \fP"
+.ti -1c
+.RI "char * \fBget_dest_ip\fP (int socket)"
+.br
+.RI "\fIPermette di ottenere l'indirizzo ip e il numero di porta del peer assocciato al socket, passato come parametro. \fP"
+.ti -1c
+.RI "\fBu_int4\fP \fBget_dest_port\fP (int socket)"
+.br
+.RI "\fIPermette di ottenere il numero di porta del peer assocciato al socket, passato come parametro. \fP"
+.ti -1c
+.RI "int \fBshutdown_socket\fP (int sock_descriptor)"
+.br
+.RI "\fIPermette la chiusura asimmetrica di una connessione TCP. \fP"
+.in -1c
+.SH "Documentazione delle definizioni"
+.PP 
+.SS "#define LP_NONE   100"
+.PP
+*Lunghezza buffer ricevzione/trasmissione*/ 
+.PP
+Definizione alla linea 15 del file socketmanager.h.
+.SS "#define LP_READ   LP_NONE +2"
+.PP
+Definizione alla linea 17 del file socketmanager.h.
+.SS "#define LP_WRITE   LP_NONE +1"
+.PP
+Definizione alla linea 16 del file socketmanager.h.
+.SH "Documentazione delle funzioni"
+.PP 
+.SS "int create_listen_tcp_socket (const char * src_ip, int src_port)"
+.PP
+Crea un socket d'ascolto ovver un server TCP in attesa di connessioni. 
+.PP
+
+.PP
+conversione dalla rappresentazione testuale/binaria dell'indirizzo al valore binario da inserire nella struttura sockaddr_in
+.PP
+funzione che permette di impostare le caratteristiche del socket. In questa funzione grazie all'utilizzo del paramtero SO_REUSEADDR si ha la possibilità di riutilizzare un indirizzo locale,modificando il comportamento della bind che fallisce in caso l'indirizzo sia già in uso in un altro socket.
+.PP
+funzione che permette di impostare le caratteristiche del socket. In questa funzione grazie all'utilizzo del paramtero SO_KEEPALIVE si ha la possibilità di gestire le persistenza delle connessioni.
+.PP
+funzione utilizzata per la fase di inizializzazione dell'indirizzo ip e del numero di porta utilizzati dal socket, inoltre serve a far sapere al SO a quale processo vanno inviati i dati ricevuti dalla rete.
+.PP
+funzione utilizzata per porre il socket creato dallo stato di CLOSED a quello di LISTEN, specificando il numero di connessioni che possono essere accettate dal server 
+.PP
+Definizione alla linea 93 del file socketmanager.c.
+.SS "int create_tcp_socket (const char * dst_ip, int dst_port)"
+.PP
+Crea un socket di connessione remota ovvero si connette ad un server remoto. 
+.PP
+
+.PP
+conversione dalla rappresentazione testuale/binaria dell'indirizzo al valore binario da inserire nella struttura sockaddr_in
+.PP
+funzione che permette di impostare le caratteristiche del socket. In questa funzione grazie all'utilizzo del paramtero SO_KEEPALIVE si ha la possibilità di gestire le persistenza delle connessioni. 
+.PP
+Definizione alla linea 36 del file socketmanager.c.
+.SS "int delete_socket (int sock_descriptor)"
+.PP
+Elimina un socket ovvero chiude una connessione, mettendo il socket nello stato di TIME_WAIT. 
+.PP
+Definizione alla linea 166 del file socketmanager.c.
+.SS "char* get_dest_ip (int socket)"
+.PP
+Permette di ottenere l'indirizzo ip e il numero di porta del peer assocciato al socket, passato come parametro. 
+.PP
+Definizione alla linea 308 del file socketmanager.c.
+.SS "\fBu_int4\fP get_dest_port (int socket)"
+.PP
+Permette di ottenere il numero di porta del peer assocciato al socket, passato come parametro. 
+.PP
+Definizione alla linea 325 del file socketmanager.c.
+.SS "int listen_http_packet (int listen_socket)"
+.PP
+funzione che ritorna il nuovo descrittore di socket e l'indirizzo del client connesso, nel caso la chiamata di sistema accept() abbia avuto un esito positivo 
+.PP
+Definizione alla linea 184 del file socketmanager.c.
+.SS "int recv_http_packet (int con_socket, char ** buffer)"
+.PP
+Legge il pacchetto in ingresso e ritorna il numero di caratteri. 
+.PP
+Definizione alla linea 199 del file socketmanager.c.
+.SS "int recv_packet (int sock_descriptor, char ** buffer)"
+.PP
+Attende la ricezione di un pacchetto, avente come dimensione massima quella pari al valore assunto dal paramtero BUFFER_LEN. 
+.PP
+Definizione alla linea 240 del file socketmanager.c.
+.SS "int recv_sized_packet (int sock_descriptor, char ** buf, int max_len)"
+.PP
+Attende la ricezione di un pacchetto, prefissando il valore massimo(max_len) di byte di un blocco di dati del paccheto. 
+.PP
+Definizione alla linea 249 del file socketmanager.c.
+.SS "int send_packet (int sock_descriptor, char * buffer, int len)"
+.PP
+Permette di scrivere sul socket connesso specificato dal relativo descrittore. 
+.PP
+Definizione alla linea 215 del file socketmanager.c.
+.SS "int shutdown_socket (int sock_descriptor)"
+.PP
+Permette la chiusura asimmetrica di una connessione TCP. 
+.PP
+Definizione alla linea 341 del file socketmanager.c.
+.SH "Autore"
+.PP 
+Generato automaticamente da Doxygen per TorTella a partire dal codice sorgente.

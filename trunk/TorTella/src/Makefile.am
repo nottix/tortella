@@ -9,12 +9,17 @@ OBJECTS = tortellaprotocol.o httpmanager.o socketmanager.o packetmanager.o serve
 
 LIBS = $(gthread_LIBS) $(gtk_LIBS)
 
+MAN_FILES = ../docs/documentation/man/man3/chat.3 ../docs/documentation/man/man3/bye_desc.3 ../docs/documentation/man/man3/datamanager.c.3 ../docs/documentation/man/man3/http_packet.3 ../docs/documentation/man/man3/logger.c.3 ../docs/documentation/man/man3/search_desc.3 ../docs/documentation/man/man3/supernodedata_testing.c.3 ../docs/documentation/man/man3/chat.3 ../docs/documentation/man/man3/datamanager.h.3 ../docs/documentation/man/man3/init.c.3 ../docs/documentation/man/man3/logger.h.3 ../docs/documentation/man/man3/searchhits_desc.3 ../docs/documentation/man/man3/tortella.c.3 ../docs/documentation/man/man3/chatclient.3  ../docs/documentation/man/man3/gui.c.3 ../docs/documentation/man/man3/init_data.3 ../docs/documentation/man/man3/message_desc.3 ../docs/documentation/man/man3/servent.c.3 ../docs/documentation/man/man3/tortella_header.3 ../docs/documentation/man/man3/common.h.3 ../docs/documentation/man/man3/gui.h.3 ../docs/documentation/man/man3/init.h.3 ../docs/documentation/man/man3/packetmanager.c.3 ../docs/documentation/man/man3/servent_data.3 ../docs/documentation/man/man3/tortella_packet.3 ../docs/documentation/man/man3/confmanager.c.3 ../docs/documentation/man/man3/gui_testing.c.3 ../docs/documentation/man/man3/init_testing.c.3 ../docs/documentation/man/man3/packetmanager.h.3 ../docs/documentation/man/man3/servent.h.3 ../docs/documentation/man/man3/tortellaprotocol.c.3 ../docs/documentation/man/man3/confmanager.h.3 ../docs/documentation/man/man3/http_header_request.3 ../docs/documentation/man/man3/join_desc.3 ../docs/documentation/man/man3/ping_desc.3 ../docs/documentation/man/man3/servent_testing.c.3 ../docs/documentation/man/man3/tortellaprotocol.h.3 ../docs/documentation/man/man3/confmanager_testing.c.3 ../docs/documentation/man/man3/http_header_response.3 ../docs/documentation/man/man3/leave_desc.3 ../docs/documentation/man/man3/pm_data.3 ../docs/documentation/man/man3/socketmanager.c.3 ../docs/documentation/man/man3/tortellaprotocol_testing.c.3 ../docs/documentation/man/man3/controller.c.3 ../docs/documentation/man/man3/httpmanager.c.3 ../docs/documentation/man/man3/list_desc.3 ../docs/documentation/man/man3/route_entry.3 ../docs/documentation/man/man3/socketmanager.h.3 ../docs/documentation/man/man3/tree_model.3 ../docs/documentation/man/man3/controller.h.3 ../docs/documentation/man/man3/httpmanager.h.3 ../docs/documentation/man/man3/listhits_desc.3 ../docs/documentation/man/man3/routemanager.c.3 ../docs/documentation/man/man3/socketmanager_testing.c.3 ../docs/documentation/man/man3/utils.c.3 ../docs/documentation/man/man3/controller_testing.c.3 ../docs/documentation/man/man3/httpmanager_testing.c.3 ../docs/documentation/man/man3/list_testing.c.3 ../docs/documentation/man/man3/routemanager.h.3 ../docs/documentation/man/man3/SocketTest.c.3 ../docs/documentation/man/man3/utils.h.3
+
 bin_PROGRAMS = tortella
 tortella_SOURCES = tortella.c
 tortella_DEPENDENCIES = $(OBJECTS) tortella.c
 tortella_LDADD = $(OBJECTS)
 tortella_LDFLAGS = $(LIBS)
 tortella_CFLAGS = $(AM_CFLAGS)
+sysconf_DATA = conf/tortella.conf conf/tortella1.conf
+man_MANS = $(MAN_FILES)
+data_DATA = data/init_data
 
 tortellaprotocol.o: tortellaprotocol.h tortellaprotocol.c
 	@echo -e "Building tortellaprotocol"

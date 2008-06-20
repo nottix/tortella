@@ -1,0 +1,276 @@
+.TH "datamanager.c" 3 "17 Jun 2008" "Version 0.1" "TorTella" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+datamanager.c \- 
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <string.h>\fP
+.br
+\fC#include 'datamanager.h'\fP
+.br
+
+.SS "Funzioni"
+
+.in +1c
+.ti -1c
+.RI "int \fBwrite_to_file\fP (const char *filename, \fBchat\fP *chat_str, \fBu_int4\fP mode)"
+.br
+.RI "\fIScrive la struttura dati 'chat' in un file, nel seguente modo: chat_id;chat_title; user_id;user_nick;user_ip;user_port;\fP"
+.ti -1c
+.RI "int \fBwrite_all\fP (\fBu_int4\fP mode)"
+.br
+.RI "\fISalva tutte le \fBchat\fP su un file in modalità TRUNC. \fP"
+.ti -1c
+.RI "int \fBread_from_file\fP (const char *filename)"
+.br
+.RI "\fILegge le informazioni delle \fBchat\fP e degli utenti dal file specificato. \fP"
+.ti -1c
+.RI "int \fBread_all\fP (void)"
+.br
+.RI "\fILegge tutte le \fBchat\fP contenute nella directory specificata nel file di configurazione. \fP"
+.ti -1c
+.RI "int \fBdata_add_chat\fP (\fBu_int8\fP id, const char *title)"
+.br
+.RI "\fIInserisce la \fBchat\fP rappresentata dai parametri id e titolo nella hashtable relativa alle \fBchat\fP. \fP"
+.ti -1c
+.RI "int \fBdata_add_all_to_chat\fP (GList *chats)"
+.br
+.RI "\fIAggiunge la lista di \fBchat\fP nella hashtable relativa alle \fBchat\fP. \fP"
+.ti -1c
+.RI "int \fBdata_del_chat\fP (\fBu_int8\fP id)"
+.br
+.RI "\fIRimuove la \fBchat\fP con l'id specificato dalla hashtable relativa alle \fBchat\fP. \fP"
+.ti -1c
+.RI "int \fBdata_add_existing_user_to_chat\fP (\fBu_int8\fP chat_id, \fBu_int8\fP id)"
+.br
+.RI "\fIAggiunge un utente presente nella hashtable dei client alla hashtable di utenti della \fBchat\fP poichè non ancora presente all'interno di quest'ultima. \fP"
+.ti -1c
+.RI "int \fBdata_add_users_to_chat\fP (\fBu_int8\fP chat_id, GList *users)"
+.br
+.RI "\fIAggiunge una lista di utenti alla \fBchat\fP specificata da chat_id. \fP"
+.ti -1c
+.RI "int \fBdata_add_user_to_chat\fP (\fBu_int8\fP chat_id, \fBu_int8\fP id, const char *\fBnick\fP, const char *ip, \fBu_int4\fP port)"
+.br
+.RI "\fICrea un nuovo \fBchatclient\fP settando i campi con i valori dei parametri e lo aggiunge alla hashtable degli utenti connessi alla \fBchat\fP con id pari a chat_id. \fP"
+.ti -1c
+.RI "int \fBdata_add_user\fP (\fBu_int8\fP id, const char *\fBnick\fP, const char *ip, \fBu_int4\fP port)"
+.br
+.RI "\fICrea un nuovo \fBchatclient\fP settandone i campi con i valori dei parametri e lo inserisce nella hashtable contenente tutti i \fBchatclient\fP. \fP"
+.ti -1c
+.RI "int \fBdata_del_user\fP (\fBu_int8\fP id)"
+.br
+.RI "\fIRimuove un utente dalla hashtable dei \fBchatclient\fP. \fP"
+.ti -1c
+.RI "int \fBdata_del_user_from_chat\fP (\fBu_int8\fP chat_id, \fBu_int8\fP id)"
+.br
+.RI "\fIRimuove l'utente con lo specifico id dalla hashtable dei \fBchatclient\fP e dalla hashtable degli utenti connessi alla \fBchat\fP con id pari a chat_id. \fP"
+.ti -1c
+.RI "\fBchat\fP * \fBdata_search_chat_local\fP (const char *title)"
+.br
+.RI "\fIFunzione wrapper non più utilizzata. \fP"
+.ti -1c
+.RI "\fBchat\fP * \fBdata_search_chat\fP (const char *title)"
+.br
+.RI "\fICerca nella hashtable chat_table l'occorrenza della \fBchat\fP title Ritorna la struttura dati della \fBchat\fP. \fP"
+.ti -1c
+.RI "GList * \fBdata_search_all_chat\fP (const char *title)"
+.br
+.RI "\fICerca nella hashtable chat_table tutte le \fBchat\fP che hanno come titolo *title* Ritorna le \fBchat\fP in una slist. \fP"
+.ti -1c
+.RI "GList * \fBdata_search_all_local_chat\fP (const char *title)"
+.br
+.RI "\fIFunzione wrapper non più utilizzata. \fP"
+.ti -1c
+.RI "\fBchatclient\fP * \fBdata_search_chatclient\fP (const char *\fBnick\fP)"
+.br
+.RI "\fICerca un \fBchatclient\fP nella hashtable dei \fBchatclient\fP. \fP"
+.ti -1c
+.RI "char * \fBdata_chatlist_to_char\fP (GList *chat_list, int *len)"
+.br
+.RI "\fIConverte la lista di \fBchat\fP in una stringa del tipo: 111;test; 22;pippo;127.0.0.1;2110; 33;pluto;127.0.0.1;2111;. \fP"
+.ti -1c
+.RI "GList * \fBdata_char_to_chatlist\fP (const char *buffer, int len)"
+.br
+.RI "\fIConverte una stringa in una lista di \fBchat\fP con i relativi utenti 111;test; 22;pippo;127.0.0.1;2110; 33;pluto;127.0.0.1;2111; |222;test; 333;si. \fP"
+.ti -1c
+.RI "char * \fBdata_userlist_to_char\fP (GList *user_list, int *len)"
+.br
+.RI "\fIConverte la lista di utenti in una stringa del tipo: 22;pippo;127.0.0.1;2110; 33;pluto;127.0.0.1;2111;. \fP"
+.ti -1c
+.RI "GList * \fBdata_char_to_userlist\fP (const char *buffer, int len)"
+.br
+.RI "\fIConverte una stringa in una lista di utenti. \fP"
+.ti -1c
+.RI "GList * \fBdata_get_chatclient_from_chat\fP (\fBu_int8\fP id)"
+.br
+.RI "\fIRitorna una lista di tutti i client della \fBchat\fP specificata. \fP"
+.ti -1c
+.RI "\fBchat\fP * \fBdata_get_chat\fP (\fBu_int8\fP chat_id)"
+.br
+.RI "\fIRitorna la \fBchat\fP con lo specifico chat_id. \fP"
+.ti -1c
+.RI "\fBchatclient\fP * \fBdata_get_chatclient\fP (\fBu_int8\fP id)"
+.br
+.RI "\fIRitorna il \fBchatclient\fP con lo specifico id. \fP"
+.ti -1c
+.RI "int \fBdata_destroy_user\fP (\fBu_int8\fP id)"
+.br
+.RI "\fIRimuove un utente da tutte le hashtable delle \fBchat\fP in cui è presente e infine lo rimuove dalla hashtable dei \fBchatclient\fP. \fP"
+.in -1c
+.SH "Documentazione delle funzioni"
+.PP 
+.SS "int data_add_all_to_chat (GList * chats)"
+.PP
+Aggiunge la lista di \fBchat\fP nella hashtable relativa alle \fBchat\fP. 
+.PP
+Per ognuna di queste recupera la lista degli utenti connessi e li inserisce nella hashtable relativa ai \fBchatclient\fP. 
+.PP
+Definizione alla linea 214 del file datamanager.c.
+.SS "int data_add_chat (\fBu_int8\fP id, const char * title)"
+.PP
+Inserisce la \fBchat\fP rappresentata dai parametri id e titolo nella hashtable relativa alle \fBchat\fP. 
+.PP
+Definizione alla linea 188 del file datamanager.c.
+.SS "int data_add_existing_user_to_chat (\fBu_int8\fP chat_id, \fBu_int8\fP id)"
+.PP
+Aggiunge un utente presente nella hashtable dei client alla hashtable di utenti della \fBchat\fP poichè non ancora presente all'interno di quest'ultima. 
+.PP
+Definizione alla linea 256 del file datamanager.c.
+.SS "int data_add_user (\fBu_int8\fP id, const char * nick, const char * ip, \fBu_int4\fP port)"
+.PP
+Crea un nuovo \fBchatclient\fP settandone i campi con i valori dei parametri e lo inserisce nella hashtable contenente tutti i \fBchatclient\fP. 
+.PP
+Definizione alla linea 335 del file datamanager.c.
+.SS "int data_add_user_to_chat (\fBu_int8\fP chat_id, \fBu_int8\fP id, const char * nick, const char * ip, \fBu_int4\fP port)"
+.PP
+Crea un nuovo \fBchatclient\fP settando i campi con i valori dei parametri e lo aggiunge alla hashtable degli utenti connessi alla \fBchat\fP con id pari a chat_id. 
+.PP
+Definizione alla linea 298 del file datamanager.c.
+.SS "int data_add_users_to_chat (\fBu_int8\fP chat_id, GList * users)"
+.PP
+Aggiunge una lista di utenti alla \fBchat\fP specificata da chat_id. 
+.PP
+Per ogni elemento della lista viene invocata la funzione data_add_user_to_chat. 
+.PP
+Definizione alla linea 277 del file datamanager.c.
+.SS "GList* data_char_to_chatlist (const char * buffer, int len)"
+.PP
+Converte una stringa in una lista di \fBchat\fP con i relativi utenti 111;test; 22;pippo;127.0.0.1;2110; 33;pluto;127.0.0.1;2111; |222;test; 333;si. 
+.PP
+...... 
+.PP
+Definizione alla linea 524 del file datamanager.c.
+.SS "GList* data_char_to_userlist (const char * buffer, int len)"
+.PP
+Converte una stringa in una lista di utenti. 
+.PP
+Definizione alla linea 603 del file datamanager.c.
+.SS "char* data_chatlist_to_char (GList * chat_list, int * len)"
+.PP
+Converte la lista di \fBchat\fP in una stringa del tipo: 111;test; 22;pippo;127.0.0.1;2110; 33;pluto;127.0.0.1;2111;. 
+.PP
+Definizione alla linea 467 del file datamanager.c.
+.SS "int data_del_chat (\fBu_int8\fP id)"
+.PP
+Rimuove la \fBchat\fP con l'id specificato dalla hashtable relativa alle \fBchat\fP. 
+.PP
+Definizione alla linea 243 del file datamanager.c.
+.SS "int data_del_user (\fBu_int8\fP id)"
+.PP
+Rimuove un utente dalla hashtable dei \fBchatclient\fP. 
+.PP
+Definizione alla linea 355 del file datamanager.c.
+.SS "int data_del_user_from_chat (\fBu_int8\fP chat_id, \fBu_int8\fP id)"
+.PP
+Rimuove l'utente con lo specifico id dalla hashtable dei \fBchatclient\fP e dalla hashtable degli utenti connessi alla \fBchat\fP con id pari a chat_id. 
+.PP
+Definizione alla linea 368 del file datamanager.c.
+.SS "int data_destroy_user (\fBu_int8\fP id)"
+.PP
+Rimuove un utente da tutte le hashtable delle \fBchat\fP in cui è presente e infine lo rimuove dalla hashtable dei \fBchatclient\fP. 
+.PP
+Definizione alla linea 653 del file datamanager.c.
+.SS "\fBchat\fP* data_get_chat (\fBu_int8\fP chat_id)"
+.PP
+Ritorna la \fBchat\fP con lo specifico chat_id. 
+.PP
+Definizione alla linea 636 del file datamanager.c.
+.SS "\fBchatclient\fP* data_get_chatclient (\fBu_int8\fP id)"
+.PP
+Ritorna il \fBchatclient\fP con lo specifico id. 
+.PP
+Definizione alla linea 645 del file datamanager.c.
+.SS "GList* data_get_chatclient_from_chat (\fBu_int8\fP id)"
+.PP
+Ritorna una lista di tutti i client della \fBchat\fP specificata. 
+.PP
+Definizione alla linea 626 del file datamanager.c.
+.SS "GList* data_search_all_chat (const char * title)"
+.PP
+Cerca nella hashtable chat_table tutte le \fBchat\fP che hanno come titolo *title* Ritorna le \fBchat\fP in una slist. 
+.PP
+Definizione alla linea 409 del file datamanager.c.
+.SS "GList* data_search_all_local_chat (const char * title)"
+.PP
+Funzione wrapper non più utilizzata. 
+.PP
+Definizione alla linea 438 del file datamanager.c.
+.SS "\fBchat\fP* data_search_chat (const char * title)"
+.PP
+Cerca nella hashtable chat_table l'occorrenza della \fBchat\fP title Ritorna la struttura dati della \fBchat\fP. 
+.PP
+Definizione alla linea 390 del file datamanager.c.
+.SS "\fBchat\fP* data_search_chat_local (const char * title)"
+.PP
+Funzione wrapper non più utilizzata. 
+.PP
+Invoca la funzione data_search_chat 
+.PP
+Definizione alla linea 382 del file datamanager.c.
+.SS "\fBchatclient\fP* data_search_chatclient (const char * nick)"
+.PP
+Cerca un \fBchatclient\fP nella hashtable dei \fBchatclient\fP. 
+.PP
+Non più utilizzata. 
+.PP
+Definizione alla linea 445 del file datamanager.c.
+.SS "char* data_userlist_to_char (GList * user_list, int * len)"
+.PP
+Converte la lista di utenti in una stringa del tipo: 22;pippo;127.0.0.1;2110; 33;pluto;127.0.0.1;2111;. 
+.PP
+Definizione alla linea 564 del file datamanager.c.
+.SS "int read_all (void)"
+.PP
+Legge tutte le \fBchat\fP contenute nella directory specificata nel file di configurazione. 
+.PP
+Non utilizzata. 
+.PP
+Definizione alla linea 163 del file datamanager.c.
+.SS "int read_from_file (const char * filename)"
+.PP
+Legge le informazioni delle \fBchat\fP e degli utenti dal file specificato. 
+.PP
+Aggiunge i dati sulla \fBchat\fP alla hashtable relativa, inoltre i dati degli utenti alla hashtable relativa. Non utilizzata. 
+.PP
+Definizione alla linea 104 del file datamanager.c.
+.SS "int write_all (\fBu_int4\fP mode)"
+.PP
+Salva tutte le \fBchat\fP su un file in modalità TRUNC. 
+.PP
+Chiama la funzione write_to_file per ogni \fBchat\fP contenuta nella hashtable. Non utilizzata. 
+.PP
+Definizione alla linea 77 del file datamanager.c.
+.SS "int write_to_file (const char * filename, \fBchat\fP * chat_str, \fBu_int4\fP mode)"
+.PP
+Scrive la struttura dati 'chat' in un file, nel seguente modo: chat_id;chat_title; user_id;user_nick;user_ip;user_port;
+.PP
+..
+.PP
+In modalità TRUNC crea ogni volta un nuovo file, mentre nella modalità APPEND modifica il file esistente. Non utilizzata. 
+.PP
+Definizione alla linea 30 del file datamanager.c.
+.SH "Autore"
+.PP 
+Generato automaticamente da Doxygen per TorTella a partire dal codice sorgente.
