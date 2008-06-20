@@ -35,7 +35,7 @@ GList *init_read_file(const char *filename) {
 	int i=0;	
 
 	if(filename==NULL || strlen(filename)==0) {
-		logger(ALARM_INFO, "[init_read_file] Filename incorrecto or file not present\n");
+		logger(ALARM_INFO, "[init_read_file] Filename incorrect or file not present\n");
 		return NULL;
 	}
 	

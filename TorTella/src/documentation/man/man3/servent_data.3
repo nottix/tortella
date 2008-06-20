@@ -1,0 +1,185 @@
+.TH "servent_data" 3 "17 Jun 2008" "Version 0.1" "TorTella" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+servent_data \- Tale struttura dati viene utilizzata per le operazioni di comunicazioni con un servente a cui si è connessi.  
+
+.PP
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <servent.h>\fP
+.PP
+.SS "Campi"
+
+.in +1c
+.ti -1c
+.RI "\fBu_int8\fP \fBid\fP"
+.br
+.ti -1c
+.RI "GQueue * \fBqueue\fP"
+.br
+.ti -1c
+.RI "GQueue * \fBres_queue\fP"
+.br
+.ti -1c
+.RI "char * \fBip\fP"
+.br
+.ti -1c
+.RI "\fBu_int4\fP \fBport\fP"
+.br
+.ti -1c
+.RI "\fBu_int1\fP \fBstatus\fP"
+.br
+.ti -1c
+.RI "char * \fBnick\fP"
+.br
+.ti -1c
+.RI "time_t \fBtimestamp\fP"
+.br
+.ti -1c
+.RI "GList * \fBchat_list\fP"
+.br
+.ti -1c
+.RI "pthread_rwlock_t \fBrwlock_data\fP"
+.br
+.ti -1c
+.RI "char * \fBmsg\fP"
+.br
+.ti -1c
+.RI "\fBu_int4\fP \fBmsg_len\fP"
+.br
+.ti -1c
+.RI "GList * \fBchat_res\fP"
+.br
+.ti -1c
+.RI "\fBu_int1\fP \fBttl\fP"
+.br
+.ti -1c
+.RI "\fBu_int1\fP \fBhops\fP"
+.br
+.ti -1c
+.RI "\fBu_int8\fP \fBpacket_id\fP"
+.br
+.ti -1c
+.RI "\fBu_int1\fP \fBis_online\fP"
+.br
+.ti -1c
+.RI "\fBu_int4\fP \fBpost_type\fP"
+.br
+.ti -1c
+.RI "\fBu_int8\fP \fBuser_id_req\fP"
+.br
+.ti -1c
+.RI "\fBu_int8\fP \fBchat_id_req\fP"
+.br
+.ti -1c
+.RI "\fBu_int4\fP \fBport_req\fP"
+.br
+.ti -1c
+.RI "char * \fBnick_req\fP"
+.br
+.ti -1c
+.RI "char * \fBip_req\fP"
+.br
+.ti -1c
+.RI "\fBu_int1\fP \fBstatus_req\fP"
+.br
+.ti -1c
+.RI "char * \fBtitle\fP"
+.br
+.ti -1c
+.RI "\fBu_int4\fP \fBtitle_len\fP"
+.br
+.in -1c
+.SH "Descrizione dettagliata"
+.PP 
+Tale struttura dati viene utilizzata per le operazioni di comunicazioni con un servente a cui si è connessi. 
+
+Ne è presente una anche per il peer locale 
+.PP
+Definizione alla linea 61 del file servent.h.
+.SH "Documentazione dei campi"
+.PP 
+.SS "\fBu_int8\fP \fBservent_data::id\fP"
+.PP
+Definizione alla linea 62 del file servent.h.
+.SS "GQueue* \fBservent_data::queue\fP"
+.PP
+Definizione alla linea 63 del file servent.h.
+.SS "GQueue* \fBservent_data::res_queue\fP"
+.PP
+Definizione alla linea 64 del file servent.h.
+.SS "char* \fBservent_data::ip\fP"
+.PP
+Definizione alla linea 65 del file servent.h.
+.SS "\fBu_int4\fP \fBservent_data::port\fP"
+.PP
+Definizione alla linea 66 del file servent.h.
+.SS "\fBu_int1\fP \fBservent_data::status\fP"
+.PP
+Definizione alla linea 67 del file servent.h.
+.SS "char* \fBservent_data::nick\fP"
+.PP
+Definizione alla linea 68 del file servent.h.
+.SS "time_t \fBservent_data::timestamp\fP"
+.PP
+Definizione alla linea 69 del file servent.h.
+.SS "GList* \fBservent_data::chat_list\fP"
+.PP
+Definizione alla linea 71 del file servent.h.
+.SS "pthread_rwlock_t \fBservent_data::rwlock_data\fP"
+.PP
+Definizione alla linea 73 del file servent.h.
+.SS "char* \fBservent_data::msg\fP"
+.PP
+Definizione alla linea 75 del file servent.h.
+.SS "\fBu_int4\fP \fBservent_data::msg_len\fP"
+.PP
+Definizione alla linea 76 del file servent.h.
+.SS "GList* \fBservent_data::chat_res\fP"
+.PP
+Definizione alla linea 78 del file servent.h.
+.SS "\fBu_int1\fP \fBservent_data::ttl\fP"
+.PP
+Definizione alla linea 79 del file servent.h.
+.SS "\fBu_int1\fP \fBservent_data::hops\fP"
+.PP
+Definizione alla linea 80 del file servent.h.
+.SS "\fBu_int8\fP \fBservent_data::packet_id\fP"
+.PP
+Definizione alla linea 81 del file servent.h.
+.SS "\fBu_int1\fP \fBservent_data::is_online\fP"
+.PP
+Definizione alla linea 83 del file servent.h.
+.SS "\fBu_int4\fP \fBservent_data::post_type\fP"
+.PP
+Definizione alla linea 86 del file servent.h.
+.SS "\fBu_int8\fP \fBservent_data::user_id_req\fP"
+.PP
+Definizione alla linea 89 del file servent.h.
+.SS "\fBu_int8\fP \fBservent_data::chat_id_req\fP"
+.PP
+Definizione alla linea 90 del file servent.h.
+.SS "\fBu_int4\fP \fBservent_data::port_req\fP"
+.PP
+Definizione alla linea 91 del file servent.h.
+.SS "char* \fBservent_data::nick_req\fP"
+.PP
+Definizione alla linea 92 del file servent.h.
+.SS "char* \fBservent_data::ip_req\fP"
+.PP
+Definizione alla linea 93 del file servent.h.
+.SS "\fBu_int1\fP \fBservent_data::status_req\fP"
+.PP
+Definizione alla linea 94 del file servent.h.
+.SS "char* \fBservent_data::title\fP"
+.PP
+Definizione alla linea 95 del file servent.h.
+.SS "\fBu_int4\fP \fBservent_data::title_len\fP"
+.PP
+Definizione alla linea 96 del file servent.h.
+
+.SH "Autore"
+.PP 
+Generato automaticamente da Doxygen per TorTella a partire dal codice sorgente.

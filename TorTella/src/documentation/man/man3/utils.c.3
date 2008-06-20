@@ -1,0 +1,62 @@
+.TH "utils.c" 3 "17 Jun 2008" "Version 0.1" "TorTella" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+utils.c \- 
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'utils.h'\fP
+.br
+
+.SS "Funzioni"
+
+.in +1c
+.ti -1c
+.RI "\fBu_int8\fP \fBgenerate_id\fP (void)"
+.br
+.ti -1c
+.RI "int \fBgenerate_id4\fP (void)"
+.br
+.ti -1c
+.RI "char * \fBto_string\fP (\fBu_int8\fP num)"
+.br
+.ti -1c
+.RI "char * \fBprepare_msg\fP (time_t timestamp, const char *\fBnick\fP, char *msg, int msg_len)"
+.br
+.ti -1c
+.RI "char * \fBhex_dump\fP (const char *packet, int len, int n)"
+.br
+.ti -1c
+.RI "char * \fBdump_data\fP (const char *packet, int len)"
+.br
+.ti -1c
+.RI "char * \fBget_mac_addr\fP (void)"
+.br
+.in -1c
+.SH "Documentazione delle funzioni"
+.PP 
+.SS "char* dump_data (const char * packet, int len)"
+.PP
+Definizione alla linea 201 del file utils.c.
+.SS "\fBu_int8\fP generate_id (void)"
+.PP
+Definizione alla linea 25 del file utils.c.
+.SS "int generate_id4 (void)"
+.PP
+Definizione alla linea 38 del file utils.c.
+.SS "char* get_mac_addr (void)"
+.PP
+Definizione alla linea 209 del file utils.c.
+.SS "char* hex_dump (const char * packet, int len, int n)"
+.PP
+Definizione alla linea 82 del file utils.c.
+.SS "char* prepare_msg (time_t timestamp, const char * nick, char * msg, int msg_len)"
+.PP
+Definizione alla linea 64 del file utils.c.
+.SS "char* to_string (\fBu_int8\fP num)"
+.PP
+Definizione alla linea 52 del file utils.c.
+.SH "Autore"
+.PP 
+Generato automaticamente da Doxygen per TorTella a partire dal codice sorgente.

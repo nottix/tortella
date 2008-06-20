@@ -1,0 +1,71 @@
+.TH "join_desc" 3 "17 Jun 2008" "Version 0.1" "TorTella" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+join_desc \- struttura dati per il pacchetto di join ad una \fBchat\fP.  
+
+.PP
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <tortellaprotocol.h>\fP
+.PP
+.SS "Campi"
+
+.in +1c
+.ti -1c
+.RI "\fBu_int1\fP \fBstatus\fP"
+.br
+.ti -1c
+.RI "\fBu_int8\fP \fBuser_id\fP"
+.br
+.ti -1c
+.RI "\fBu_int8\fP \fBchat_id\fP"
+.br
+.ti -1c
+.RI "\fBu_int4\fP \fBport\fP"
+.br
+.ti -1c
+.RI "char \fBip\fP [16]"
+.br
+.ti -1c
+.RI "\fBu_int1\fP \fBttl\fP"
+.br
+.ti -1c
+.RI "\fBu_int1\fP \fBhops\fP"
+.br
+.in -1c
+.SH "Descrizione dettagliata"
+.PP 
+struttura dati per il pacchetto di join ad una \fBchat\fP. 
+
+Nella struct sono salvate tutte le info relative all'utente che vuole accedere alla \fBchat\fP: stato(ONLINE-BUSY-AWAY)-ID dell'utente- -Id della chat-numero di porta del socket-indirizzo ip. Inoltre sono salvati i valori dell TTL e dell'HOPS per il flooding del pacchetto. Tutti i dati contenuti da tale descrittore rimarranno identici(salvo per il TTL e HOPS) per tutto il percorso fatto dal pacchetto nella rete. 
+.PP
+Definizione alla linea 109 del file tortellaprotocol.h.
+.SH "Documentazione dei campi"
+.PP 
+.SS "\fBu_int1\fP \fBjoin_desc::status\fP"
+.PP
+Definizione alla linea 110 del file tortellaprotocol.h.
+.SS "\fBu_int8\fP \fBjoin_desc::user_id\fP"
+.PP
+Definizione alla linea 111 del file tortellaprotocol.h.
+.SS "\fBu_int8\fP \fBjoin_desc::chat_id\fP"
+.PP
+Definizione alla linea 112 del file tortellaprotocol.h.
+.SS "\fBu_int4\fP \fBjoin_desc::port\fP"
+.PP
+Definizione alla linea 113 del file tortellaprotocol.h.
+.SS "char \fBjoin_desc::ip\fP[16]"
+.PP
+Definizione alla linea 114 del file tortellaprotocol.h.
+.SS "\fBu_int1\fP \fBjoin_desc::ttl\fP"
+.PP
+Definizione alla linea 115 del file tortellaprotocol.h.
+.SS "\fBu_int1\fP \fBjoin_desc::hops\fP"
+.PP
+Definizione alla linea 116 del file tortellaprotocol.h.
+
+.SH "Autore"
+.PP 
+Generato automaticamente da Doxygen per TorTella a partire dal codice sorgente.
