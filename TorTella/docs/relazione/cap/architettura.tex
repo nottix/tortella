@@ -243,30 +243,29 @@ Il modulo in questione consente di creare ed inviare pacchetti TorTella e HTTP. 
 \end{enumerate}
 Di seguito si riportano le definizioni delle funzioni:
 \begin{lstlisting}[frame=trBL]
-int send_search_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id,
-   u_int8 recv_id, u_int1 ttl, u_int1 hops, u_int4 string_len, char *string);
-int send_searchhits_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id,
-   u_int8 recv_id, u_int4 num_res, u_int4 res_len, char *res);
-int send_join_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id,
-   u_int8 recv_id, u_int1 status, u_int8 user_id, u_int8 chat_id, char *nick,
-   u_int4 port, char *ip, u_int1 ttl, u_int1 hops);
-int send_leave_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, 
-   u_int8 recv_id, u_int8 user_id, u_int8 chat_id, u_int1 ttl, u_int1 hops);
-int send_ping_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, 
-   char *nick, u_int4 port, u_int1 status);
-int send_list_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id,
-   u_int1 ttl, u_int1 hops, u_int8 chat_id);
-int send_listhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id,
-   u_int4 user_num, u_int4 res_len, char *res, u_int8 chat_id);
-int send_bye_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id);
-int send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id,
-   u_int8 chat_id, u_int4 msg_len, char *msg);
-int send_post_response_packet(u_int4 fd, u_int4 status, u_int4 data_len,
-   char *data);
-int send_get_request_packet(u_int4 fd, char *filename, u_int4 range_start,
-   u_int4 range_end);
-int send_get_response_packet(u_int4 fd, u_int4 status, u_int4 data_len,
-   char *data);
+int send_search_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int1 ttl, u_int1 hops, u_int4 string_len, char *string)
+
+int send_searchhits_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int4 num_res, u_int4 res_len, char *res)
+
+int send_join_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int1 status, u_int8 user_id, u_int8 chat_id, char *nick, u_int4 port, char *ip, u_int1 ttl, u_int1 hops)
+
+int send_leave_packet(u_int4 fd, u_int8 packet_id, u_int8 sender_id, u_int8 recv_id, u_int8 user_id, u_int8 chat_id, u_int1 ttl, u_int1 hops)
+
+int send_ping_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, char *nick, u_int4 port, u_int1 status)
+
+int send_list_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int1 ttl, u_int1 hops, u_int8 chat_id)
+
+int send_listhits_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int4 user_num, u_int4 res_len, char *res, u_int8 chat_id)
+
+int send_bye_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id)
+
+int send_message_packet(u_int4 fd, u_int8 sender_id, u_int8 recv_id, u_int8 chat_id, u_int4 msg_len, char *msg)
+
+int send_post_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char *data)
+
+int send_get_request_packet(u_int4 fd, char *filename, u_int4 range_start, u_int4 range_end)
+
+int send_get_response_packet(u_int4 fd, u_int4 status, u_int4 data_len, char *data)
 \end{lstlisting}
 \section{Route Manager}
 Il modulo è stato implementato per la gestione delle regole di backward-routing dei pacchetti di tipo Search-SearchHits. Il peer da cui parte la richiesta deve ricevere un pacchetto SearchHits da ogni peer che ha ricevuto la richiesta; per realizzare tale meccanismo si utilizzano le regole di routing. In particolare, ogni peer che riceve un pacchetto Search deve memorizzare nella tabella di routing un record relativo al percorso che dovrà effettuare il SearchHits di risposta.
@@ -282,8 +281,11 @@ typedef struct route_entry route_entry;
 Le regole vengono gestite attraverso le seguenti funzioni:
 \begin{lstlisting}[frame=trBL]
 int add_route_entry(u_int8 packet_id, u_int8 sender_id, u_int8 recv_id)
+
 int del_route_entry(u_int8 id)
+
 route_entry *get_route_entry(u_int8 packet_id)
+
 u_int8 get_iddest_route_entry(u_int8 id)
 \end{lstlisting}
 \section{Servent}
@@ -416,7 +418,7 @@ servent_data *servent_pop_queue(servent_data *sd) {
 Viene effettuata una operazione di \textit{pop} sulla coda ad intervalli di tempo precisi, in particolare ogni \texttt{100000}. Questa operazione di \textit{polling} potrebbe essere migliorata aggiungendo il supporto ai segnali evitando, ovvero basterebbe aggiungere al posto della \texttt{usleep()} una operazione di \texttt{pthread\_cond\_timedwait()} la quale si sarebbe sbloccata alla ricezione di un segnale o allo scadere del timer. Con quest'ultimo metodo si avrebbe un leggero incremento della prestazioni. Sono state realizzate push e pop anche per la coda dei messaggi di risposta, ma non verranno riportati essendo molto simili (\texttt{servent\_append\_response()} e \texttt{servent\_pop\_queue()}).
 \paragraph{timer\_thread()}
 Thread utilizzato per gestire il meccanismo di failure detection e per pulire la lista dei pacchetti ricevuti. L'intervallo di tempo è impostato nel file di configurazione. Tale funzione fa un elevato uso delle routine appena presentate \texttt{servent\_send\_packet()}, \texttt{servent\_pop\_queue()}, \texttt{servent\_append\_response()} e \texttt{servent\_pop\_queue()}.
-\begin{lstlisting}
+\begin{lstlisting}[frame=trBL]
 void *servent_timer(void *parm)
 \end{lstlisting}
 
@@ -441,21 +443,31 @@ typedef struct chat chat;
 \end{lstlisting}
 Durante la fase di progettazione del modulo era stata prevista anche la possibilità di reperire o salvare le informazioni relative alle chat da un generico file, a tal motivo si è deciso di mantenere tutte le funzioni che realizzavano tale meccanismo, in previsione  di ulteriori sviluppi successivi. Di seguito viene riportato l'elenco dei prototipi di tali funzioni:
 \begin{lstlisting}
-int write_to_file(const char *filename, chat *chat_str, u_int4 mode);
-int write_all(u_int4 mode);
-int read_from_file(const char *filename);
-int read_all(void);	
+int write_to_file(const char *filename, chat *chat_str, u_int4 mode)
+
+int write_all(u_int4 mode)
+
+int read_from_file(const char *filename)
+
+int read_all(void)
 \end{lstlisting}  
 Dall'analisi dettagliata del modulo è possibile identificare due sezioni, la prima, come affermato precedentemente, si occupa degli accessi alle varie chat, invece la seconda ha il compito di gestire tutti gli algortimi di parsing dei dati. Di seguito sono riportate le funzioni principali utilizzate per la gestione di una chat:
 \begin{lstlisting}
-int data_add_chat(u_int8 id, const char *title);
-int data_del_chat(u_int8 id);
-int data_add_user(u_int8 id, const char *nick, const char *ip, u_int4 port);
-int data_add_users_to_chat(u_int8 chat_id, GList *users);
-int data_del_user(u_int8 id);
+int data_add_chat(u_int8 id, const char *title)
+
+int data_del_chat(u_int8 id)
+
+int data_add_user(u_int8 id, const char *nick, const char *ip, u_int4 port)
+
+int data_add_users_to_chat(u_int8 chat_id, GList *users)
+
+int data_del_user(u_int8 id)
+
 int data_del_user_from_chat(u_int8 chat_id, u_int8 id)
-chat *data_search_chat(const char *title);
-chatclient *data_search_chatclient(const char *nick);
+
+chat *data_search_chat(const char *title)
+
+chatclient *data_search_chatclient(const char *nick)
 \end{lstlisting}
 Tutte le funzioni,sopra riportate, sono state implementate tenendo conto del meccanismo di memorizzazione utilizzato. Nell'header file, in particolare, sono state definite due hashtable, le quali hanno il compito di memorizzare tutte le chat e tutti gli utenti presenti nella rete. In particolare tutte le funzioni adibite al parsing si occupano o di scandire il buffer contenente i dati memorizzandoli nelle relative strutture dati, o di effettuare il processo conversione inverso. Le informazioni relative alle chat sono salvate nel seguent formato:\\
 \texttt{
@@ -527,27 +539,42 @@ int controller_exit()
 Del primo blocco di funzioni fa parte anche la \texttt{controller\_init\_gui()} (si veda a tal proposito l'appendice). Il secondo blocco comprende tutte le funzioni che permettono ad esempio di: visualizzare un messaggio ricevuto, aggiornare l'elenco dei partecipanti alla chat, aprire una nuova finestra in caso di ricezione di un messaggio privato. Di seguito si presentano le funzioni utilizzate:
 \begin{lstlisting}
 int controller_change_status(u_int1 status)
+
 int controller_manipulating_status(u_int8 user_id, u_int1 status)
+
 int controller_create(const char *title)
+
 int controller_add_user_to_chat(u_int8 chat_id, u_int8 id)
+
 int controller_rem_user_from_chat(u_int8 chat_id, u_int8 id)
+
 int controller_add_msg_to_chat(u_int8 chat_id, char *msg)
+
 int controller_add_msg(u_int8 sender_id, char *msg)
 \end{lstlisting}
 Le funzioni facenti parte dell'ultimo blocco sono fondamentali per il corretto funzionamento dell'applicazione, poichè preparano le strutture dati dei serventi e permettono l'invio dei pacchetti da parte del servente, inserendo le strutture dati in un'apposita coda in caso di invio e rimuovendo da un'altra in caso di ricezione di messaggi di risposta.
 Di seguito si presentano le funzioni utilizzate:
 \begin{lstlisting}
 int controller_send_chat_users(u_int8 chat_id, u_int4 msg_len, char *msg)
-int controller_send_subset_users(u_int8 chat_id, u_int4 msg_len, 
-   char *msg, GList *users)
+
+int controller_send_subset_users(u_int8 chat_id, u_int4 msg_len, char *msg, GList *users)
+
 int controller_send_pm(u_int4 msg_len, char *msg, u_int8 recv_id)
+
 int controller_leave_all_chat()
+
 int controller_connect_users(GList *users)
+
 int controller_check_users_con(GList *users)
+
 int controller_send_bye()
+
 int controller_receive_bye()
+
 u_int8 controller_search(const char *query)
+
 int controller_join_flooding (u_int8 chat_id)
+
 int controller_leave_flooding(u_int8 chat_id)
 \end{lstlisting}
 A tal proposito si presenta la funzione \texttt{send\_join\_packet()} come esempio:
@@ -567,7 +594,7 @@ int controller_join_flooding(u_int8 chat_id)
 \end{lstlisting}
 \section{GUI e Utils}
 Il modulo Utils contiene la funzione che viene utilizzata per la generazione degli ID, ovvero:
-\begin{lstlisting}
+\begin{lstlisting}[]
 u_int8 generate_id(void) {
 	char *addr;
 	addr = get_mac_addr();
