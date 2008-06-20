@@ -2,10 +2,10 @@
 L'applicazione è stata sviluppata in ambiente \textit{Unix}\index{Unix}, utilizzando come distribuzione Linux: \textit{Ubuntu 8.04}\index{Ubuntu 8.04} e \textit{Debian Lenny}\index{Debian Lenny} per l'implementazione e relativa fase di testing.
 L'ambiente di sviluppo utilizzato è stato \textit{Anjuta 2.4}\index{Anjuta 2.4} con il supporto di alcune librerie esterne (\textit{libgtk 2.12.9-3}\index{libgtk 2.12.9-3} -\textit{libglib 2.16.3-1}\index{libglib 2.16.3-1}) per l'implementazione dell'interfaccia grafica dell'applicazione, e per l'utilizzo di routine del C quali liste, code ed hashtable.
 \section{Concorrenza}
-Per quanto riguarda la concorrenza si è preferito l'uso dei thread (\textit{programmazione multithreading}\index{programmazione multithreading}) invece dei processi (\textit{multiprocess}\index{multiprocess}), il che comporta dei vantaggi e dei svantaggi. I vantaggi sono: 
+Per quanto riguarda la concorrenza si è preferito l'uso dei thread (\textit{programmazione multithreading}\index{programmazione multithreading}) invece dei processi (\textit{multiprocess}\index{multiprocess}), il che comporta dei vantaggi e deglii svantaggi. I vantaggi sono: 
 \begin{itemize}
-\item La creazione di un nuovo thread è in genere più veloce della creazione di un nuovo processo in quanto la prima utilizza lo stesso \textit{process address}\index{process address} space del processo creatore. 
-\item Risulta essere minore anche il tempo di terminazione di un thread piuttosto che di un processo. 
+\item La creazione di un nuovo thread è in genere più veloce della creazione di un nuovo processo in quanto la prima utilizza lo stesso \textit{process address space}\index{process address space}  del processo creatore. 
+\item Il tempo di terminazione di un thread piuttosto che di un processo risulta essere minore. 
 \item L'utilizzo dello stesso process address space da parte di due thread comporta uno switching tra gli stessi molto più veloce che tra due processi. 
 \item ll tempo di comunicazione tra due thread, per quanto detto, risulta certamente essere minore del tempo richiesto per la comunicazione tra due processi. Questo perchè basta utilizzare delle variabili globali invece dei meccanismi di condivisione di memoria.
 \item Utilizzando il multithreading si sfruttano maggiormente i \textit{processori multicore}\index{processori multicore}.

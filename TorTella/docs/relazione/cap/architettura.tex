@@ -28,16 +28,16 @@ Moduli di supporto:
 \end{figure}
 Nella figura \ref{schemaarchitetturale} si possono notare le interdipendenze tra moduli, in particolare l'importanza del modulo servent, che rappresenta il cuore dell'applicazione. Di fondamentale importanza è anche il controller, che gestisce la comunicazione tra la GUI e il resto dell'applicazione, nonchè il bootstrap con le relative connessioni iniziali ai peer.
 \section{Socket Manager}
-Lo strato software che gestisce l'instaurazione di una connessione di tipo persistente, e di tutto il relativo processo di comunicazione tra due o più nodi viene gestito dal file socketmanager.c. Poichè un servente deve comportarsi sia da client che da server. A tal proposito verranno analizzate i due processi di creazione dei socket.
+Lo strato software che gestisce l'instaurazione di una connessione di tipo persistente, e di tutto il relativo processo di comunicazione tra due o più nodi viene gestito dal file \texttt{socketmanager.c}. Poichè un servente deve comportarsi sia da client che da server. A tal proposito verranno analizzate i due processi di creazione dei socket.
 \paragraph{create\_tcp\_socket()}
-La funzione ha il compito di creare un socket di connessione remota, ovvero di instaurare una connessione remota ad un server TCP. Come è possibile capire il tipo di comunicazione è orientata alla connessione, permettendo il trasferimento di un flusso continuo di dati.
+La funzione ha il compito di creare un socket di connessione remota, ovvero di instaurare una connessione remota ad un server TCP. Come è possibile capire, il tipo di comunicazione è orientata alla connessione, permettendo il trasferimento di un flusso continuo di dati.
 Dopo la fase di inizializzazione del socket e l'apertura della connessione verso il server, viene eseguita la chiamata di sistema setsockopt() con il flag SO\_KEEPALIVE , al fine di caratterizzare la connessione precedentemente instaurata, ovvero creando un tipo di connessione persistente\footnote{Per connessione persistente si intende la presenza di un timer che viene reinizializzato ogni volta che avviene uno scambio di informazioni tra peer. Allo scadere del timer, il socket viene chiuso}.
 \begin{lstlisting}
 int create_tcp_socket(const char* dst_ip, int dst_port)
 \end{lstlisting}
 \paragraph{create\_listen\_tcp\_socket} 
-Il compito di inizializzare il lato server del peer, creando un un socket d'ascolto, è affidato alla funzione sopra riportata. Dopo la creazione del socket, vengono effettuate le chiamate bind() e listen(), le quali hanno il compito rispettivamente di inizializzare l'indirizzo IP locale e il relativo processo e di porre il socket dallo stato di CLOSED a quello di LISTEN. Come nel caso precedente viene utilizzata la syscall setosockopt(), la quale non si occupa solo di mantenere la connessione in uno stato permanente, ma anche di poter riutilizzare l'indirizzo locale. Usando il flag \texttt{SO\_REUSEADDR} fra la chiamata a socket() e quella a bind() si consente a quest'ultima di avere comunque successo anche se la connessione è attiva o si trova nello stato di TIME\_WAIT.  
-Le operazioni riguardanti la ricezione del flusso di pacchetti e relativo invio  sono gestite rispettivamente dalle funzioni: recv\_packet(), send\_packet(), le quali attraverso le chiamate di sistema standard della programmazione di rete si occupano di svolgere le funzioni di scrittura e lettura sui sockets d'interesse. Particolare attenzione deve essere rivolta alla funzione di lettura dei dati, in quanto è stato previsto un meccanismo di frammentazione dei pacchetti in blocchi, di dimensione massima (4096 byte) pari a quella impostata nel parametro buffer\_len, presente nel file di configurazione iniziale (tortella.conf).
+Il compito di inizializzare il lato server del peer, creando un un socket d'ascolto, è affidato a questa funzione. Dopo la creazione del socket, vengono effettuate le chiamate bind() e listen(), le quali hanno il compito rispettivamente di inizializzare l'indirizzo IP locale e il relativo processo e di porre il socket dallo stato di CLOSED a quello di LISTEN. Come nel caso precedente viene utilizzata la syscall setosockopt(), la quale non si occupa solo di mantenere la connessione in uno stato permanente, ma anche di poter riutilizzare l'indirizzo locale. Usando il flag \texttt{SO\_REUSEADDR} fra la chiamata a socket() e quella a bind() si consente a quest'ultima di avere comunque successo anche se la connessione è attiva o si trova nello stato di TIME\_WAIT.  
+Le operazioni riguardanti la ricezione del flusso di pacchetti e relativo invio sono gestite rispettivamente dalle funzioni: recv\_packet(), send\_packet(), le quali attraverso le chiamate di sistema standard della programmazione di rete si occupano di svolgere le funzioni di scrittura e lettura sui sockets d'interesse. Particolare attenzione deve essere rivolta alla funzione di lettura dei dati, in quanto è stato previsto un meccanismo di frammentazione dei pacchetti in blocchi, di dimensione massima (4096 byte) pari a quella impostata nel parametro buffer\_len, presente nel file di configurazione iniziale (tortella.conf).
 \begin{lstlisting}
 int create_listen_tcp_socket(const char* src_ip, int src_port)
 \end{lstlisting}
@@ -197,7 +197,7 @@ struct http_packet {
 };
 typedef struct http_packet http_packet;
 \end{lstlisting}
-Come è possibile notare sono state definite 3 tipi di strutture dati, dove le prime due sono utilizzate per la creazione dell'header a seconda se il messaggio da inviare si di richiesta o di risposta, invece la terza struttura è utilizzata per definire l'intero pacchetto http. Sia nell'header di request che nell'header di response viene memorizzata, la lunghezza dell'intero pacchetto, la tipologia di dei dati contenuti(html,image..), che nel nostro caso saranno solamente di tipo binario e la versione del tipo di protocollo utilizzato (TorTella 0.1). Le uniche differenze presenti sono dovute, al tipo di informazione (richiesta o risposta) contenuta negli header, e all'identificazione nell'header request del tipo di connessione instaurata (di tipo persistente) tra due peer.
+Come è possibile notare sono state definite 3 tipi di strutture dati, dove le prime due sono utilizzate per la creazione dell'header a seconda se il messaggio da inviare sia di richiesta o di risposta, invece la terza struttura è utilizzata per definire l'intero pacchetto http. Sia nell'header di request che nell'header di response viene memorizzata, la lunghezza dell'intero pacchetto, la tipologia di dei dati contenuti(html,image..), che nel nostro caso saranno solamente di tipo binario e la versione del tipo di protocollo utilizzato (TorTella 0.1). Le uniche differenze presenti sono dovute al tipo di informazione (richiesta o risposta) contenuta negli header e all'identificazione nell'header request del tipo di connessione instaurata (di tipo persistente) tra due peer.
 Al fine di rendere più agevole la creazione di un generico pacchetto sono state definite delle macro all'interno dell' header file:
 \begin{lstlisting}[frame=trBL]
 #define HTTP_REQ_GET		0x40
@@ -289,8 +289,7 @@ route_entry *get_route_entry(u_int8 packet_id)
 u_int8 get_iddest_route_entry(u_int8 id)
 \end{lstlisting}
 \section{Servent}
-L’architettura di un sistema \textit{peer to peer} prevede che ogni entità sia in grado di funzionare sia da client che da server. Ogni peer deve quindi essere realizzato come un servent. La parte server dovrà gestire i messaggi in arrivo dalla rete e quella client dovrà invece provvedere a inviare dati agli altri peer. Questo porta alla necessità di avere un sistema di gestione di tipo concorrente. L'utilizzo di thread, per la gestione concorrente delle richieste, 
-ha permesso una maggiore agevolazione nella implementazione della comunicazione \textit{client server}.
+L’architettura di un sistema \textit{peer to peer} prevede che ogni entità sia in grado di funzionare sia da client che da server. Ogni peer deve quindi essere realizzato come un servent. La parte server dovrà gestire i messaggi in arrivo dalla rete e quella client dovrà invece provvedere a inviare dati agli altri peer. Questo porta alla necessità di avere un sistema di gestione di tipo concorrente. L'utilizzo di thread, per la gestione concorrente delle richieste, ha permesso una maggiore agevolazione nella implementazione della comunicazione \textit{client server}.
 \paragraph{servent\_data}
 Per la comunicazione tra i thread relativi ad un peer è stata predisposta una struttura dati per la condivisione delle informazioni, ovvero la \texttt{servent\_data}:
 \begin{lstlisting}[frame=trBL]
@@ -337,7 +336,7 @@ I campi della struttura presentata sono divisi in gruppi, in base al loro tipo d
 \item i campi utilizzati per la comunicazione con il peer, come il tipo di pacchetto da inviare al peer associato alla struttura dati. Ad esempio, nel caso in cui il server thread dovesse riceve un pacchetto Search da uno specifico peer, tale campo dovrà assumere il valore \texttt{SEARCHHITS\_ID} per segnalare al client thread di inviare il pacchetto SearchHits di risposta;
 \item i campi utilizzati per il flooding, ovvero servono alla ritrasmissione dei pacchetti ricevuti (Search, SearchHits, Join, Leave).
 \end{itemize}
-Per l'accesso alla \texttt{servent\_data} di un peer vengono utilizzati dei meccanismi di lock, i quali consentono di evitare inconsistenza dei dati.\\
+Per l'accesso alla struttura \texttt{servent\_data} di un peer vengono utilizzati dei meccanismi di lock, i quali consentono di evitare inconsistenza dei dati.\\
 
 All'avvio dell'applicazione un'istanza del controller si occupa di chiamare la funzione \texttt{servent\_start()}, la quale ha il compito di inizializzare tutti i parametri del servente locale, di istanziare il lato server dello stesso, mettendolo in attesa di connessioni da altri peer, ed infine di avviare il suo lato client. A tale proposito all'interno della funzione vi sono tre chiamate di funzione,le quali hanno rispettivamente il compito di svolgere le attività elencate precedentemente. Di seguito vengono mostrati le dichiarazioni, presenti nell'header file, delle tre procedure con relativa spiegazione.
 \paragraph{servent\_init()}
@@ -351,7 +350,7 @@ La funzione ha il compito di avviare il lato server del peer locale. Inizialment
 int servent_start_server(char *local_ip, u_int4 local_port)
 \end{lstlisting}
 \paragraph{servent\_init\_connection()}
-La funzione ha il compito di inizializzare il lato client del servente locale, e di avviare una connessione per ogni peer vicino presente nella lista \texttt{init\_servent}, la quale viene riempita con i dati relativi ai peer vicini inizialmente conosciuti. Il numero di peer considerati come “vicini” per ognuno dei nodi componenti la rete è stato scelto a priori, e  i relativi indirizzi ip e numero di porta sono salvati in un file di configurazione (init\_data.txt). 
+La funzione ha il compito di inizializzare il lato client del servente locale e di avviare una connessione per ogni peer vicino presente nella lista \texttt{init\_servent}, la quale viene riempita con i dati relativi ai peer vicini inizialmente conosciuti. Il numero di peer considerati come “vicini” per ognuno dei nodi componenti la rete è stato scelto a priori e i relativi indirizzi ip e numero di porta sono salvati in un file di configurazione (init\_data.txt). 
 \begin{lstlisting}  
 int servent_init_connection(GList *init_servent)
 \end{lstlisting}
@@ -378,7 +377,7 @@ La \texttt{servent\_respond()} è il cuore del sistema e consente la ricezione d
 \item Verifica correttezza pacchetto ricevuto;
 \item Salta al flusso che gestisce il tipo di pacchetto ricevuto:
 \begin{description}
-	\item[Ping:] Può riceve due tipi di Ping: con fake ID e con ID reale. Nel caso di fake ID invia il pacchetto di conferma e lancia un nuovo \textit{client thread} che invia un Ping con ID vero. Nel caso di ID reale invia un pacchetto di conferma ed un Ping.
+	\item[Ping:] Può ricevere due tipi di Ping: con fake ID e con ID reale. Nel caso di fake ID invia il pacchetto di conferma e lancia un nuovo \textit{client thread} che invia un Ping con ID vero. Nel caso di ID reale invia un pacchetto di conferma ed un Ping.
 	\item[Join:] Prima di tutto memorizza l'utente specificato dalla Join nella lista degli utenti della chat indicata. In seguito rinvia il pacchetto a tutti i vicini ed aggiunge delle regole di routing.
 	\item[Leave:] Rimuove l'utente dalla lista degli utenti della chat specificata. In seguito rinvia il pacchetto ai suoi vicini.
 	\item[Message:] Stampa il messaggio ricevuto.
@@ -389,7 +388,7 @@ La \texttt{servent\_respond()} è il cuore del sistema e consente la ricezione d
 \item Invia eventualmente un pacchetto di conferma ricezione, se non è stato già inviato;
 \item Torna al passo 3.
 \end{enumerate}
-Tale modulo comunica principalmente con i moduli: \textit{Packet Manager}, \textit{Http Manager}, \textit{Controller}.
+Tale modulo comunica principalmente con: \textit{Packet Manager}, \textit{Http Manager}, \textit{Controller}.
 \paragraph{servent\_send\_packet()}
 Per richiedere l'invio dei pacchetti verso un peer è necessario chiamare tale funzione, la quale si occupa di inserire in una coda la richiesta di invio effettuata. In particolare opera nel seguente modo:
 \begin{lstlisting}[frame=trBL]
@@ -398,7 +397,7 @@ void servent_send_packet(servent_data *sd) {
 		g_queue_push_tail(sd->queue, (gpointer)sd);
 }
 \end{lstlisting}
-Come si può notare dal codice, la funzione prede come parametro una \texttt{servent\_data}. In realtà viene passata una copia della struttura originale utilizzata per condividere memoria, in questo modo si evitano richieste sovrapposte con eventuale invio di pacchetti errati. Infatti, se non si fosse attuata tale tecnica si sarebbe potuto incorrere in errore nel seguente caso: Il peer locale chiede di inviare un pacchetto di tipo Ping ad uno specifico servente; il peer locale chiede, inoltre, di inviare un pacchetto di tipo Join allo stesso servente; la \texttt{servent\_connect()} che riceve la richiesta di invio potrebbe inviare il pacchetto Ping con i dati del Join. Con il metodo adottato si evitano problemi di questo genere.
+Come si può notare dal codice, la funzione prede come parametro una \texttt{servent\_data}. In realtà viene passata una copia della struttura originale utilizzata per condividere memoria; in questo modo si evitano richieste sovrapposte con eventuale invio di pacchetti errati. Se non si fosse attuata tale tecnica si sarebbe potuto incorrere in errore nel seguente caso: Il peer locale chiede di inviare un pacchetto di tipo Ping ad uno specifico servente; il peer locale chiede, inoltre, di inviare un pacchetto di tipo Join allo stesso servente; la \texttt{servent\_connect()} che riceve la richiesta di invio potrebbe inviare il pacchetto Ping con i dati del Join. Con il metodo adottato si evitano problemi di questo genere.
 \paragraph{servent\_pop\_queue()}
 Quest'altra funzione viene utilizzata dai \textit{client thread} per riceve le richieste di invio pacchetti.
 \begin{lstlisting}[frame=trBL]
@@ -415,7 +414,7 @@ servent_data *servent_pop_queue(servent_data *sd) {
 	return servent;
 }
 \end{lstlisting}
-Viene effettuata una operazione di \textit{pop} sulla coda ad intervalli di tempo precisi, in particolare ogni \texttt{100000}. Questa operazione di \textit{polling} potrebbe essere migliorata aggiungendo il supporto ai segnali evitando, ovvero basterebbe aggiungere al posto della \texttt{usleep()} una operazione di \texttt{pthread\_cond\_timedwait()} la quale si sarebbe sbloccata alla ricezione di un segnale o allo scadere del timer. Con quest'ultimo metodo si avrebbe un leggero incremento della prestazioni. Sono state realizzate push e pop anche per la coda dei messaggi di risposta, ma non verranno riportati essendo molto simili (\texttt{servent\_append\_response()} e \texttt{servent\_pop\_queue()}).
+Viene effettuata una operazione di \textit{pop} sulla coda ad intervalli di tempo precisi, in particolare ogni \texttt{100000} microsecondi. Questa operazione di \textit{polling} potrebbe essere migliorata aggiungendo il supporto ai segnali, ovvero basterebbe aggiungere al posto della \texttt{usleep()} una operazione di \texttt{pthread\_cond\_timedwait()} la quale si sarebbe sbloccata alla ricezione di un segnale o allo scadere del timer. Con quest'ultimo metodo si avrebbe un leggero incremento della prestazioni. Sono state realizzate push e pop anche per la coda dei messaggi di risposta, ma non verranno riportati essendo molto simili (\texttt{servent\_append\_response()} e \texttt{servent\_pop\_queue()}).
 \paragraph{timer\_thread()}
 Thread utilizzato per gestire il meccanismo di failure detection e per pulire la lista dei pacchetti ricevuti. L'intervallo di tempo è impostato nel file di configurazione. Tale funzione fa un elevato uso delle routine appena presentate \texttt{servent\_send\_packet()}, \texttt{servent\_pop\_queue()}, \texttt{servent\_append\_response()} e \texttt{servent\_pop\_queue()}.
 \begin{lstlisting}[frame=trBL]
@@ -441,7 +440,7 @@ struct chat {
 };
 typedef struct chat chat;
 \end{lstlisting}
-Durante la fase di progettazione del modulo era stata prevista anche la possibilità di reperire o salvare le informazioni relative alle chat da un generico file, a tal motivo si è deciso di mantenere tutte le funzioni che realizzavano tale meccanismo, in previsione  di ulteriori sviluppi successivi. Di seguito viene riportato l'elenco dei prototipi di tali funzioni:
+Durante la fase di progettazione del modulo era stata prevista anche la possibilità di reperire o salvare le informazioni relative alle chat da un generico file, per questo motivo si è deciso di mantenere tutte le funzioni che realizzavano tale meccanismo, in previsione  di ulteriori sviluppi successivi. Di seguito viene riportato l'elenco dei prototipi di tali funzioni:
 \begin{lstlisting}
 int write_to_file(const char *filename, chat *chat_str, u_int4 mode)
 
@@ -528,7 +527,7 @@ Gestisce la fase di inizializzazione, che è composta dai seguenti passi:
 int controller_init(const char *filename, const char *cache)
 \end{lstlisting}
 \paragraph{controller\_exit()}
-Contrariamente alla \texttt{controller\_init()}, la funzione in questione ha il compito di gestire la chiusura dell'applicazione(???), effettuando i seguenti passi:
+Contrariamente alla \texttt{controller\_init()}, la funzione in questione ha il compito di gestire la chiusura dell'applicazione, effettuando i seguenti passi:
 \begin{enumerate}
 \item kill di tutti i thread del servente;
 \item chiusura del file di log;
