@@ -34,7 +34,7 @@ Il protocollo realizzato eredita da Gnutella alcuni descrittori e ne definisce d
 \label{ping}
 \end{center}
 \end{figure}
-\item[Join] viene inviato in flooding per accedere ad una chat creata precedentemente da un generico utente. Contiene dati riguardanti l'utente che ha generato inizialmente il pacchetto, in modo da consentire a tutti i peer riceventi di conoscere tale servente. Contiene il campo status e l’id della chat a cui si vuole connettere,id dell'utente che vuole connettersi,porta e ip del peer mittente,ttl e hops. Il campo dati contiene il nickname.
+\item[Join] viene inviato in flooding per accedere ad una chat creata precedentemente da un generico utente. Contiene dati riguardanti l'utente che ha generato inizialmente il pacchetto, in modo da consentire a tutti i peer riceventi di conoscere tale servente. Contiene il campo status e l’id della chat a cui ci si vuole connettere,id dell'utente che vuole connettersi,porta e ip del peer mittente,ttl e hops. Il campo dati contiene il nickname.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.7]{etc/join.jpg}
@@ -114,7 +114,7 @@ Si presentano di seguito l’header utilizzato per la realizzazione del protocol
 \item[ID] un unsigned long long (8 byte) che identifica il pacchetto in modo univoco;
 \item[Descriptor\_ID] un unsigned int (4 byte) che specifica il descrittore di pacchetto trasportato;
 \begin{itemize}
-	\item 0x01: Ping
+	\item 0x01 = Ping
 	\item 0x03 = List
 	\item 0x04 = ListHits
 	\item 0x05 = Join
