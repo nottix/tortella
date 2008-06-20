@@ -1,0 +1,60 @@
+.TH "/media/store/Informatica/C_C++/Projects_Linux/TorTella_gnu/src/logger.c" 3 "19 Jun 2008" "Version 0.1" "TorTella" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+/media/store/Informatica/C_C++/Projects_Linux/TorTella_gnu/src/logger.c \- 
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'logger.h'\fP
+.br
+
+.SS "Funzioni"
+
+.in +1c
+.ti -1c
+.RI "int \fBlogger_init\fP (int verbose_level)"
+.br
+.RI "\fIInizializza il logger, scegliendo come path del file su cui scrivere il valore presente nel file di configurazione. \fP"
+.ti -1c
+.RI "int \fBlogger_close\fP ()"
+.br
+.RI "\fIChiude il file su cui il logger stava salvando le informazioni. \fP"
+.ti -1c
+.RI "char * \fBget_timestamp\fP ()"
+.br
+.RI "\fIRitorna un timestamp. \fP"
+.ti -1c
+.RI "int \fBlogger\fP (int type, const char *text,...)"
+.br
+.RI "\fISi comporta come una printf, ma oltre alla stampa a video viene eseguita anche una scrittura su file in base al livello di verbosita'. \fP"
+.in -1c
+.SH "Documentazione delle funzioni"
+.PP 
+.SS "char* get_timestamp ()"
+.PP
+Ritorna un timestamp. 
+.PP
+Esempio: Tue Jun 17 16:26:28 2008 
+.PP
+Definizione alla linea 47 del file logger.c.
+.SS "int logger (int type, const char * text,  ...)"
+.PP
+Si comporta come una printf, ma oltre alla stampa a video viene eseguita anche una scrittura su file in base al livello di verbosita'. 
+.PP
+Definizione alla linea 61 del file logger.c.
+.SS "int logger_close ()"
+.PP
+Chiude il file su cui il logger stava salvando le informazioni. 
+.PP
+Definizione alla linea 39 del file logger.c.
+.SS "int logger_init (int verbose_level)"
+.PP
+Inizializza il logger, scegliendo come path del file su cui scrivere il valore presente nel file di configurazione. 
+.PP
+Il parametro verbose_level serve per specificare fino a quale livello il logger deve salvare le informazioni. Viene inizializzato anche un mutex per evitare accessi simultanei. 
+.PP
+Definizione alla linea 25 del file logger.c.
+.SH "Autore"
+.PP 
+Generato automaticamente da Doxygen per TorTella a partire dal codice sorgente.

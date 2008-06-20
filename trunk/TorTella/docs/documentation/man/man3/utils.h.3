@@ -1,0 +1,117 @@
+.TH "/media/store/Informatica/C_C++/Projects_Linux/TorTella_gnu/src/utils.h" 3 "19 Jun 2008" "Version 0.1" "TorTella" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+/media/store/Informatica/C_C++/Projects_Linux/TorTella_gnu/src/utils.h \- 
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <stdlib.h>\fP
+.br
+\fC#include <stdio.h>\fP
+.br
+\fC#include <time.h>\fP
+.br
+\fC#include <string.h>\fP
+.br
+\fC#include <ctype.h>\fP
+.br
+\fC#include <sys/ioctl.h>\fP
+.br
+\fC#include <sys/types.h>\fP
+.br
+\fC#include <sys/socket.h>\fP
+.br
+\fC#include <netinet/in.h>\fP
+.br
+\fC#include <linux/if.h>\fP
+.br
+\fC#include 'confmanager.h'\fP
+.br
+\fC#include 'common.h'\fP
+.br
+
+.SS "Funzioni"
+
+.in +1c
+.ti -1c
+.RI "\fBu_int8\fP \fBgenerate_id\fP (void)"
+.br
+.RI "\fIThis program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version. \fP"
+.ti -1c
+.RI "int \fBgenerate_id4\fP (void)"
+.br
+.RI "\fIObsoleto. \fP"
+.ti -1c
+.RI "char * \fBto_string\fP (\fBu_int8\fP num)"
+.br
+.RI "\fIConversione in stringa di un unsigned long long. \fP"
+.ti -1c
+.RI "char * \fBprepare_msg\fP (time_t timestamp, const char *\fBnick\fP, char *msg, int msg_len)"
+.br
+.RI "\fIPreparazione di un messaggio da inviare agli altri utenti: al messaggio originale da inviare vengono aggiunti data e orario di invio e il nick del mittente. \fP"
+.ti -1c
+.RI "char * \fBhex_dump\fP (const char *packet, int len, int n)"
+.br
+.RI "\fIEffettua il dump in esadecimale di un pacchetto. \fP"
+.ti -1c
+.RI "char * \fBdump_data\fP (const char *packet, int len)"
+.br
+.RI "\fIChiama la funzione hex_dump specificando quanti caratteri devono essere stampati su una riga. \fP"
+.ti -1c
+.RI "char * \fBget_mac_addr\fP (void)"
+.br
+.RI "\fIOttiene l'indirizzo MAC dell'interfaccia di rete disponibile. \fP"
+.in -1c
+.SH "Documentazione delle funzioni"
+.PP 
+.SS "char* dump_data (const char * packet, int len)"
+.PP
+Chiama la funzione hex_dump specificando quanti caratteri devono essere stampati su una riga. 
+.PP
+Il parametro e' impostato di default a 10. 
+.PP
+Definizione alla linea 201 del file utils.c.
+.SS "\fBu_int8\fP generate_id (void)"
+.PP
+This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version. 
+.PP
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more details.
+.PP
+You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301, USA Genera l'id dei pacchetti e degli utenti, avviene tramite una combinazione del MAC-ADDRESS della macchina, il valore generato dalla funzione pseudo-randomica srandom(time(NULL)), e dall'ID iniziale presente nel file di configurazione di ogni peer. 
+.PP
+Definizione alla linea 25 del file utils.c.
+.SS "int generate_id4 (void)"
+.PP
+Obsoleto. 
+.PP
+Definizione alla linea 38 del file utils.c.
+.SS "char* get_mac_addr (void)"
+.PP
+Ottiene l'indirizzo MAC dell'interfaccia di rete disponibile. 
+.PP
+Definizione alla linea 209 del file utils.c.
+.SS "char* hex_dump (const char * packet, int len, int n)"
+.PP
+Effettua il dump in esadecimale di un pacchetto. 
+.PP
+Esempio di dump: 50 4f 53 54 20 2a 20 48 54 54 POST * HTT 50 2f 31 2e 31 0d 0a 55 73 65 P/1.1..Use 72 2d 41 67 65 6e 74 3a 20 54 r-Agent: T 6f 72 54 65 6c 6c 61 2f 30 2e orTella/0. 31 0d 0a 43 6f 6e 74 65 6e 74 1..Content 
+.PP
+Definizione alla linea 82 del file utils.c.
+.SS "char* prepare_msg (time_t timestamp, const char * nick, char * msg, int msg_len)"
+.PP
+Preparazione di un messaggio da inviare agli altri utenti: al messaggio originale da inviare vengono aggiunti data e orario di invio e il nick del mittente. 
+.PP
+Esempio: Data - ora - nickname : messaggio.
+.PP
+Esempio: Data - ora - nickname : messaggio. 
+.PP
+Definizione alla linea 64 del file utils.c.
+.SS "char* to_string (\fBu_int8\fP num)"
+.PP
+Conversione in stringa di un unsigned long long. 
+.PP
+Definizione alla linea 52 del file utils.c.
+.SH "Autore"
+.PP 
+Generato automaticamente da Doxygen per TorTella a partire dal codice sorgente.
