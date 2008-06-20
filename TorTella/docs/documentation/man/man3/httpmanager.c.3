@@ -1,0 +1,153 @@
+.TH "/media/store/Informatica/C_C++/Projects_Linux/TorTella_gnu/src/httpmanager.c" 3 "19 Jun 2008" "Version 0.1" "TorTella" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+/media/store/Informatica/C_C++/Projects_Linux/TorTella_gnu/src/httpmanager.c \- 
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'httpmanager.h'\fP
+.br
+
+.SS "Funzioni"
+
+.in +1c
+.ti -1c
+.RI "\fBhttp_packet\fP * \fBhttp_create_packet\fP (\fBtortella_packet\fP *packet, \fBu_int4\fP type, \fBu_int4\fP status, char *filename, \fBu_int4\fP range_start, \fBu_int4\fP range_end, char *data, \fBu_int4\fP data_len)"
+.br
+.RI "\fIThis program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version. \fP"
+.ti -1c
+.RI "\fBhttp_header_request\fP * \fBhttp_create_header_request\fP (\fBhttp_header_request\fP *header, \fBu_int4\fP type, char *filename, \fBu_int4\fP range_start, \fBu_int4\fP range_end, \fBu_int4\fP data_len)"
+.br
+.RI "\fICrea l'header dedicato alla request settando tutti i campi in modo appropriato. \fP"
+.ti -1c
+.RI "\fBhttp_header_response\fP * \fBhttp_create_header_response\fP (\fBhttp_header_response\fP *header, \fBu_int4\fP type, \fBu_int4\fP status, \fBu_int4\fP content_len)"
+.br
+.RI "\fICrea l'header dedicato alla response settando tutti i campi in modo opportuno. \fP"
+.ti -1c
+.RI "char * \fBhttp_bin_to_char\fP (\fBhttp_packet\fP *packet, int *len)"
+.br
+.RI "\fIParsing del pacchetto http da binario a puntatore a carattere,. \fP"
+.ti -1c
+.RI "\fBhttp_packet\fP * \fBhttp_char_to_bin\fP (const char *buffer)"
+.br
+.RI "\fIParsing del parametro buffer in un pacchetto http. \fP"
+.ti -1c
+.RI "char * \fBhttp_get_value\fP (const char *buffer, const char *name)"
+.br
+.RI "\fIRitorna il valore contenuto nel campo rappresentato da name all'interno del pacchetto (buffer). \fP"
+.ti -1c
+.RI "char * \fBhttp_get_line\fP (const char *buffer, \fBu_int4\fP num)"
+.br
+.RI "\fIRitorna la riga i-esima del pacchetto (buffer) specificata nel parametro num. \fP"
+.in -1c
+.SH "Documentazione delle funzioni"
+.PP 
+.SS "char* http_bin_to_char (\fBhttp_packet\fP * packet, int * len)"
+.PP
+Parsing del pacchetto http da binario a puntatore a carattere,. 
+.PP
+
+.PP
+parsing del pacchetto di invio HTTP REQ POST
+.PP
+TODO: memory leak
+.PP
+parsing del pacchetto di invio HTTP REQ GET
+.PP
+parsing del pacchetto di risposta.
+.PP
+parsing dei dati, qualora presenti 
+.PP
+Definizione alla linea 164 del file httpmanager.c.
+.SS "\fBhttp_packet\fP* http_char_to_bin (const char * buffer)"
+.PP
+Parsing del parametro buffer in un pacchetto http. 
+.PP
+
+.PP
+parsing di un pacchetto di tipo GET
+.PP
+settaggio dei campi dell'header
+.PP
+settaggio dei campi del pacchetto
+.PP
+parsing di un pacchetto di tipo POST
+.PP
+settaggio dei campi dell'header
+.PP
+settaggio dei campi del pacchetto
+.PP
+parsing del pacchetto di ricezione di una GET
+.PP
+settaggio dell'header di risposta
+.PP
+settaggio dei campi del pacchetto
+.PP
+parsing del pacchetto di ricezione di una POST
+.PP
+settaggio dei campi dell'header di risposta
+.PP
+settaggio dei campi del pacchetto 
+.PP
+Definizione alla linea 259 del file httpmanager.c.
+.SS "\fBhttp_header_request\fP* http_create_header_request (\fBhttp_header_request\fP * header, \fBu_int4\fP type, char * filename, \fBu_int4\fP range_start, \fBu_int4\fP range_end, \fBu_int4\fP data_len)"
+.PP
+Crea l'header dedicato alla request settando tutti i campi in modo appropriato. 
+.PP
+
+.PP
+settaggio dei parametri comuni dell'header
+.PP
+settaggio dei parametri in relazione al tipo di pacchetto 
+.PP
+Definizione alla linea 112 del file httpmanager.c.
+.SS "\fBhttp_header_response\fP* http_create_header_response (\fBhttp_header_response\fP * header, \fBu_int4\fP type, \fBu_int4\fP status, \fBu_int4\fP content_len)"
+.PP
+Crea l'header dedicato alla response settando tutti i campi in modo opportuno. 
+.PP
+
+.PP
+settaggio dei parametri dell'header response 
+.PP
+Definizione alla linea 137 del file httpmanager.c.
+.SS "\fBhttp_packet\fP* http_create_packet (\fBtortella_packet\fP * packet, \fBu_int4\fP type, \fBu_int4\fP status, char * filename, \fBu_int4\fP range_start, \fBu_int4\fP range_end, char * data, \fBu_int4\fP data_len)"
+.PP
+This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version. 
+.PP
+Creazione del pacchetto http.
+.PP
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more details.
+.PP
+You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301, USA HTTP_REQ_GET GET filename HTTP/1.1 User-Agent: TorTella/0.1 Range: bytes=start-end Connection: Keep-Alive ...\fBtortella_packet\fP...
+.PP
+HTTP_RES_GET HTTP/1.1 200 OK Server: TorTella/0.1 Content-Type: application/binary Content-Length: 4 ...data...
+.PP
+HTTP_REQ_POST POST * HTTP/1.1 User-Agent: TorTella/0.1 Connection: Keep-Alive Content-Length: 4 oppure chunked ...data...
+.PP
+HTTP_RES_POST HTTP/1.1 200 OK Server: TorTella/0.1 Content-Type: application/binary Content-Length: 4 non dovrebbero esserci dati Creazione del pacchetto http. Converte il pacchetto tortella in stringa e crea il pacchetto a seconda del tipo necessario differenziando il tipo request da quello response in modo da creare i rispettivi header 
+.PP
+conversione del pacchetto http in stringa
+.PP
+creazione dell'header della request
+.PP
+settaggio dei parametri dell'header
+.PP
+creazione dell'header della response
+.PP
+settaggio dei parametri dell'header 
+.PP
+Definizione alla linea 55 del file httpmanager.c.
+.SS "char* http_get_line (const char * buffer, \fBu_int4\fP num)"
+.PP
+Ritorna la riga i-esima del pacchetto (buffer) specificata nel parametro num. 
+.PP
+Definizione alla linea 377 del file httpmanager.c.
+.SS "char* http_get_value (const char * buffer, const char * name)"
+.PP
+Ritorna il valore contenuto nel campo rappresentato da name all'interno del pacchetto (buffer). 
+.PP
+Definizione alla linea 356 del file httpmanager.c.
+.SH "Autore"
+.PP 
+Generato automaticamente da Doxygen per TorTella a partire dal codice sorgente.

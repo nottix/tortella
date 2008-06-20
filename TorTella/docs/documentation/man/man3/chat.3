@@ -1,0 +1,51 @@
+.TH "chat" 3 "19 Jun 2008" "Version 0.1" "TorTella" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+chat \- struttura della \fBchat\fP, contiene l'id, il nome della \fBchat\fP, una hashtable degli utenti connessi e un mutex per gestire gli accessi concorrenti alla \fBchat\fP.  
+
+.PP
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <datamanager.h>\fP
+.PP
+.SS "Campi"
+
+.in +1c
+.ti -1c
+.RI "\fBu_int8\fP \fBid\fP"
+.br
+.ti -1c
+.RI "char * \fBtitle\fP"
+.br
+.ti -1c
+.RI "GHashTable * \fBusers\fP"
+.br
+.ti -1c
+.RI "pthread_mutex_t \fBmutex\fP"
+.br
+.in -1c
+.SH "Descrizione dettagliata"
+.PP 
+struttura della \fBchat\fP, contiene l'id, il nome della \fBchat\fP, una hashtable degli utenti connessi e un mutex per gestire gli accessi concorrenti alla \fBchat\fP. 
+.PP
+Definizione alla linea 49 del file datamanager.h.
+.SH "Documentazione dei campi"
+.PP 
+.SS "\fBu_int8\fP \fBchat::id\fP"
+.PP
+Definizione alla linea 50 del file datamanager.h.
+.SS "char* \fBchat::title\fP"
+.PP
+Definizione alla linea 51 del file datamanager.h.
+.SS "GHashTable* \fBchat::users\fP"
+.PP
+Definizione alla linea 52 del file datamanager.h.
+.SS "pthread_mutex_t \fBchat::mutex\fP"
+.PP
+Definizione alla linea 53 del file datamanager.h.
+
+.SH "Autore"
+.PP 
+Generato automaticamente da Doxygen per TorTella a partire dal codice sorgente.

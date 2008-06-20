@@ -1,0 +1,377 @@
+.TH "/media/store/Informatica/C_C++/Projects_Linux/TorTella_gnu/src/controller.h" 3 "19 Jun 2008" "Version 0.1" "TorTella" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+/media/store/Informatica/C_C++/Projects_Linux/TorTella_gnu/src/controller.h \- 
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'servent.h'\fP
+.br
+\fC#include 'common.h'\fP
+.br
+\fC#include 'socketmanager.h'\fP
+.br
+\fC#include 'datamanager.h'\fP
+.br
+\fC#include 'confmanager.h'\fP
+.br
+\fC#include <glib.h>\fP
+.br
+\fC#include 'gui.h'\fP
+.br
+\fC#include 'utils.h'\fP
+.br
+
+.SS "Funzioni"
+
+.in +1c
+.ti -1c
+.RI "int \fBcontroller_change_status\fP (\fBu_int1\fP status)"
+.br
+.RI "\fIcambia lo status di un peer tramite l'invio di un PING a tutti gli utenti e controlla che il pacchetto sia stato ricevuto correttamente dagli altri peer \fP"
+.ti -1c
+.RI "int \fBcontroller_manipulating_status\fP (\fBu_int8\fP user_id, \fBu_int1\fP status)"
+.br
+.RI "\fInotifica il cambiamento di status di un peer remoto tramite una chiamata alla gui \fP"
+.ti -1c
+.RI "int \fBcontroller_send_chat_users\fP (\fBu_int8\fP chat_id, \fBu_int4\fP msg_len, char *msg)"
+.br
+.RI "\fIinvia un messaggio a tutti gli utenti di una \fBchat\fP e controlla che il pacchetto sia stato ricevuto correttamente dagli altri peer. \fP"
+.ti -1c
+.RI "int \fBcontroller_send_subset_users\fP (\fBu_int8\fP chat_id, \fBu_int4\fP msg_len, char *msg, GList *users)"
+.br
+.RI "\fIinvia un messaggio ad un sottoinsieme di utenti di una \fBchat\fP e controlla che il pacchetto sia stato ricevuto correttamente dagli utenti interessati. \fP"
+.ti -1c
+.RI "int \fBcontroller_send_pm\fP (\fBu_int4\fP msg_len, char *msg, \fBu_int8\fP recv_id)"
+.br
+.RI "\fIinvia un messaggio privato ad un utente e si accerta che questo sia stato ricevuto correttamente. \fP"
+.ti -1c
+.RI "int \fBcontroller_leave_all_chat\fP ()"
+.br
+.RI "\fIpermette all'utente di abbandonare tutte le \fBchat\fP a cui era connesso \fP"
+.ti -1c
+.RI "int \fBcontroller_connect_users\fP (GList *users)"
+.br
+.RI "\fIstabilisce una connessione tra un peer e una lista di utenti di una \fBchat\fP tramite l'avvio del client. \fP"
+.ti -1c
+.RI "int \fBcontroller_check_users_con\fP (GList *users)"
+.br
+.RI "\fIfunzione d'appoggio per la \fBcontroller_connect_users()\fP, verifica che il peer con cui si sta cercando di stabilire una connessione sia effettivamente pronto. \fP"
+.ti -1c
+.RI "int \fBcontroller_send_bye\fP ()"
+.br
+.RI "\fIpermette l'invio di un pacchetto di tipo BYE che notifica a tutti gli utenti conosciuti che si sta abbandonando l'applicazione e controlla che tutti abbiano ricevuto il messaggio correttamente. \fP"
+.ti -1c
+.RI "int \fBcontroller_receive_bye\fP ()"
+.br
+.RI "\fIAlla ricezione di una BYE da un utente remoto chiude tutte le conversazioni private aperte (se esistenti) con quello specifico utente. \fP"
+.ti -1c
+.RI "int \fBcontroller_init\fP (const char *filename, const char *cache)"
+.br
+.RI "\fILegge il file di configurazione, avvia il logger, legge il file \fBinit_data\fP che contiene ip e porta dei peer vicini, avvia il servent e infine avvia il timer necessario per il meccanismo di failure detection. \fP"
+.ti -1c
+.RI "int \fBcontroller_exit\fP ()"
+.br
+.RI "\fIUccide tutti i thread e chiude il file di logger. \fP"
+.ti -1c
+.RI "int \fBcontroller_init_gui\fP (void)"
+.br
+.RI "\fICostruisce la prima finestra dell'interfaccia grafica, relativa alla creazione e alla ricerca delle \fBchat\fP e avvia l'apposito thread per la gestione degli eventi. \fP"
+.ti -1c
+.RI "\fBu_int8\fP \fBcontroller_search\fP (const char *query)"
+.br
+.RI "\fIControlla che la query inserita sia accettabile, dopo di che invia un pacchetto di tipo SEARCH a tutti gli utenti conosciuti, evitando l'invio ai fake id e a se' stesso. \fP"
+.ti -1c
+.RI "int \fBcontroller_join_flooding\fP (\fBu_int8\fP chat_id)"
+.br
+.RI "\fIInvia un pacchetto di tipo JOIN a tutti gli utenti conosciuti (ammesso che ne conosca qualcuno, evitando l'invio ai fake id e a se' stesso; successivamente, ogni volta che riceve un messaggio di OK da un utente, aggiunge questi alla \fBchat\fP; infine aggiunge anche se' stesso. \fP"
+.ti -1c
+.RI "int \fBcontroller_leave_flooding\fP (\fBu_int8\fP chat_id)"
+.br
+.RI "\fIInvia un pacchetto di tipo LEAVE a tutti gli utenti conosciuti per avvertire che si sta abbandonando la \fBchat\fP (rappresentata dal parametro chat_id) e rimuove questa dall'elenco delle \fBchat\fP a cui si e' connessi, dopo di che attende che tutti abbiano ricevuto il messaggio correttamente. \fP"
+.ti -1c
+.RI "int \fBcontroller_create\fP (const char *title)"
+.br
+.RI "\fIConsente ad un utente di creare una \fBchat\fP purche' abbia un nome che non sia nullo o rappresentato da una stringa vuota. \fP"
+.ti -1c
+.RI "int \fBcontroller_add_user_to_chat\fP (\fBu_int8\fP chat_id, \fBu_int8\fP id)"
+.br
+.RI "\fIChiama la funzione gui_add_user_to_chat controllando prima che l'utente che si sta cercando di inserire abbia tutti i campi inizializzati correttamente. \fP"
+.ti -1c
+.RI "int \fBcontroller_rem_user_from_chat\fP (\fBu_int8\fP chat_id, \fBu_int8\fP id)"
+.br
+.RI "\fIFunzione d'appoggio che rimuove l'utente dalla \fBchat\fP a cui era connesso, sia a livello di gui che a livello di data_manager. \fP"
+.ti -1c
+.RI "int \fBcontroller_add_msg_to_chat\fP (\fBu_int8\fP chat_id, char *msg)"
+.br
+.RI "\fIPermette ad un utente, una volta ricevuto un messaggio da un partecipante alla \fBchat\fP, di aggiornare la text view della \fBchat\fP stessa. \fP"
+.ti -1c
+.RI "int \fBcontroller_add_msg\fP (\fBu_int8\fP sender_id, char *msg)"
+.br
+.RI "\fICome la controller_add_msg_to_chat, ma utilizzata nel caso venga ricevuto un messaggio privato. \fP"
+.in -1c
+.SS "Variabili"
+
+.in +1c
+.ti -1c
+.RI "pthread_t \fBgtk_main_thread\fP"
+.br
+.RI "\fIThis program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version. \fP"
+.in -1c
+.SH "Documentazione delle funzioni"
+.PP 
+.SS "int controller_add_msg (\fBu_int8\fP sender_id, char * msg)"
+.PP
+Come la controller_add_msg_to_chat, ma utilizzata nel caso venga ricevuto un messaggio privato. 
+.PP
+Definizione alla linea 829 del file controller.c.
+.SS "int controller_add_msg_to_chat (\fBu_int8\fP chat_id, char * msg)"
+.PP
+Permette ad un utente, una volta ricevuto un messaggio da un partecipante alla \fBchat\fP, di aggiornare la text view della \fBchat\fP stessa. 
+.PP
+Definizione alla linea 807 del file controller.c.
+.SS "int controller_add_user_to_chat (\fBu_int8\fP chat_id, \fBu_int8\fP id)"
+.PP
+Chiama la funzione gui_add_user_to_chat controllando prima che l'utente che si sta cercando di inserire abbia tutti i campi inizializzati correttamente. 
+.PP
+Nel caso invece l'utente non sia conosciuto e quindi sia inizialmente NULL viene aggiunto alla \fBchat\fP un utente in modo provvisorio. 
+.PP
+Aggiornamento provvisorio della lista degli utenti della \fBchat\fP a livello di GUI
+.PP
+Aggiornamento della lista degli utenti della \fBchat\fP a livello di GUI 
+.PP
+Definizione alla linea 776 del file controller.c.
+.SS "int controller_change_status (\fBu_int1\fP status)"
+.PP
+cambia lo status di un peer tramite l'invio di un PING a tutti gli utenti e controlla che il pacchetto sia stato ricevuto correttamente dagli altri peer 
+.PP
+cambia lo status di un peer tramite l'invio di un PING a tutti gli utenti e controlla che il pacchetto sia stato ricevuto correttamente dagli altri peer
+.PP
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more details.
+.PP
+You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301, USA cambia lo status di un peer tramite l'invio di un PING a tutti gli utenti e controlla che il pacchetto sia stato ricevuto correttamente dagli altri peer 
+.PP
+Cambio dello status dell'utente
+.PP
+preparazione e invio del pacchetto con il nuovo status a tutti gli utenti
+.PP
+fase di attesa della ricezione del messaggio di OK (o di TIMEOUT). 
+.PP
+Definizione alla linea 23 del file controller.c.
+.SS "int controller_check_users_con (GList * users)"
+.PP
+funzione d'appoggio per la \fBcontroller_connect_users()\fP, verifica che il peer con cui si sta cercando di stabilire una connessione sia effettivamente pronto. 
+.PP
+?????????? 
+.PP
+Definizione alla linea 321 del file controller.c.
+.SS "int controller_connect_users (GList * users)"
+.PP
+stabilisce una connessione tra un peer e una lista di utenti di una \fBchat\fP tramite l'avvio del client. 
+.PP
+
+.PP
+Aggiunge alla lista dei non connessi (per ritentare)
+.PP
+connessioni avvenute con successo 
+.PP
+Definizione alla linea 249 del file controller.c.
+.SS "int controller_create (const char * title)"
+.PP
+Consente ad un utente di creare una \fBchat\fP purche' abbia un nome che non sia nullo o rappresentato da una stringa vuota. 
+.PP
+Successivamente viene generato un id da associare alla \fBchat\fP e infine viene aperta la gui relativa alla \fBchat\fP con conseguente aggiunta dell'utente alla lista dei peer partecipanti alla \fBchat\fP. 
+.PP
+Generazione degll'id e aggiunta della \fBchat\fP all'hashtable delle \fBchat\fP
+.PP
+aggiunta dell'utente ai client connessi alla \fBchat\fP
+.PP
+aggiunta della \fBchat\fP alla lista locale delle \fBchat\fP a cui si e' connessi
+.PP
+apertura della finestra della \fBchat\fP e aggiornamento dei dati 
+.PP
+Definizione alla linea 746 del file controller.c.
+.SS "int controller_exit ()"
+.PP
+Uccide tutti i thread e chiude il file di logger. 
+.PP
+Definizione alla linea 452 del file controller.c.
+.SS "int controller_init (const char * filename, const char * cache)"
+.PP
+Legge il file di configurazione, avvia il logger, legge il file \fBinit_data\fP che contiene ip e porta dei peer vicini, avvia il servent e infine avvia il timer necessario per il meccanismo di failure detection. 
+.PP
+
+.PP
+lettura del file di configurazione
+.PP
+avvio del logger
+.PP
+inserimento dei vicini presenti nel file \fBinit_data\fP nella lista
+.PP
+avvio del servente
+.PP
+avvio del timer per il meccanismo di failure detection 
+.PP
+Definizione alla linea 428 del file controller.c.
+.SS "int controller_init_gui (void)"
+.PP
+Costruisce la prima finestra dell'interfaccia grafica, relativa alla creazione e alla ricerca delle \fBchat\fP e avvia l'apposito thread per la gestione degli eventi. 
+.PP
+
+.PP
+--Dichiarazione dei widget della finestra --
+.PP
+-- Creazione della finestra --
+.PP
+-- Creazione del vbox e della chat_list--
+.PP
+-- Creazione dell'handlebox --
+.PP
+-- creazione della menubar --
+.PP
+-- connette la finestra all'evento gui_close_event --
+.PP
+-- Aggiunge il menubar all'handlebox --
+.PP
+-- creazione dell'area della finestra relativa alla ricerca e alla creazione della \fBchat\fP --
+.PP
+-- aggiunta dei componenti handlebox, searchbar e list alla vbox --
+.PP
+-- Aggiunta del vbox alla finestra principale --
+.PP
+-- setting delle dimensioni e del titolo della window --
+.PP
+-- Mostra i widget --
+.PP
+-- Start the GTK event loop -- 
+.PP
+Definizione alla linea 463 del file controller.c.
+.SS "int controller_join_flooding (\fBu_int8\fP chat_id)"
+.PP
+Invia un pacchetto di tipo JOIN a tutti gli utenti conosciuti (ammesso che ne conosca qualcuno, evitando l'invio ai fake id e a se' stesso; successivamente, ogni volta che riceve un messaggio di OK da un utente, aggiunge questi alla \fBchat\fP; infine aggiunge anche se' stesso. 
+.PP
+
+.PP
+Preparazione e invio del pacchetto di JOIN a tutti gli utenti conosciuti
+.PP
+controllo per evitare l'auto-invio del pacchetto e l'invio ai fake id
+.PP
+Se non ci fosse verrebbe riutilizzato l'ID di uno degli eventuali pacchetti SEARCH ritrasmessi
+.PP
+Attesa di ricezione dei pacchetti di OK (o di TIMEOUT).
+.PP
+Aggiunta dell'utente remoto alla \fBchat\fP e conseguente aggiornamento della gui
+.PP
+Aggiunta dell'utente locale alla \fBchat\fP e conseguente aggiornamento della gui 
+.PP
+Definizione alla linea 581 del file controller.c.
+.SS "int controller_leave_all_chat ()"
+.PP
+permette all'utente di abbandonare tutte le \fBchat\fP a cui era connesso 
+.PP
+
+.PP
+Chiamata alla funzione controller_leave_flooding per ogni \fBchat\fP a cui si e' connessi 
+.PP
+Definizione alla linea 224 del file controller.c.
+.SS "int controller_leave_flooding (\fBu_int8\fP chat_id)"
+.PP
+Invia un pacchetto di tipo LEAVE a tutti gli utenti conosciuti per avvertire che si sta abbandonando la \fBchat\fP (rappresentata dal parametro chat_id) e rimuove questa dall'elenco delle \fBchat\fP a cui si e' connessi, dopo di che attende che tutti abbiano ricevuto il messaggio correttamente. 
+.PP
+
+.PP
+Preparazione e invio del pacchetto di LEAVE a tutti gli utenti conosciuti
+.PP
+Attesa di ricezione dei pacchetti di OK (o di TIMEOUT). 
+.PP
+Definizione alla linea 680 del file controller.c.
+.SS "int controller_manipulating_status (\fBu_int8\fP user_id, \fBu_int1\fP status)"
+.PP
+notifica il cambiamento di status di un peer remoto tramite una chiamata alla gui 
+.PP
+
+.PP
+aggiornamento della gui con il nuovo status dell'utente 
+.PP
+Definizione alla linea 64 del file controller.c.
+.SS "int controller_receive_bye ()"
+.PP
+Alla ricezione di una BYE da un utente remoto chiude tutte le conversazioni private aperte (se esistenti) con quello specifico utente. 
+.PP
+.SS "int controller_rem_user_from_chat (\fBu_int8\fP chat_id, \fBu_int8\fP id)"
+.PP
+Funzione d'appoggio che rimuove l'utente dalla \fBchat\fP a cui era connesso, sia a livello di gui che a livello di data_manager. 
+.PP
+Definizione alla linea 797 del file controller.c.
+.SS "\fBu_int8\fP controller_search (const char * query)"
+.PP
+Controlla che la query inserita sia accettabile, dopo di che invia un pacchetto di tipo SEARCH a tutti gli utenti conosciuti, evitando l'invio ai fake id e a se' stesso. 
+.PP
+
+.PP
+Preparazione e invio del pacchetto di SEARCH a tutti gli utenti conosciuti
+.PP
+controllo per evitare l'auto-invio del pacchetto e l'invio ai fake id
+.PP
+Se non ci fosse verrebbe riutilizzato l'ID di uno degli eventuali pacchetti SEARCH ritrasmessi 
+.PP
+Definizione alla linea 522 del file controller.c.
+.SS "int controller_send_bye ()"
+.PP
+permette l'invio di un pacchetto di tipo BYE che notifica a tutti gli utenti conosciuti che si sta abbandonando l'applicazione e controlla che tutti abbiano ricevuto il messaggio correttamente. 
+.PP
+
+.PP
+preparazione e invio del pacchetto di tipo BYE a tutti gli utenti conosciuti
+.PP
+Attesa di ricezione dei pacchetti di OK (o di TIMEOUT) inviati da tutti gli utenti 
+.PP
+Definizione alla linea 353 del file controller.c.
+.SS "int controller_send_chat_users (\fBu_int8\fP chat_id, \fBu_int4\fP msg_len, char * msg)"
+.PP
+invia un messaggio a tutti gli utenti di una \fBchat\fP e controlla che il pacchetto sia stato ricevuto correttamente dagli altri peer. 
+.PP
+
+.PP
+Preparazione del pacchetto di tipo MESSAGE e invio a tutti gli utenti della \fBchat\fP
+.PP
+Attesa di ricezione dei pacchetti di OK (o di TIMEOUT) inviati da tutti gli utenti. 
+.PP
+Definizione alla linea 84 del file controller.c.
+.SS "int controller_send_pm (\fBu_int4\fP msg_len, char * msg, \fBu_int8\fP recv_id)"
+.PP
+invia un messaggio privato ad un utente e si accerta che questo sia stato ricevuto correttamente. 
+.PP
+
+.PP
+Preparazione e invio del messaggio privato all'utente con id pari a recv_id;
+.PP
+Attesa di ricezione del pacchetto di OK (o di TIMEOUT) 
+.PP
+Definizione alla linea 192 del file controller.c.
+.SS "int controller_send_subset_users (\fBu_int8\fP chat_id, \fBu_int4\fP msg_len, char * msg, GList * users)"
+.PP
+invia un messaggio ad un sottoinsieme di utenti di una \fBchat\fP e controlla che il pacchetto sia stato ricevuto correttamente dagli utenti interessati. 
+.PP
+
+.PP
+Preparazione del pacchetto di tipo MESSAGE e invio a tutti gli utenti della lista
+.PP
+Attesa di ricezione dei pacchetti di OK (o di TIMEOUT) inviati dagli utenti della lista. 
+.PP
+Definizione alla linea 145 del file controller.c.
+.SH "Documentazione delle variabili"
+.PP 
+.SS "pthread_t \fBgtk_main_thread\fP"
+.PP
+This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version. 
+.PP
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more details.
+.PP
+You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301, USA 
+.PP
+Definizione alla linea 29 del file controller.h.
+.SH "Autore"
+.PP 
+Generato automaticamente da Doxygen per TorTella a partire dal codice sorgente.

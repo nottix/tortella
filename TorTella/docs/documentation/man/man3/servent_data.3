@@ -1,0 +1,253 @@
+.TH "servent_data" 3 "19 Jun 2008" "Version 0.1" "TorTella" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+servent_data \- Tale struttura dati viene utilizzata per le operazioni di comunicazioni con un servente a cui si e' connessi.  
+
+.PP
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <servent.h>\fP
+.PP
+.SS "Campi"
+
+.in +1c
+.ti -1c
+.RI "\fBu_int8\fP \fBid\fP"
+.br
+.ti -1c
+.RI "GQueue * \fBqueue\fP"
+.br
+.RI "\fIID del peer rappresentato dalla struttura dati. \fP"
+.ti -1c
+.RI "GQueue * \fBres_queue\fP"
+.br
+.RI "\fICoda utilizzata per serializzare le richieste di invio pacchetti. \fP"
+.ti -1c
+.RI "char * \fBip\fP"
+.br
+.RI "\fICoda utilizzata per serializzare le risposte dei pacchetti inviati. \fP"
+.ti -1c
+.RI "\fBu_int4\fP \fBport\fP"
+.br
+.ti -1c
+.RI "\fBu_int1\fP \fBstatus\fP"
+.br
+.ti -1c
+.RI "char * \fBnick\fP"
+.br
+.RI "\fIStato del peer (ONLINE, BUSY, AWAY). \fP"
+.ti -1c
+.RI "time_t \fBtimestamp\fP"
+.br
+.ti -1c
+.RI "GList * \fBchat_list\fP"
+.br
+.RI "\fITimestamp ricezione pacchetto. \fP"
+.ti -1c
+.RI "pthread_rwlock_t \fBrwlock_data\fP"
+.br
+.RI "\fILista delle \fBchat\fP a cui e' connesso il peer. \fP"
+.ti -1c
+.RI "char * \fBmsg\fP"
+.br
+.RI "\fIServe per sincronizzare gli accessi ai dati del peer. \fP"
+.ti -1c
+.RI "\fBu_int4\fP \fBmsg_len\fP"
+.br
+.RI "\fIMessaggio da inviare. \fP"
+.ti -1c
+.RI "GList * \fBchat_res\fP"
+.br
+.RI "\fILunghezza messaggio. \fP"
+.ti -1c
+.RI "\fBu_int1\fP \fBttl\fP"
+.br
+.RI "\fIRisultati della ricerca richiesta dal peer. \fP"
+.ti -1c
+.RI "\fBu_int1\fP \fBhops\fP"
+.br
+.RI "\fIttl da inviare \fP"
+.ti -1c
+.RI "\fBu_int8\fP \fBpacket_id\fP"
+.br
+.RI "\fIhops da inviare \fP"
+.ti -1c
+.RI "\fBu_int4\fP \fBpost_type\fP"
+.br
+.RI "\fIID del pacchetto da ritrasmettere. \fP"
+.ti -1c
+.RI "\fBu_int1\fP \fBis_online\fP"
+.br
+.RI "\fITipo di pacchetto da inviare. \fP"
+.ti -1c
+.RI "\fBu_int8\fP \fBuser_id_req\fP"
+.br
+.RI "\fIFlag che indica se il peer e' pronto a ricevere pacchetti (viene impostato alla ricezione del primo PING): 1 e 0. \fP"
+.ti -1c
+.RI "\fBu_int8\fP \fBchat_id_req\fP"
+.br
+.RI "\fIUtente che si vuole connettere alla \fBchat\fP con id: chat_id_req. \fP"
+.ti -1c
+.RI "\fBu_int4\fP \fBport_req\fP"
+.br
+.RI "\fIChat a cui connettersi o creare. \fP"
+.ti -1c
+.RI "char * \fBnick_req\fP"
+.br
+.RI "\fIPORT del join da rinviare. \fP"
+.ti -1c
+.RI "char * \fBip_req\fP"
+.br
+.RI "\fINICK del join da rinviare. \fP"
+.ti -1c
+.RI "\fBu_int1\fP \fBstatus_req\fP"
+.br
+.RI "\fIIP del join da rinviare. \fP"
+.ti -1c
+.RI "char * \fBtitle\fP"
+.br
+.RI "\fIStatus per il redirect del join. \fP"
+.ti -1c
+.RI "\fBu_int4\fP \fBtitle_len\fP"
+.br
+.RI "\fITitolo \fBchat\fP da creare o ricercare. \fP"
+.in -1c
+.SH "Descrizione dettagliata"
+.PP 
+Tale struttura dati viene utilizzata per le operazioni di comunicazioni con un servente a cui si e' connessi. 
+
+Ne e' presente una anche per il peer locale 
+.PP
+Definizione alla linea 61 del file servent.h.
+.SH "Documentazione dei campi"
+.PP 
+.SS "\fBu_int8\fP \fBservent_data::id\fP"
+.PP
+Definizione alla linea 62 del file servent.h.
+.SS "GQueue* \fBservent_data::queue\fP"
+.PP
+ID del peer rappresentato dalla struttura dati. 
+.PP
+Definizione alla linea 63 del file servent.h.
+.SS "GQueue* \fBservent_data::res_queue\fP"
+.PP
+Coda utilizzata per serializzare le richieste di invio pacchetti. 
+.PP
+Definizione alla linea 64 del file servent.h.
+.SS "char* \fBservent_data::ip\fP"
+.PP
+Coda utilizzata per serializzare le risposte dei pacchetti inviati. 
+.PP
+Definizione alla linea 65 del file servent.h.
+.SS "\fBu_int4\fP \fBservent_data::port\fP"
+.PP
+Definizione alla linea 66 del file servent.h.
+.SS "\fBu_int1\fP \fBservent_data::status\fP"
+.PP
+Definizione alla linea 67 del file servent.h.
+.SS "char* \fBservent_data::nick\fP"
+.PP
+Stato del peer (ONLINE, BUSY, AWAY). 
+.PP
+Definizione alla linea 68 del file servent.h.
+.SS "time_t \fBservent_data::timestamp\fP"
+.PP
+Definizione alla linea 69 del file servent.h.
+.SS "GList* \fBservent_data::chat_list\fP"
+.PP
+Timestamp ricezione pacchetto. 
+.PP
+Definizione alla linea 71 del file servent.h.
+.SS "pthread_rwlock_t \fBservent_data::rwlock_data\fP"
+.PP
+Lista delle \fBchat\fP a cui e' connesso il peer. 
+.PP
+Definizione alla linea 73 del file servent.h.
+.SS "char* \fBservent_data::msg\fP"
+.PP
+Serve per sincronizzare gli accessi ai dati del peer. 
+.PP
+Definizione alla linea 75 del file servent.h.
+.SS "\fBu_int4\fP \fBservent_data::msg_len\fP"
+.PP
+Messaggio da inviare. 
+.PP
+Definizione alla linea 76 del file servent.h.
+.SS "GList* \fBservent_data::chat_res\fP"
+.PP
+Lunghezza messaggio. 
+.PP
+Definizione alla linea 78 del file servent.h.
+.SS "\fBu_int1\fP \fBservent_data::ttl\fP"
+.PP
+Risultati della ricerca richiesta dal peer. 
+.PP
+Definizione alla linea 79 del file servent.h.
+.SS "\fBu_int1\fP \fBservent_data::hops\fP"
+.PP
+ttl da inviare 
+.PP
+Definizione alla linea 80 del file servent.h.
+.SS "\fBu_int8\fP \fBservent_data::packet_id\fP"
+.PP
+hops da inviare 
+.PP
+Definizione alla linea 81 del file servent.h.
+.SS "\fBu_int4\fP \fBservent_data::post_type\fP"
+.PP
+ID del pacchetto da ritrasmettere. 
+.PP
+Definizione alla linea 83 del file servent.h.
+.SS "\fBu_int1\fP \fBservent_data::is_online\fP"
+.PP
+Tipo di pacchetto da inviare. 
+.PP
+Definizione alla linea 84 del file servent.h.
+.SS "\fBu_int8\fP \fBservent_data::user_id_req\fP"
+.PP
+Flag che indica se il peer e' pronto a ricevere pacchetti (viene impostato alla ricezione del primo PING): 1 e 0. 
+.PP
+FLOODING 
+.PP
+Definizione alla linea 87 del file servent.h.
+.SS "\fBu_int8\fP \fBservent_data::chat_id_req\fP"
+.PP
+Utente che si vuole connettere alla \fBchat\fP con id: chat_id_req. 
+.PP
+Definizione alla linea 88 del file servent.h.
+.SS "\fBu_int4\fP \fBservent_data::port_req\fP"
+.PP
+Chat a cui connettersi o creare. 
+.PP
+Definizione alla linea 89 del file servent.h.
+.SS "char* \fBservent_data::nick_req\fP"
+.PP
+PORT del join da rinviare. 
+.PP
+Definizione alla linea 90 del file servent.h.
+.SS "char* \fBservent_data::ip_req\fP"
+.PP
+NICK del join da rinviare. 
+.PP
+Definizione alla linea 91 del file servent.h.
+.SS "\fBu_int1\fP \fBservent_data::status_req\fP"
+.PP
+IP del join da rinviare. 
+.PP
+Definizione alla linea 92 del file servent.h.
+.SS "char* \fBservent_data::title\fP"
+.PP
+Status per il redirect del join. 
+.PP
+Definizione alla linea 93 del file servent.h.
+.SS "\fBu_int4\fP \fBservent_data::title_len\fP"
+.PP
+Titolo \fBchat\fP da creare o ricercare. 
+.PP
+Definizione alla linea 94 del file servent.h.
+
+.SH "Autore"
+.PP 
+Generato automaticamente da Doxygen per TorTella a partire dal codice sorgente.

@@ -1,0 +1,50 @@
+.TH "tortella_packet" 3 "19 Jun 2008" "Version 0.1" "TorTella" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+tortella_packet \- Tortella Packet +--------+------------+------+ | Header | Descriptor | Data | +--------+------------+------+.  
+
+.PP
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <tortellaprotocol.h>\fP
+.PP
+.SS "Campi"
+
+.in +1c
+.ti -1c
+.RI "\fBtortella_header\fP * \fBheader\fP"
+.br
+.ti -1c
+.RI "char * \fBdesc\fP"
+.br
+.ti -1c
+.RI "char * \fBdata\fP"
+.br
+.RI "\fIdesc_len contenuta nell'header del pacchetto \fP"
+.in -1c
+.SH "Descrizione dettagliata"
+.PP 
+Tortella Packet +--------+------------+------+ | Header | Descriptor | Data | +--------+------------+------+. 
+
+struttua del pacchetto Tortella. Nella struttura viene memorizzato il puntatore relativo al suo header, il descrittore di una delle possibili strutture dati(\fBjoin_desc\fP,\fBsearch_desc\fP,..) 
+.PP
+Definizione alla linea 220 del file tortellaprotocol.h.
+.SH "Documentazione dei campi"
+.PP 
+.SS "\fBtortella_header\fP* \fBtortella_packet::header\fP"
+.PP
+Definizione alla linea 221 del file tortellaprotocol.h.
+.SS "char* \fBtortella_packet::desc\fP"
+.PP
+Definizione alla linea 222 del file tortellaprotocol.h.
+.SS "char* \fBtortella_packet::data\fP"
+.PP
+desc_len contenuta nell'header del pacchetto 
+.PP
+Definizione alla linea 223 del file tortellaprotocol.h.
+
+.SH "Autore"
+.PP 
+Generato automaticamente da Doxygen per TorTella a partire dal codice sorgente.

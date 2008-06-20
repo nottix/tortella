@@ -1,0 +1,124 @@
+.TH "/media/store/Informatica/C_C++/Projects_Linux/TorTella_gnu/src/routemanager.h" 3 "19 Jun 2008" "Version 0.1" "TorTella" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+/media/store/Informatica/C_C++/Projects_Linux/TorTella_gnu/src/routemanager.h \- 
+.SH SYNOPSIS
+.br
+.PP
+\fC#include 'common.h'\fP
+.br
+\fC#include 'packetmanager.h'\fP
+.br
+\fC#include 'utils.h'\fP
+.br
+\fC#include 'datamanager.h'\fP
+.br
+\fC#include 'init.h'\fP
+.br
+\fC#include 'routemanager.h'\fP
+.br
+\fC#include <pthread.h>\fP
+.br
+\fC#include <signal.h>\fP
+.br
+\fC#include <unistd.h>\fP
+.br
+\fC#include <glib.h>\fP
+.br
+
+.SS "Strutture dati"
+
+.in +1c
+.ti -1c
+.RI "struct \fBroute_entry\fP"
+.br
+.RI "\fIThis program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version. \fP"
+.in -1c
+.SS "Ridefinizioni di tipo (typedef)"
+
+.in +1c
+.ti -1c
+.RI "typedef struct \fBroute_entry\fP \fBroute_entry\fP"
+.br
+.in -1c
+.SS "Funzioni"
+
+.in +1c
+.ti -1c
+.RI "int \fBadd_route_entry\fP (\fBu_int8\fP packet_id, \fBu_int8\fP sender_id, \fBu_int8\fP recv_id)"
+.br
+.RI "\fI-------------------------------- \fP"
+.ti -1c
+.RI "int \fBdel_route_entry\fP (\fBu_int8\fP id)"
+.br
+.RI "\fIDecrementa il contatore della regola. \fP"
+.ti -1c
+.RI "\fBroute_entry\fP * \fBget_route_entry\fP (\fBu_int8\fP packet_id)"
+.br
+.RI "\fIRitorna una la regola di routing associata all'id del pacchetto. \fP"
+.ti -1c
+.RI "\fBu_int8\fP \fBget_iddest_route_entry\fP (\fBu_int8\fP id)"
+.br
+.RI "\fIRitorna l'id destinazione associato all'id del pacchetto. \fP"
+.in -1c
+.SS "Variabili"
+
+.in +1c
+.ti -1c
+.RI "static GHashTable * \fBroute_hashtable\fP = NULL"
+.br
+.in -1c
+.SH "Documentazione delle ridefinizioni di tipo (typedef)"
+.PP 
+.SS "typedef struct \fBroute_entry\fP \fBroute_entry\fP"
+.PP
+Definizione alla linea 36 del file routemanager.h.
+.SH "Documentazione delle funzioni"
+.PP 
+.SS "int add_route_entry (\fBu_int8\fP packet_id, \fBu_int8\fP sender_id, \fBu_int8\fP recv_id)"
+.PP
+-------------------------------- 
+.PP
+Aggiunge una regola di routing alla tabella di routing. Se la regola e' gia' presente incrementa il contatore associato alla regola.
+.PP
+--------------------------------
+.PP
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Library General Public License for more details.
+.PP
+You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301, USA Aggiunge una regola di routing alla tabella di routing. Se la regola e' gia' presente incrementa il contatore associato alla regola. 
+.PP
+Alloca l'hashtable solo la prima volta
+.PP
+Incrementa il contatore se la regola e' gia' presente
+.PP
+Aggiunge una nuova regola 
+.PP
+Definizione alla linea 24 del file routemanager.c.
+.SS "int del_route_entry (\fBu_int8\fP id)"
+.PP
+Decrementa il contatore della regola. 
+.PP
+Elimina la regola se il contatore e' 0 
+.PP
+Decrementa la regola di routing 
+.PP
+Definizione alla linea 48 del file routemanager.c.
+.SS "\fBu_int8\fP get_iddest_route_entry (\fBu_int8\fP id)"
+.PP
+Ritorna l'id destinazione associato all'id del pacchetto. 
+.PP
+Definizione alla linea 81 del file routemanager.c.
+.SS "\fBroute_entry\fP* get_route_entry (\fBu_int8\fP packet_id)"
+.PP
+Ritorna una la regola di routing associata all'id del pacchetto. 
+.PP
+Definizione alla linea 68 del file routemanager.c.
+.SH "Documentazione delle variabili"
+.PP 
+.SS "GHashTable* \fBroute_hashtable\fP = NULL\fC [static]\fP"
+.PP
+Definizione alla linea 38 del file routemanager.h.
+.SH "Autore"
+.PP 
+Generato automaticamente da Doxygen per TorTella a partire dal codice sorgente.

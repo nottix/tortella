@@ -1,0 +1,51 @@
+.TH "listhits_desc" 3 "19 Jun 2008" "Version 0.1" "TorTella" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+listhits_desc \- struttura dati per il pacchetto di risposta al LIST, in cui sono salvati gli stessi dati contenuti nella struttura \fBlist_desc\fP con aggiunta del numero di utenti connessi alla \fBchat\fP, di cui era stata richiesta la lista degli users  
+
+.PP
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <tortellaprotocol.h>\fP
+.PP
+.SS "Campi"
+
+.in +1c
+.ti -1c
+.RI "\fBu_int4\fP \fBuser_num\fP"
+.br
+.ti -1c
+.RI "\fBu_int1\fP \fBttl\fP"
+.br
+.ti -1c
+.RI "\fBu_int1\fP \fBhops\fP"
+.br
+.ti -1c
+.RI "\fBu_int8\fP \fBchat_id\fP"
+.br
+.in -1c
+.SH "Descrizione dettagliata"
+.PP 
+struttura dati per il pacchetto di risposta al LIST, in cui sono salvati gli stessi dati contenuti nella struttura \fBlist_desc\fP con aggiunta del numero di utenti connessi alla \fBchat\fP, di cui era stata richiesta la lista degli users 
+.PP
+Definizione alla linea 106 del file tortellaprotocol.h.
+.SH "Documentazione dei campi"
+.PP 
+.SS "\fBu_int4\fP \fBlisthits_desc::user_num\fP"
+.PP
+Definizione alla linea 107 del file tortellaprotocol.h.
+.SS "\fBu_int1\fP \fBlisthits_desc::ttl\fP"
+.PP
+Definizione alla linea 108 del file tortellaprotocol.h.
+.SS "\fBu_int1\fP \fBlisthits_desc::hops\fP"
+.PP
+Definizione alla linea 109 del file tortellaprotocol.h.
+.SS "\fBu_int8\fP \fBlisthits_desc::chat_id\fP"
+.PP
+Definizione alla linea 110 del file tortellaprotocol.h.
+
+.SH "Autore"
+.PP 
+Generato automaticamente da Doxygen per TorTella a partire dal codice sorgente.
