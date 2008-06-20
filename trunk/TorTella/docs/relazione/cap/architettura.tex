@@ -362,14 +362,14 @@ void *servent_connect(void *parm)
 \end{lstlisting}
 
 \paragraph{servent\_listen()}
-La parte \textit{server} di un peer è gestita da due funzioni (o meglio thread): \texttt{servent\_listen()} e \texttt{servent\_respond()}. La prima funzione in questione è la listen, la quale viene avviata una sola volta per ogni peer. In particolare, questa funzione non fa altro che accettare le richieste di connessione iniziali, il che si verifica quando un peer remoto invia un pacchetto di PING con fake ID al peer con la listen attiva. Tale listen, per ogni richiesta ricevuta, lancia un nuovo \textit{servent thread} gestito da \texttt{servent\_respond()}.
+La parte \textit{server} di un peer è gestita da due funzioni (o meglio thread): \texttt{servent\_listen()} e \texttt{servent\_respond()}. La prima funzione in questione è la listen, la quale viene avviata una sola volta per ogni peer. In particolare, questa funzione non fa altro che accettare le richieste di connessione iniziali, il che si verifica quando un peer remoto invia un pacchetto di PING con fake ID al peer con la listen attiva. Tale listen, per ogni richiesta ricevuta, lancia un nuovo \textit{servent thread} che viene gestito dal thread \texttt{servent\_respond()}.
 \begin{lstlisting}
 void *servent_listen(void *parm)
 \end{lstlisting}
 \paragraph{servent\_respond()}
 La \texttt{servent\_respond()} è il cuore del sistema e consente la ricezione di tutti i pacchetti inviati da uno specifico peer. Questi sono i passi generici eseguiti:
 \begin{enumerate}
-\item Il thread \texttt{servent\_listen()} lancia un nuovo thread gestito da \texttt{servent\_respond()};
+\item Il thread \texttt{servent\_listen()} lancia un nuovo thread che gestisce la funzione \texttt{servent\_respond()};
 \item La funzione in questione entra in un ciclo while infinito;
 \item Attende la ricezione di un pacchetto HTTP sulla porta specificata;
 \item Pacchetto HTTP con dati TorTella ricevuto;
@@ -397,7 +397,7 @@ void servent_send_packet(servent_data *sd) {
 		g_queue_push_tail(sd->queue, (gpointer)sd);
 }
 \end{lstlisting}
-Come si può notare dal codice, la funzione prede come parametro una \texttt{servent\_data}. In realtà viene passata una copia della struttura originale utilizzata per condividere memoria; in questo modo si evitano richieste sovrapposte con eventuale invio di pacchetti errati. Se non si fosse attuata tale tecnica si sarebbe potuto incorrere in errore nel seguente caso: Il peer locale chiede di inviare un pacchetto di tipo Ping ad uno specifico servente; il peer locale chiede, inoltre, di inviare un pacchetto di tipo Join allo stesso servente; la \texttt{servent\_connect()} che riceve la richiesta di invio potrebbe inviare il pacchetto Ping con i dati del Join. Con il metodo adottato si evitano problemi di questo genere.
+Come si può notare dal codice, la funzione prede come parametro una struttura dati \texttt{servent\_data}. In realtà viene passata una copia della struttura originale utilizzata per condividere memoria; in questo modo si evitano richieste sovrapposte con eventuale invio di pacchetti errati. Se non si fosse attuata tale tecnica si sarebbe potuto incorrere in errore nel seguente caso: Il peer locale chiede di inviare un pacchetto di tipo Ping ad uno specifico servente; il peer locale chiede, inoltre, di inviare un pacchetto di tipo Join allo stesso servente; la \texttt{servent\_connect()} che riceve la richiesta di invio potrebbe inviare il pacchetto Ping con i dati del Join. Con il metodo adottato si evitano problemi di questo genere.
 \paragraph{servent\_pop\_queue()}
 Quest'altra funzione viene utilizzata dai \textit{client thread} per riceve le richieste di invio pacchetti.
 \begin{lstlisting}[frame=trBL]
@@ -414,9 +414,9 @@ servent_data *servent_pop_queue(servent_data *sd) {
 	return servent;
 }
 \end{lstlisting}
-Viene effettuata una operazione di \textit{pop} sulla coda ad intervalli di tempo precisi, in particolare ogni \texttt{100000} microsecondi. Questa operazione di \textit{polling} potrebbe essere migliorata aggiungendo il supporto ai segnali, ovvero basterebbe aggiungere al posto della \texttt{usleep()} una operazione di \texttt{pthread\_cond\_timedwait()} la quale si sarebbe sbloccata alla ricezione di un segnale o allo scadere del timer. Con quest'ultimo metodo si avrebbe un leggero incremento della prestazioni. Sono state realizzate push e pop anche per la coda dei messaggi di risposta, ma non verranno riportati essendo molto simili (\texttt{servent\_append\_response()} e \texttt{servent\_pop\_queue()}).
+Viene effettuata una operazione di \textit{pop} sulla coda ad intervalli di tempo precisi, in particolare ogni \texttt{100000} microsecondi. Il \textit{polling} potrebbe essere migliorato aggiungendo il supporto ai segnali, infatti basterebbe aggiungere al posto della \texttt{usleep()} la \texttt{pthread\_cond\_timedwait()} la quale si sarebbe sbloccata alla ricezione di un segnale o allo scadere del timer. Con quest'ultimo metodo si avrebbe un leggero incremento della prestazioni. Sono state realizzate push e pop anche per la coda dei messaggi di risposta, ma non verranno riportati essendo molto simili (ovvero \texttt{servent\_append\_response()} e \texttt{servent\_pop\_queue()}).
 \paragraph{timer\_thread()}
-Thread utilizzato per gestire il meccanismo di failure detection e per pulire la lista dei pacchetti ricevuti. L'intervallo di tempo è impostato nel file di configurazione. Tale funzione fa un elevato uso delle routine appena presentate \texttt{servent\_send\_packet()}, \texttt{servent\_pop\_queue()}, \texttt{servent\_append\_response()} e \texttt{servent\_pop\_queue()}.
+Thread utilizzato per gestire il meccanismo di failure detection e per pulire la lista dei pacchetti ricevuti. L'intervallo di tempo è impostato nel file di configurazione. Tale funzione fa un elevato uso delle routine appena presentate.
 \begin{lstlisting}[frame=trBL]
 void *servent_timer(void *parm)
 \end{lstlisting}
@@ -577,7 +577,7 @@ int controller_join_flooding (u_int8 chat_id)
 int controller_leave_flooding(u_int8 chat_id)
 \end{lstlisting}
 A tal proposito si presenta la funzione \texttt{send\_join\_packet()} come esempio:
-\paragraph{send\_join\_packet}
+\paragraph{send\_join\_packet()}
 Il pacchetto di JOIN viene inviato in flooding, quindi per ogni peer conosciuto vengono effettuati i seguenti passi:
 \begin{enumerate}
 \item recupero delle informazioni associate all'utente a cui si vuole inviare il pacchetto;
@@ -588,10 +588,16 @@ Il pacchetto di JOIN viene inviato in flooding, quindi per ogni peer conosciuto 
 \item attesa della ricezione del messaggio di ok da parte del peer remoto
 \item aggiornamento dei dati e della GUI.
 \end{enumerate}
-\begin{lstlisting}
-int controller_join_flooding(u_int8 chat_id)
-\end{lstlisting}
-\section{GUI e Utils}
+\paragraph{controller\_send\_bye()}
+Tale funzione viene chiamata dall'applicazione quando viene richiesta la chiusura, in particolare effettua le seguenti operazioni:
+\begin{enumerate}
+\item Invia il LEAVE a tutti i peer vicini per tutte le chat a cui è connesso;
+\item Attende le risposte;
+\item Invia il BYE a tutti i peer vicini;
+\item Attende le risposte;
+\item Termina il processo.
+\end{enumerate}
+\section{Utils}
 Il modulo Utils contiene la funzione che viene utilizzata per la generazione degli ID, ovvero:
 \begin{lstlisting}[]
 u_int8 generate_id(void) {
@@ -607,4 +613,9 @@ u_int8 generate_id(void) {
 }
 \end{lstlisting}
 La generazione dell'identificativo univoco dei pacchetti e degli utenti, di tipo \texttt{unsigned long long}, avviene tramite una combinazione del \textit{MAC} della macchina, il valore generato dalla funzione pseudo-randomica \texttt{random()}\index{random()}, e dall'ID iniziale presente nel file di configurazione di ogni peer.
-Essendo il modulo GUI di poca importanza relativamente al resto, si rimanda la lettura del codice in appendice \ref{appendice}.
+\section{Conf Manager}
+Tale modulo consente la gestione del file di configurazione, consentendo di recuperare i valori desiderati tramite un insieme di semplici funzioni.
+\section{Common}
+Contiene le definizioni dei tipi di dati creati appositamente per \textit{TorTella}.
+\section{GUI}
+Essendo il modulo GUI di poca importanza relativamente al resto, si rimanda la lettura del codice in appendice.
