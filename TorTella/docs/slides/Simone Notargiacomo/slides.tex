@@ -50,7 +50,7 @@
 				\frametitle{Definizione header}
 				\begin{itemize}
 					\item Utilizzati header protocollo versione "1.1".
-					\item Realizzati pacchetti POST e GET.
+					\item Realizzati metodi POST e GET.
 					\begin{itemize}
 						\item I POST trasferiscono tutti i pacchetti TorTella.
 						\item I GET servono per richiedere il trasferimento di file.
@@ -87,7 +87,7 @@
 				\frametitle{Motivazioni}
 				\begin{itemize}
 					\item Utilizzati header strettamente necessari al protocollo.
-					\item Scelto pacchetto POST perchè consigliato per l'invio di dati.
+					\item Scelto metodo POST perchè consigliato per l'invio di dati.
 					\item \textit{Keep-Alive} per consentire una connessione persistente fra i peer.
 					\item Vari tipi di pacchetti di risposta per segnalare l'avvenuto invio o eventuali errori.
 				\end{itemize}
@@ -125,7 +125,7 @@
 	   				\item Necessario reperire gli indirizzi di alcuni peer.
 	   					\begin{itemize}
 	   						\item Passaparola tra utenti.
-	   						\item Uso di un server centralizzato (non imlementato).
+	   						\item Uso di un server centralizzato (non implementato).
 	   					\end{itemize}
 	   				\item Connessione ai peer attivi della lista.
 	   				\item Per ogni peer si lancia un nuovo client thread.
